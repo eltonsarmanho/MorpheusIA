@@ -336,9 +336,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Integration tests (FastAPI `TestClient`, `ConversationService` wired to `FakeLLMClient` via dependency override - never the real API) cover: happy-path `200` with a reply; empty message `422`; ≥1000-char message `422`; rate limit tripped `429`; `FakeLLMClient` configured to raise `LLMUnavailableError` still returns `200` with the fallback reply
-- [ ] Each outcome is logged with the session id (asserted via a caplog/log-capture test)
-- [ ] `cd backend && pytest -q` passes; test count recorded
+- [x] Integration tests (FastAPI `TestClient`, `ConversationService` wired to `FakeLLMClient` via dependency override - never the real API) cover: happy-path `200` with a reply; empty message `422`; ≥1000-char message `422`; rate limit tripped `429`; `FakeLLMClient` configured to raise `LLMUnavailableError` still returns `200` with the fallback reply
+- [x] Each outcome is logged with the session id (asserted via a caplog/log-capture test)
+- [x] `cd backend && pytest -q` passes; test count recorded (38 passed)
 
 **Tests**: integration
 **Gate**: full
