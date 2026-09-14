@@ -216,10 +216,10 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `save_lead_info` schema requires `category` (enum of 5 values) and `need_summary`; contact fields are optional
-- [ ] `build_system_prompt(contact_already_asked: bool)` returns a prompt that instructs "ask once" and omits the ask when `contact_already_asked=True`
-- [ ] Unit tests assert the schema's required fields/enum values and that the prompt text changes correctly with the `contact_already_asked` flag
-- [ ] `cd backend && pytest tests/unit -q` passes; test count recorded
+- [x] `save_lead_info` schema requires `category` (enum of 5 values) and `need_summary`; contact fields are optional
+- [x] `build_system_prompt(contact_already_asked: bool)` returns a prompt that instructs "ask once" and omits the ask when `contact_already_asked=True`
+- [x] Unit tests assert the schema's required fields/enum values and that the prompt text changes correctly with the `contact_already_asked` flag
+- [x] `cd backend && pytest tests/unit -q` passes; test count recorded (8 passed)
 
 **Tests**: unit
 **Gate**: quick
