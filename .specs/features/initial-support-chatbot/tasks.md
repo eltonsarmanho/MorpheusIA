@@ -192,9 +192,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `FakeLLMClient` can be configured to return a plain-text reply, a tool call, or raise `LLMUnavailableError`, per call
-- [ ] Unit tests cover all three configured behaviors
-- [ ] `cd backend && pytest tests/unit -q` passes; test count recorded
+- [x] `FakeLLMClient` can be configured to return a plain-text reply, a tool call, or raise `LLMUnavailableError`, per call
+- [x] Unit tests cover all three configured behaviors
+- [x] `cd backend && pytest tests/unit -q` passes; test count recorded (3 passed)
 
 **Tests**: unit
 **Gate**: quick
