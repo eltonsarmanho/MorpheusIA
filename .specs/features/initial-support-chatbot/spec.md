@@ -115,29 +115,29 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CHAT-01 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-02 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-03 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-04 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-05 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-06 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-07 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-08 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-09 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-10 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-11 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-12 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| CHAT-13 | P1: Chat, understand, categorize, and hand off | Design | Pending |
-| LEAD-01 | P2: Lead retrieval for the sales team | Design | Pending |
-| LEAD-02 | P2: Lead retrieval for the sales team | Design | Pending |
-| OBS-01 | P3: Session continuity and basic observability | Design | Pending |
-| OBS-02 | P3: Session continuity and basic observability | Design | Pending |
+| CHAT-01 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-02 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-03 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-04 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-05 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-06 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-07 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-10 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-11 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-12 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-13 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| LEAD-01 | P2: Lead retrieval for the sales team | Tasks | In Tasks |
+| LEAD-02 | P2: Lead retrieval for the sales team | Tasks | In Tasks |
+| OBS-01 | P3: Session continuity and basic observability | Tasks | In Tasks |
+| OBS-02 | P3: Session continuity and basic observability | Tasks | In Tasks |
 
 **ID format:** `[CATEGORY]-[NUMBER]` (CHAT = P1 chat/lead-capture behavior, LEAD = P2 lead-retrieval API, OBS = P3 continuity/observability)
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 17 total, 0 mapped to tasks, 17 unmapped ⚠️ (Tasks phase not yet run)
+**Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅ (see `tasks.md` Task Breakdown)
 
 ---
 
