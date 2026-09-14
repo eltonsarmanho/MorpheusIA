@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "title": "Morpheus IA | Desperte o Potencial do Seu Negócio com IA",
+    "description": "Soluções inteligentes que transformam operações manuais em processos escaláveis."
+  },
+  "nav": {
+    "skip": "Pular para o conteúdo",
+    "awaken": "Desperte",
+    "create": "Crie Conosco",
+    "solutions": "Soluções com IA",
+    "contact": "Contate",
+    "cta": "Morpheus IA"
+  },
+  "hero": {
+    "title": "Desperte o potencial do seu negócio com <span class=\"title-accent\">IA</span>",
+    "subtitle": "Soluções inteligentes que transformam operações manuais em processos escaláveis.",
+    "pillRed": "Automatizar com IA",
+    "pillBlue": "Continuar como está"
+  },
+  "cost": {
+    "title": "O custo de continuar manual",
+    "card1": {
+      "title": "Gasto de Tempo",
+      "desc": "Processos repetitivos consomem horas que poderiam ser dedicadas ao crescimento."
+    },
+    "card2": {
+      "title": "Falhas nos Processos",
+      "desc": "Cada etapa manual é uma oportunidade de falha, retrabalho e insatisfação."
+    },
+    "card3": {
+      "title": "Crescimento Limitado",
+      "desc": "Sem automação, a demanda cresce e a operação não escala."
+    }
+  },
+  "process": {
+    "title": "Co-Design de Soluções",
+    "subtitle": "Do diagnóstico à implantação, em quatro etapas",
+    "step1": { "title": "Diagnóstico", "desc": "Análise conjunta das necessidades de automação do seu negócio." },
+    "step2": { "title": "Viabilidade", "desc": "Análise por um Comitê Técnico especializado em IA." },
+    "step3": { "title": "Desenvolvimento", "desc": "Solução de IA sob medida para o seu negócio, com validações parciais." },
+    "step4": { "title": "Implantação", "desc": "Integração, treinamento de usuários e suporte pós-entrega." }
+  },
+  "solutions": {
+    "title": "Soluções Automatizadas com <span class=\"title-accent\">IA</span>",
+    "subtitle": "Portfólio de soluções já desenvolvidas pela Morpheus IA",
+    "card1": {
+      "title": "Gestão Inteligente de Empresas",
+      "desc": "Automação administrativa de processos.",
+      "benefit1": "Cadastro e gestão automatizados",
+      "benefit2": "Controle de produtos e serviços com IA",
+      "benefit3": "Comunicação com clientes via WhatsApp",
+      "cta": "Agendar demo →"
+    },
+    "card2": {
+      "title": "Atendimento no WhatsApp com IA",
+      "desc": "Bot inteligente com pagamentos integrados.",
+      "benefit1": "Respostas automáticas 24/7",
+      "benefit2": "Integração com gateway de pagamento",
+      "benefit3": "Triagem e roteamento inteligente",
+      "cta": "Ver demonstração →"
+    },
+    "card3": {
+      "title": "Análise de Documentos Técnicos",
+      "desc": "Processamento automatizado de documentos.",
+      "benefit1": "Extração de dados por IA",
+      "benefit2": "Validação automática de consistência",
+      "benefit3": "Relatório em minutos, não dias",
+      "cta": "Solicitar análise →"
+    },
+    "card4": {
+      "title": "Gerador de Conteúdos",
+      "desc": "Concursos, Escolas e Acessibilidade.",
+      "benefit1": "Questões personalizadas para concursos",
+      "benefit2": "Geração de questões alinhadas à BNCC",
+      "benefit3": "Acessibilidade de conteúdo para neurodivergentes",
+      "cta": "Criar questões →"
+    }
+  },
+  "value": {
+    "title": "Por que a Morpheus <span class=\"title-accent\">IA</span>",
+    "card1": { "title": "Operação Inteligente", "desc": "IA integrada à operação do seu negócio, eliminando gargalos e reduzindo custos." },
+    "card2": { "title": "Soluções Escaláveis", "desc": "Arquitetura de IA criada para crescer com você, do MEI à média empresa." },
+    "card3": { "title": "Automatização com IA", "desc": "Suporte automatizado ponta a ponta: da primeira conversa à nota fiscal emitida." }
+  },
+  "contact": {
+    "title": "Desperte seu negócio",
+    "subtitle": "Atendimento automatizado com IA, resposta em segundos.",
+    "cta": "Iniciar conversa com Morpheus"
+  },
+  "about": {
+    "title": "Sobre a Morpheus <span class=\"title-accent\">IA</span>",
+    "p1": "Na Morpheus IA, usamos inteligência artificial na operacionalização do seu negócio, com foco em soluções escaláveis.",
+    "p2": "Nosso comitê técnico, formado por especialistas em desenvolvimento com IA, engenharia de software e proteção de dados, avalia cada projeto antes da execução, garantindo viabilidade técnica e alinhamento com seus objetivos."
+  },
+  "footer": {
+    "description": "Soluções inteligentes para negócios que despertaram para a era da IA.",
+    "linksTitle": "Navegação",
+    "home": "Início",
+    "solutions": "Soluções",
+    "contact": "Contato",
+    "contactTitle": "Contato",
+    "location1": "Belém, PA",
+    "location2": "Brasília, DF",
+    "whatsapp": "WhatsApp",
+    "morpheusia": "Morpheus IA",
+    "rights": "Todos os direitos reservados."
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "title": "Morpheus IA | Awaken Your Business Potential with AI",
+    "description": "Intelligent solutions that transform manual operations into scalable processes."
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "awaken": "Awaken",
+    "create": "Create With Us",
+    "solutions": "AI Solutions",
+    "contact": "Contact",
+    "cta": "Morpheus IA"
+  },
+  "hero": {
+    "title": "Awaken your business potential with <span class=\"title-accent\">AI</span>",
+    "subtitle": "Intelligent solutions that transform manual operations into scalable processes.",
+    "pillRed": "Automate with AI",
+    "pillBlue": "Stay as you are"
+  },
+  "cost": {
+    "title": "The cost of staying manual",
+    "card1": {
+      "title": "Time Waste",
+      "desc": "Repetitive processes consume hours that could be devoted to growth."
+    },
+    "card2": {
+      "title": "Process Failures",
+      "desc": "Every manual step is an opportunity for failure, rework, and dissatisfaction."
+    },
+    "card3": {
+      "title": "Limited Growth",
+      "desc": "Without automation, demand grows and operations don't scale."
+    }
+  },
+  "process": {
+    "title": "Solution Co-Design",
+    "subtitle": "From diagnosis to deployment, in four steps",
+    "step1": { "title": "Diagnosis", "desc": "Joint analysis of your business automation needs." },
+    "step2": { "title": "Feasibility", "desc": "Analysis by a specialized AI Technical Committee." },
+    "step3": { "title": "Development", "desc": "Custom AI solution for your business, with partial validations." },
+    "step4": { "title": "Deployment", "desc": "Integration, user training, and post-delivery support." }
+  },
+  "solutions": {
+    "title": "Automated Solutions with <span class=\"title-accent\">AI</span>",
+    "subtitle": "Portfolio of solutions already developed by Morpheus IA",
+    "card1": {
+      "title": "Intelligent Business Management",
+      "desc": "Administrative process automation.",
+      "benefit1": "Automated registration and management",
+      "benefit2": "Product and service control with AI",
+      "benefit3": "Customer communication via WhatsApp",
+      "cta": "Schedule demo →"
+    },
+    "card2": {
+      "title": "WhatsApp Service with AI",
+      "desc": "Smart bot with integrated payments.",
+      "benefit1": "24/7 automated responses",
+      "benefit2": "Payment gateway integration",
+      "benefit3": "Smart triage and routing",
+      "cta": "See demo →"
+    },
+    "card3": {
+      "title": "Technical Document Analysis",
+      "desc": "Automated document processing.",
+      "benefit1": "AI-powered data extraction",
+      "benefit2": "Automatic consistency validation",
+      "benefit3": "Reports in minutes, not days",
+      "cta": "Request analysis →"
+    },
+    "card4": {
+      "title": "Content Generator",
+      "desc": "Exams, Schools, and Accessibility.",
+      "benefit1": "Custom exam questions",
+      "benefit2": "AI-generated questions aligned with BNCC",
+      "benefit3": "Content accessibility for neurodivergent learners",
+      "cta": "Create questions →"
+    }
+  },
+  "value": {
+    "title": "Why Morpheus <span class=\"title-accent\">IA</span>",
+    "card1": { "title": "Intelligent Operations", "desc": "AI integrated into your business operations, eliminating bottlenecks and reducing costs." },
+    "card2": { "title": "Scalable Solutions", "desc": "AI architecture designed to grow with you, from sole proprietor to mid-size company." },
+    "card3": { "title": "AI Automation", "desc": "End-to-end automated support: from first conversation to invoice issued." }
+  },
+  "contact": {
+    "title": "Awaken your business",
+    "subtitle": "Automated AI-powered service, response in seconds.",
+    "cta": "Start conversation with Morpheus"
+  },
+  "about": {
+    "title": "About Morpheus <span class=\"title-accent\">IA</span>",
+    "p1": "At Morpheus IA, we use artificial intelligence to operationalize your business, focusing on scalable solutions.",
+    "p2": "Our technical committee, formed by specialists in AI development, software engineering, and data protection, evaluates every project before execution, ensuring technical feasibility and alignment with your goals."
+  },
+  "footer": {
+    "description": "Intelligent solutions for businesses that have awakened to the AI era.",
+    "linksTitle": "Navigation",
+    "home": "Home",
+    "solutions": "Solutions",
+    "contact": "Contact",
+    "contactTitle": "Contact",
+    "location1": "Belém, PA — Brazil",
+    "location2": "Brasília, DF — Brazil",
+    "whatsapp": "WhatsApp",
+    "morpheusia": "Morpheus IA",
+    "rights": "All rights reserved."
+  }
+}
