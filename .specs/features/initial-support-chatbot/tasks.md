@@ -241,8 +241,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Success path (plain text), tool-call path, and error/timeout path are each covered by a unit test with the underlying `openai` client mocked/monkeypatched (no network call)
-- [ ] `cd backend && pytest tests/unit -q` passes; test count recorded
+- [x] Success path (plain text), tool-call path, and error/timeout path are each covered by a unit test with the underlying `openai` client mocked/monkeypatched (no network call)
+- [x] `cd backend && pytest tests/unit -q` passes; test count recorded (11 passed)
 
 **Tests**: unit
 **Gate**: quick

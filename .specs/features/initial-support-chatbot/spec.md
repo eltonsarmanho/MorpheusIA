@@ -116,14 +116,14 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | CHAT-01 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
-| CHAT-02 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-02 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-03 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-04 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-05 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-06 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-07 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
-| CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-10 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-11 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-12 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
