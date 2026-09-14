@@ -5,7 +5,7 @@ from urllib.parse import quote
 import pytest
 from sqlmodel import create_engine
 
-from app.domain.conversation import ConversationService
+from app.domain.conversation import ConversationService, _parse_lead_arguments
 from app.llm.client import FakeLLMClient, LLMResult, LLMUnavailableError, ToolCall
 from app.llm.tools import SAVE_LEAD_INFO_TOOL, build_system_prompt
 from app.storage.models import init_db
@@ -194,7 +194,23 @@ async def test_unparseable_tool_arguments_fall_back_to_plain_text(engine):
     assert await LeadRepository(engine=engine).list_leads() == []
 
 
-async def test_tool_arguments_missing_required_field_fall_back_to_plain_text(engine):
+def test_parse_lead_arguments_rejects_a_missing_required_field():
+    """Direct unit test of the validation contract itself: this is what
+    keeps a missing `need_summary` from ever reaching the persistence call,
+    regardless of how the broader turn-handling flow is composed.
+    """
+    tool_call = ToolCall(
+        name="save_lead_info",
+        arguments=json.dumps({"category": "whatsapp_atendimento"}),
+        call_id="c1",
+    )
+
+    assert _parse_lead_arguments(tool_call) is None
+
+
+async def test_tool_arguments_missing_required_field_fall_back_to_plain_text(
+    engine, caplog
+):
     llm = FakeLLMClient(
         result=LLMResult(
             text="Certo, me conta mais sobre o seu processo.",
@@ -206,11 +222,16 @@ async def test_tool_arguments_missing_required_field_fall_back_to_plain_text(eng
     )
     service = build_service(engine, llm)
 
-    result = await service.handle_turn(session_id="s1", user_message="oi")
+    with caplog.at_level(logging.WARNING):
+        result = await service.handle_turn(session_id="s1", user_message="oi")
 
     assert result.reply == "Certo, me conta mais sobre o seu processo."
     assert result.lead_captured is False
     assert await LeadRepository(engine=engine).list_leads() == []
+    # Distinguishes "extraction declined cleanly" from "extraction crashed and
+    # was swallowed as a persistence failure" - the two must never look alike.
+    assert any("malformed save_lead_info arguments" in r.getMessage() for r in caplog.records)
+    assert not any("lead persistence failed" in r.getMessage() for r in caplog.records)
 
 
 # --- Edge case: lead persistence fails after a successful reply --------------

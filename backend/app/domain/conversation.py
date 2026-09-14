@@ -130,11 +130,17 @@ class ConversationService:
             return TurnResult(reply=reply, lead_captured=False)
 
         reply = result.text or LEAD_SAVED_REPLY
+        # Required by _parse_lead_arguments's contract, so these never raise
+        # under correct code - kept outside the try so a contract violation
+        # surfaces as its own error instead of being logged as a persistence
+        # failure (the two are different bugs with different fixes).
+        category = lead_fields["category"]
+        need_summary = lead_fields["need_summary"]
         try:
             lead = await self._lead_repo.upsert_lead(
                 session_id=session_id,
-                category=lead_fields["category"],
-                need_summary=lead_fields["need_summary"],
+                category=category,
+                need_summary=need_summary,
                 contact=ContactInfo(
                     name=lead_fields.get("contact_name"),
                     phone=lead_fields.get("contact_phone"),
