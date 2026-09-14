@@ -120,9 +120,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `backend/app/main.py` exposes a bootable FastAPI `app` object (no routes yet beyond the framework default)
-- [ ] `requirements.txt` pins `fastapi`, `uvicorn`, `sqlmodel`, `openai`, `pydantic-settings`; `requirements-dev.txt` pins `pytest`, `pytest-asyncio`, `httpx`
-- [ ] `cd backend && pip install -r requirements.txt -r requirements-dev.txt && pytest -q` exits 0 (0 or more tests collected, no import errors)
+- [x] `backend/app/main.py` exposes a bootable FastAPI `app` object (no routes yet beyond the framework default)
+- [x] `requirements.txt` pins `fastapi`, `uvicorn`, `sqlmodel`, `openai`, `pydantic-settings`; `requirements-dev.txt` pins `pytest`, `pytest-asyncio`, `httpx`
+- [x] `cd backend && pip install -r requirements.txt -r requirements-dev.txt && pytest -q` exits 0 (0 or more tests collected, no import errors)
 
 **Tests**: none
 **Gate**: build
