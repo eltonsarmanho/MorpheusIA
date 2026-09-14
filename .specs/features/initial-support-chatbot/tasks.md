@@ -524,8 +524,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `node --check js/config.js` exits 0
-- [ ] Value is read by `chat-widget.js` in T19 rather than hardcoded there
+- [x] `node --check js/config.js` exits 0
+- [x] Value is read by `chat-widget.js` in T19 rather than hardcoded there
 
 **Tests**: none
 **Gate**: build
