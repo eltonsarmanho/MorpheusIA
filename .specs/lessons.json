@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 6,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "ac_gap::gate a ui affordance on the response field that carries it not on a sibling flag that is false on error fallback paths",
+      "text": "Gate a UI affordance on the response field that carries it, not on a sibling flag that is false on error-fallback paths.",
+      "signal": "ac_gap",
+      "scope": "chat-widget",
+      "status": "candidate",
+      "features": [
+        "initial-support-chatbot"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC CHAT-09 / js/chat-widget.js:156 (chat-widget)"
+      ],
+      "created": "2026-09-14T14:24:00Z",
+      "last_seen": "2026-09-14T14:24:00Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::keep only the fallible call inside a broad try except and hoist field lookups out so a validation bug cannot masquerade as a storage failure",
+      "text": "Keep only the fallible call inside a broad try/except and hoist field lookups out, so a validation bug cannot masquerade as a storage failure.",
+      "signal": "surviving_mutant",
+      "scope": "domain",
+      "status": "candidate",
+      "features": [
+        "initial-support-chatbot"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "Mutant M4 / backend/app/domain/conversation.py:144 (domain)"
+      ],
+      "created": "2026-09-14T14:24:00Z",
+      "last_seen": "2026-09-14T14:24:00Z"
+    },
+    {
+      "id": "L-003",
+      "key": "spec_precision_gap::assert spec named constants such as limits thresholds and timeouts against their config defaults not only the mechanism that consumes them",
+      "text": "Assert spec-named constants such as limits, thresholds and timeouts against their config defaults, not only the mechanism that consumes them.",
+      "signal": "spec_precision_gap",
+      "scope": "config",
+      "status": "candidate",
+      "features": [
+        "initial-support-chatbot"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC CHAT-10 / backend/app/core/config.py:37 (config)"
+      ],
+      "created": "2026-09-14T14:24:00Z",
+      "last_seen": "2026-09-14T14:24:00Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::implement an acceptance criterion s stated condition directly a proxy condition derived from adjacent state is a different rule and needs its own test",
+      "text": "Implement an acceptance criterion's stated condition directly; a proxy condition derived from adjacent state is a different rule and needs its own test.",
+      "signal": "ac_gap",
+      "scope": "domain",
+      "status": "candidate",
+      "features": [
+        "initial-support-chatbot"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC CHAT-05 / backend/app/domain/conversation.py:90 (domain)"
+      ],
+      "created": "2026-09-14T14:24:00Z",
+      "last_seen": "2026-09-14T14:24:00Z"
+    },
+    {
+      "id": "L-005",
+      "key": "ac_gap::when a design normalizes a field out of the record a spec names expose it through the same api the spec s consumer uses or the data is unreachable",
+      "text": "When a design normalizes a field out of the record a spec names, expose it through the same API the spec's consumer uses or the data is unreachable.",
+      "signal": "ac_gap",
+      "scope": "api",
+      "status": "candidate",
+      "features": [
+        "initial-support-chatbot"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC CHAT-07 / backend/app/api/leads.py:16 (api)"
+      ],
+      "created": "2026-09-14T14:24:00Z",
+      "last_seen": "2026-09-14T14:24:00Z"
+    }
+  ]
+}

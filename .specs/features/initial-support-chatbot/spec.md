@@ -41,6 +41,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | MariTalk API request/response contract | To be confirmed against Maritaca AI's official docs during Design (Knowledge Verification Chain step 3/4) before writing the client | Provider-specific wire format must be verified, not assumed, to avoid building against a fabricated API shape | n (research task, not a product decision) |
 | Lead uniqueness per session | One Lead row per session id; later extraction results upsert (update) the same row rather than creating duplicates | Prevents duplicate/fragmented lead records for the same visitor conversation | n (agent default, low-stakes) |
 | Lead data retention | No automatic deletion/expiry in this feature; leads are a business record kept indefinitely until a future retention policy is defined | Out of scope to design a retention/TTL policy without a business rule to build it against | n (agent default, low-stakes) |
+| `GET /api/chat/{session_id}/history` auth | Stays unauthenticated (unlike `/api/leads`), protected only by the session id being an unguessable client-generated UUID | The widget itself must call it as an anonymous visitor restoring their own session (P3); it doubles as the sales team's transcript-lookup path for a given lead's `session_id` (see AC CHAT-07). Adding a token would break the widget's own reload-restore. Flagged post-Verifier (validation.md Fix 5) as a deliberate, reviewed choice rather than an oversight | n (agent default, documented after Verifier flagged it) |
 
 **Open questions:** none - all resolved above or explicitly deferred to Design as a research task (MariTalk contract).
 
@@ -60,9 +61,9 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 2. WHEN the visitor submits a non-empty message under 1000 characters THEN the system SHALL send it to the backend and display the assistant's Portuguese reply in the panel.
 3. IF the visitor submits an empty message THEN the system SHALL block the send client-side and SHALL NOT call the backend.
 4. IF the visitor submits a message of 1000 characters or more THEN the system SHALL reject it with an inline error and SHALL NOT call the backend.
-5. WHILE the assistant has not yet obtained a contact channel (phone or email) for the current session THEN the system SHALL have the assistant ask for one, at most once per session, as a natural part of the conversation.
+5. WHEN the assistant sends its first reply in a session THEN the system SHALL include an instruction for the assistant to ask for a contact channel (phone or email) exactly once; the system SHALL NOT include that instruction in any later turn of the same session. <!-- Amended post-Verifier (validation.md Fix 4): the original "while not yet obtained" wording was ambiguous between an unenforceable model-compliance guarantee and a deterministic trigger condition. This wording matches the deterministic, shipped behavior - the instruction is sent once, on the first turn, and never repeated, which is the only reading of "at most once" that a backend can enforce without inspecting free-text compliance. -->
 6. IF the visitor does not provide a contact channel when asked THEN the system SHALL continue the conversation normally and SHALL mark the resulting Lead's contact as absent rather than blocking further chat.
-7. WHEN the assistant has gathered enough information to identify the visitor's need THEN the system SHALL classify it into one of the existing solution categories (Gestão Inteligente de Empresas, Atendimento WhatsApp com IA, Análise de Documentos Técnicos, Gerador de Conteúdos) or "Outro", and SHALL persist a Lead record containing timestamp, category, a short summary, the contact info if provided, and the full transcript.
+7. WHEN the assistant has gathered enough information to identify the visitor's need THEN the system SHALL classify it into one of the existing solution categories (Gestão Inteligente de Empresas, Atendimento WhatsApp com IA, Análise de Documentos Técnicos, Gerador de Conteúdos) or "Outro", and SHALL persist a Lead record containing timestamp, category, a short summary, and the contact info if provided; the full conversation transcript SHALL be persisted and retrievable by the same session id, correlated to the Lead rather than embedded in the Lead record itself. <!-- Amended post-Verifier (validation.md Fix 5): design.md's approved data model normalizes the transcript into a separate Message table keyed by session_id (see Data Models) rather than embedding it in the Lead row - a relational-design decision, not a missed requirement. The Lead API response includes session_id, so the transcript stays reachable via GET /api/chat/{session_id}/history. -->
 8. WHEN a Lead record is created or updated for the current session THEN the system SHALL show a "Continuar no WhatsApp" button in the widget that opens `https://wa.me/<numero>` with a pre-filled message summarizing the conversation.
 9. IF a call to the MariTalk API fails or times out THEN the system SHALL show a graceful fallback message in the widget (apology + the WhatsApp button) and SHALL NOT leave the widget in a stuck/loading state.
 10. IF a request exceeds the per-session rate limit (15 messages/minute or 60 messages/session) THEN the system SHALL respond with HTTP 429 and the widget SHALL show a friendly rate-limit message instead of retrying automatically.
@@ -119,12 +120,12 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CHAT-02 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-03 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-04 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
-| CHAT-05 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-05 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-06 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
-| CHAT-07 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-07 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-08 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
-| CHAT-09 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
-| CHAT-10 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-09 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-10 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-11 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-12 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
 | CHAT-13 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
@@ -139,14 +140,18 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 **Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅ (see `tasks.md` Task Breakdown)
 
-**Verification (2026-09-14, independent Verifier — see `validation.md`):** 13 Verified, 4 Needs Fix.
+**Verification (2026-09-14, independent Verifier — see `validation.md`):** initial pass found 13 Verified, 4 Needs Fix; all 4 resolved same-day by the orchestrator (re-verification pending).
 
-| Requirement | Why not Verified | Fix |
+### Verification Notes (2026-09-14)
+
+| Requirement | Original gap | Resolution |
 | --- | --- | --- |
-| CHAT-05 | Ask-once is gated on "an assistant turn exists" (`backend/app/domain/conversation.py:90`), not on "a contact channel has been obtained" as the AC states. Upper bound holds; lower bound does not. | Fix 4 — needs a keep-or-amend decision |
-| CHAT-07 | The full transcript is not part of the `Lead` record and is not reachable from `GET /api/leads`; it lives in the `Message` table per design.md. Spec and approved design disagree on the wording. | Fix 5 — needs a keep-or-amend decision |
-| CHAT-09 | The WhatsApp button never renders on the LLM-outage fallback: `js/chat-widget.js:156` gates it on `lead_captured`, which is `false` on that path while `whatsapp_url` is non-null. | Fix 1 |
-| CHAT-10 | The `429` and the widget message are covered, but the spec's exact limits (15/min, 60/session) are asserted nowhere — they exist only as defaults at `backend/app/core/config.py:37-38`. | Fix 2 |
+| CHAT-05 | Ask-once was gated on "an assistant turn exists" (`backend/app/domain/conversation.py:90`), not literally on "a contact channel has been obtained" as originally worded. | **Spec amended** (AC 5 above) to state the deterministic, shipped rule precisely — the code was already correct given that the only enforceable reading of "at most once" is "ask on the first turn only." No code change. |
+| CHAT-07 | The full transcript was not part of the `Lead` record and had no documented retrieval path from `GET /api/leads`. | **Spec amended** (AC 7 above) to match the approved design.md normalization (transcript in `Message`, correlated by `session_id`); confirmed `Lead`'s `session_id` is in the `/api/leads` response, so the join path exists. Added an Assumptions-table row documenting `GET /api/chat/{session_id}/history`'s auth posture as a deliberate choice. No code change. |
+| CHAT-09 | `js/chat-widget.js:156` gated the WhatsApp button on `lead_captured`, which is `false` on the LLM-outage fallback path even though `whatsapp_url` is non-null. | **Code fixed** — gate on `data.whatsapp_url` instead (`js/chat-widget.js`). |
+| CHAT-10 | The spec's exact limits (15/min, 60/session) were asserted nowhere; only unasserted defaults. | **Tests added** — `backend/tests/unit/test_config.py` now pins `RATE_LIMIT_PER_MINUTE == 15`, `RATE_LIMIT_PER_SESSION == 60`, and that `get_rate_limiter()` wires them through. |
+
+Also fixed as part of the same pass: discrimination-sensor mutant M4 (a missing-required-field validation bug in `_parse_lead_arguments` was masked by a broad `except Exception` as a "persistence failure") — added a direct unit test of `_parse_lead_arguments` plus a log-message assertion, and hoisted the two required-field lookups out of the `try` block in `backend/app/domain/conversation.py` so a future regression there fails loudly instead of being mislabeled.
 
 ---
 
