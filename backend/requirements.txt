@@ -1,5 +1,5 @@
 fastapi==0.115.0
 uvicorn==0.30.6
 sqlmodel==0.0.22
-openai==1.51.0
+openai==1.109.1
 pydantic-settings==2.5.2

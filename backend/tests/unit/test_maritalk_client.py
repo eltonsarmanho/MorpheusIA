@@ -1,9 +1,11 @@
 from types import SimpleNamespace
 
 import pytest
+from openai import AsyncOpenAI
 
+from app.core.config import Settings
 from app.llm.client import LLMUnavailableError
-from app.llm.maritalk_client import MaritalkClient
+from app.llm.maritalk_client import MaritalkClient, build_maritalk_client
 
 
 class _FakeResponses:
@@ -79,3 +81,32 @@ async def test_maritalk_client_raises_llm_unavailable_error_on_request_failure()
 
     with pytest.raises(LLMUnavailableError):
         await client.complete(messages=[], tools=[])
+
+
+def test_build_maritalk_client_exposes_the_responses_api(monkeypatch):
+    """Regression: no other test constructs a *real* AsyncOpenAI (every other
+    test here uses _FakeOpenAIClient), so an installed `openai` version too
+    old to have `.responses` (as pinned in requirements.txt before this test
+    was added - real MariTalk calls silently fell back to the canned apology
+    reply, undetected by 53 otherwise-passing, fully-mocked tests) went
+    unnoticed until a live manual smoke test. No network call is made here -
+    only that the constructed client exposes the attribute this feature
+    depends on entirely.
+    """
+    for key, value in {
+        "MARITALK_API_KEY": "chave-de-teste",
+        "MARITALK_API_BASE": "https://exemplo.invalido",
+        "MARITALK_MODEL": "modelo-de-teste",
+        "ADMIN_API_TOKEN": "token-de-teste",
+    }.items():
+        monkeypatch.setenv(key, value)
+    settings = Settings(_env_file=None)
+
+    client = build_maritalk_client(settings)
+
+    assert isinstance(client, MaritalkClient)
+    assert isinstance(client._client, AsyncOpenAI)
+    assert hasattr(client._client, "responses"), (
+        "installed openai SDK lacks the Responses API - "
+        "check the openai version pinned in requirements.txt"
+    )
