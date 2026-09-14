@@ -44,6 +44,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AC CHAT-07 / backend/app/api/leads.py:16 (api)
 - last seen: 2026-09-14T14:24:00Z
 
+### L-006 - When wrapping a third-party SDK feature, add one test that constructs the real client (no network call) and asserts the specific attribute/method used actually exists, so an installed dependency version too old for that feature is caught before manual smoke testing.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend/llm` · harmful: 0
+- features: initial-support-chatbot
+- evidence: CHAT-02 / backend/app/llm/maritalk_client.py (found via manual UAT, not the Verifier) (backend/llm)
+- last seen: 2026-09-14T14:49:09Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

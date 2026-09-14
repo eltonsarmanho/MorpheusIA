@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 6,
+  "next_id": 7,
   "lessons": [
     {
       "id": "L-001",
@@ -94,6 +94,24 @@
       ],
       "created": "2026-09-14T14:24:00Z",
       "last_seen": "2026-09-14T14:24:00Z"
+    },
+    {
+      "id": "L-006",
+      "key": "ac_gap::when wrapping a third party sdk feature add one test that constructs the real client no network call and asserts the specific attribute method used actually exists so an installed dependency version too old for that feature is caught before manual smoke testing",
+      "text": "When wrapping a third-party SDK feature, add one test that constructs the real client (no network call) and asserts the specific attribute/method used actually exists, so an installed dependency version too old for that feature is caught before manual smoke testing.",
+      "signal": "ac_gap",
+      "scope": "backend/llm",
+      "status": "candidate",
+      "features": [
+        "initial-support-chatbot"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CHAT-02 / backend/app/llm/maritalk_client.py (found via manual UAT, not the Verifier) (backend/llm)"
+      ],
+      "created": "2026-09-14T14:49:09Z",
+      "last_seen": "2026-09-14T14:49:09Z"
     }
   ]
 }
