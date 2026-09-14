@@ -571,7 +571,7 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [x] `docker compose build` succeeds for the backend service (or, if Docker is unavailable in this environment, the Dockerfile is reviewed line-by-line against `requirements.txt`/`app/main.py` for correctness and flagged as unverified-by-build) — Docker daemon unreachable in this sandbox (`docker compose config` validated the compose YAML; `docker compose build`/`up` could not run); Dockerfile reviewed line-by-line against `backend/requirements.txt` and `backend/app/main.py`, flagged unverified-by-build
+- [x] `docker compose build` succeeds for the backend service — confirmed 2026-09-14 once Docker became available: `docker compose build` succeeded, `docker compose up -d` started the container cleanly, and a live smoke test through it (auth on `/api/leads`, a real `/api/chat/message` call to MariTalk, and a persisted lead surviving via the `./backend/data:/app/data` volume mount) all passed
 - [x] README instructions are accurate against the actual env var names and default port used in the code
 
 **Tests**: none
