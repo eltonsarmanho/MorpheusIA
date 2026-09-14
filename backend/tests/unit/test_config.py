@@ -1,3 +1,4 @@
+from app.api.chat import get_rate_limiter
 from app.core.config import Settings
 
 REQUIRED_ENV = {
@@ -37,3 +38,29 @@ def test_allowed_origins_falls_back_to_the_documented_dev_default(monkeypatch):
         "http://localhost:5500",
         "http://127.0.0.1:5500",
     ]
+
+
+def test_rate_limit_defaults_match_the_spec_exactly(monkeypatch):
+    """Spec AC CHAT-10 pins the limits at 15/minute and 60/session. Every
+    behavioral rate-limit test uses scaled-down thresholds for speed, so
+    nothing else in the suite would catch these defaults drifting.
+    """
+    for key, value in REQUIRED_ENV.items():
+        monkeypatch.setenv(key, value)
+
+    settings = Settings(_env_file=None)
+
+    assert settings.RATE_LIMIT_PER_MINUTE == 15
+    assert settings.RATE_LIMIT_PER_SESSION == 60
+
+
+def test_get_rate_limiter_wires_the_settings_defaults_through(monkeypatch):
+    for key, value in REQUIRED_ENV.items():
+        monkeypatch.setenv(key, value)
+    get_rate_limiter.cache_clear()
+
+    limiter = get_rate_limiter()
+
+    assert limiter._per_minute == 15
+    assert limiter._per_session == 60
+    get_rate_limiter.cache_clear()
