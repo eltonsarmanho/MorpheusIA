@@ -115,29 +115,38 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CHAT-01 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-02 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-03 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-04 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-05 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-06 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-07 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-10 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-11 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-12 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-13 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
-| LEAD-01 | P2: Lead retrieval for the sales team | Tasks | Implementing |
-| LEAD-02 | P2: Lead retrieval for the sales team | Tasks | Implementing |
-| OBS-01 | P3: Session continuity and basic observability | Tasks | Implementing |
-| OBS-02 | P3: Session continuity and basic observability | Tasks | Implementing |
+| CHAT-01 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-02 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-03 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-04 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-05 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-06 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-07 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-08 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-09 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-10 | P1: Chat, understand, categorize, and hand off | Execute | Needs Fix |
+| CHAT-11 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-12 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| CHAT-13 | P1: Chat, understand, categorize, and hand off | Execute | Verified |
+| LEAD-01 | P2: Lead retrieval for the sales team | Execute | Verified |
+| LEAD-02 | P2: Lead retrieval for the sales team | Execute | Verified |
+| OBS-01 | P3: Session continuity and basic observability | Execute | Verified |
+| OBS-02 | P3: Session continuity and basic observability | Execute | Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]` (CHAT = P1 chat/lead-capture behavior, LEAD = P2 lead-retrieval API, OBS = P3 continuity/observability)
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
 **Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅ (see `tasks.md` Task Breakdown)
+
+**Verification (2026-09-14, independent Verifier — see `validation.md`):** 13 Verified, 4 Needs Fix.
+
+| Requirement | Why not Verified | Fix |
+| --- | --- | --- |
+| CHAT-05 | Ask-once is gated on "an assistant turn exists" (`backend/app/domain/conversation.py:90`), not on "a contact channel has been obtained" as the AC states. Upper bound holds; lower bound does not. | Fix 4 — needs a keep-or-amend decision |
+| CHAT-07 | The full transcript is not part of the `Lead` record and is not reachable from `GET /api/leads`; it lives in the `Message` table per design.md. Spec and approved design disagree on the wording. | Fix 5 — needs a keep-or-amend decision |
+| CHAT-09 | The WhatsApp button never renders on the LLM-outage fallback: `js/chat-widget.js:156` gates it on `lead_captured`, which is `false` on that path while `whatsapp_url` is non-null. | Fix 1 |
+| CHAT-10 | The `429` and the widget message are covered, but the spec's exact limits (15/min, 60/session) are asserted nowhere — they exist only as defaults at `backend/app/core/config.py:37-38`. | Fix 2 |
 
 ---
 
