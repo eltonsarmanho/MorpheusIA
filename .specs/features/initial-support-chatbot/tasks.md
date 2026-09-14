@@ -547,9 +547,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `node --check js/chat-widget.js` exits 0
-- [ ] Every behavior listed above is present in code (verified functionally in the Phase-6 manual UAT, per the confirmed no-JS-test-framework decision)
-- [ ] `index.html` loads `js/config.js` and `js/chat-widget.js` after the existing `i18n.js`/`main.js`/`theme.js` script tags
+- [x] `node --check js/chat-widget.js` exits 0
+- [x] Every behavior listed above is present in code (verified functionally in the Phase-6 manual UAT, per the confirmed no-JS-test-framework decision)
+- [x] `index.html` loads `js/config.js` and `js/chat-widget.js` after the existing `i18n.js`/`main.js`/`theme.js` script tags
 
 **Tests**: none
 **Gate**: build

@@ -125,8 +125,8 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-10 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-11 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
-| CHAT-12 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-11 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
+| CHAT-12 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-13 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | LEAD-01 | P2: Lead retrieval for the sales team | Tasks | Implementing |
 | LEAD-02 | P2: Lead retrieval for the sales team | Tasks | Implementing |
