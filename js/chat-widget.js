@@ -153,7 +153,9 @@
       .then(function (data) {
         if (!data) return;
         appendMessage('assistant', data.reply);
-        if (data.lead_captured) {
+        // AC CHAT-09: the backend also supplies whatsapp_url on the LLM-outage
+        // fallback (lead_captured=false), so key the button on the URL itself.
+        if (data.whatsapp_url) {
           showWhatsapp(data.whatsapp_url);
         }
       })
