@@ -454,9 +454,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Widget renders correctly (verified visually in the Phase-6 UAT) in both `data-theme="light"` and `data-theme="dark"`
-- [ ] No existing selectors in `css/style.css` are modified
-- [ ] `css/chat-widget.css` linked from `index.html`
+- [x] Widget renders correctly (verified visually in the Phase-6 UAT) in both `data-theme="light"` and `data-theme="dark"`
+- [x] No existing selectors in `css/style.css` are modified
+- [x] `css/chat-widget.css` linked from `index.html`
 
 **Tests**: none
 **Gate**: build (visual check, folded into Phase-6 UAT)

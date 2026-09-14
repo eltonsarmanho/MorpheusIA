@@ -1,0 +1,247 @@
+/* ============================================================
+   MORPHEUS IA — Chat Widget
+   Reuses design tokens (colors, fonts, glow, transitions) already
+   defined in css/style.css via [data-theme="light"|"dark"]. No new
+   palette is introduced here.
+   ============================================================ */
+
+.chat-widget {
+  position: fixed;
+  right: clamp(1rem, 4vw, 1.5rem);
+  bottom: clamp(1rem, 4vw, 1.5rem);
+  z-index: 200;
+}
+
+/* ---------- FAB ---------- */
+.chat-widget__fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  cursor: pointer;
+  box-shadow: var(--glow-cyan);
+  transition: box-shadow var(--transition-glow), transform var(--transition-fast);
+}
+.chat-widget__fab:hover,
+.chat-widget__fab:focus-visible {
+  box-shadow: var(--glow-cyan-strong);
+  transform: translateY(-2px);
+}
+.chat-widget__fab-icon {
+  width: 24px;
+  height: 24px;
+}
+.chat-widget__fab-icon.icon-close { display: none; }
+.chat-widget__fab[aria-expanded="true"] .icon-chat { display: none; }
+.chat-widget__fab[aria-expanded="true"] .icon-close { display: block; }
+
+/* ---------- Panel ---------- */
+.chat-widget__panel {
+  display: none;
+  position: absolute;
+  right: 0;
+  bottom: calc(56px + 1rem);
+  width: 360px;
+  max-width: calc(100vw - 2rem);
+  height: min(520px, 70vh);
+  flex-direction: column;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: var(--glow-cyan-strong);
+  overflow: hidden;
+}
+.chat-widget__panel:not([hidden]) {
+  display: flex;
+}
+
+.chat-widget__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.chat-widget__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.chat-widget__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 1.375rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.chat-widget__close:hover,
+.chat-widget__close:focus-visible {
+  color: var(--color-accent-primary);
+  background: var(--color-accent-soft);
+}
+
+/* ---------- Messages ---------- */
+.chat-widget__messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+.chat-widget__message {
+  max-width: 85%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 12px;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-widget__message--bot {
+  align-self: flex-start;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-card-border);
+  border-bottom-left-radius: 4px;
+}
+.chat-widget__message--user {
+  align-self: flex-end;
+  background: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  border-bottom-right-radius: 4px;
+}
+.chat-widget__consent {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  border-left: 3px solid var(--color-accent-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+/* ---------- Status messages (rate limit / offline / validation) ---------- */
+.chat-widget__status {
+  margin: 0 1rem 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-left: 3px solid var(--color-accent-primary);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ---------- WhatsApp handoff ---------- */
+.chat-widget__whatsapp {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  margin: 0 1rem 0.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 50px;
+  background: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  font-weight: 600;
+  font-size: var(--text-small);
+  text-decoration: none;
+  text-align: center;
+  box-shadow: var(--glow-cyan);
+  transition: box-shadow var(--transition-glow), transform var(--transition-fast);
+  flex-shrink: 0;
+}
+.chat-widget__whatsapp:not([hidden]) {
+  display: inline-flex;
+}
+.chat-widget__whatsapp:hover,
+.chat-widget__whatsapp:focus-visible {
+  box-shadow: var(--glow-cyan-strong);
+  transform: translateY(-1px);
+}
+
+/* ---------- Input form ---------- */
+.chat-widget__form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.chat-widget__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  transition: border-color var(--transition-fast);
+}
+.chat-widget__input:focus-visible {
+  outline: none;
+  border-color: var(--color-accent-primary);
+}
+.chat-widget__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.chat-widget__send {
+  flex-shrink: 0;
+  padding: 0.625rem 1.125rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-small);
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast), opacity var(--transition-fast);
+}
+.chat-widget__send:hover:not(:disabled),
+.chat-widget__send:focus-visible:not(:disabled) {
+  box-shadow: var(--glow-cyan);
+}
+.chat-widget__send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 480px) {
+  .chat-widget {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+  .chat-widget__panel {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(56px + 1rem);
+    width: auto;
+    max-width: none;
+    height: min(480px, 65vh);
+  }
+}
