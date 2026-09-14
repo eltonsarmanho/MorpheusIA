@@ -406,9 +406,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] All three routes are reachable through the wired `app`
-- [ ] A request from a disallowed origin does not receive CORS allow headers; a request from an allowed origin does (integration test)
-- [ ] `cd backend && pytest -q` passes; test count recorded
+- [x] All three routes are reachable through the wired `app`
+- [x] A request from a disallowed origin does not receive CORS allow headers; a request from an allowed origin does (integration test)
+- [x] `cd backend && pytest -q` passes; test count recorded (48 passed)
 
 **Tests**: integration
 **Gate**: full
