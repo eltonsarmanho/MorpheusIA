@@ -121,7 +121,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CHAT-04 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-05 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-06 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
-| CHAT-07 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-07 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-10 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
@@ -130,7 +130,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CHAT-13 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | LEAD-01 | P2: Lead retrieval for the sales team | Tasks | In Tasks |
 | LEAD-02 | P2: Lead retrieval for the sales team | Tasks | In Tasks |
-| OBS-01 | P3: Session continuity and basic observability | Tasks | In Tasks |
+| OBS-01 | P3: Session continuity and basic observability | Tasks | Implementing |
 | OBS-02 | P3: Session continuity and basic observability | Tasks | In Tasks |
 
 **ID format:** `[CATEGORY]-[NUMBER]` (CHAT = P1 chat/lead-capture behavior, LEAD = P2 lead-retrieval API, OBS = P3 continuity/observability)

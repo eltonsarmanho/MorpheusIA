@@ -168,9 +168,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `Lead` and `Message` match the field lists in `design.md` (including `session_id` unique index on `Lead`, `session_id` index on `Message`)
-- [ ] Engine/session factory creates `backend/data/app.db` and its tables on startup if missing
-- [ ] `cd backend && pytest -q` exits 0
+- [x] `Lead` and `Message` match the field lists in `design.md` (including `session_id` unique index on `Lead`, `session_id` index on `Message`)
+- [x] Engine/session factory creates `backend/data/app.db` and its tables on startup if missing
+- [x] `cd backend && pytest -q` exits 0
 
 **Tests**: none
 **Gate**: build
