@@ -37,7 +37,7 @@ def build_test_settings() -> Settings:
         MARITALK_MODEL="modelo-de-teste",
         ADMIN_API_TOKEN=ADMIN_TOKEN,
         WHATSAPP_NUMBER=WHATSAPP_NUMBER,
-        ALLOWED_ORIGINS=[ALLOWED_ORIGIN],
+        ALLOWED_ORIGINS=ALLOWED_ORIGIN,
     )
 
 
