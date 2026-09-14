@@ -430,9 +430,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] FAB button and chat panel markup present, panel hidden by default (no JS behavior yet - that's T19)
-- [ ] `data-i18n` attributes added for every piece of widget copy, matching the key names T16/T17 will add
-- [ ] Existing page sections/markup untouched (diff limited to the new widget block + two new `<link>`/`<script>` tags added in T15/T18/T19)
+- [x] FAB button and chat panel markup present, panel hidden by default (no JS behavior yet - that's T19)
+- [x] `data-i18n` attributes added for every piece of widget copy, matching the key names T16/T17 will add
+- [x] Existing page sections/markup untouched (diff limited to the new widget block + two new `<link>`/`<script>` tags added in T15/T18/T19)
 
 **Tests**: none
 **Gate**: build (`python3 -m http.server` smoke-load of `index.html`, or visual check - no automated HTML checker in this project)
