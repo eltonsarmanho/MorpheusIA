@@ -264,11 +264,11 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `upsert_lead` called twice with the same `session_id` updates the existing row rather than creating a second one
-- [ ] `list_leads` returns newest-first
-- [ ] `get_history` returns messages in creation order
-- [ ] Unit tests run against a temp SQLite file (not the dev DB) and cover the above plus a DB-error path
-- [ ] `cd backend && pytest tests/unit -q` passes; test count recorded
+- [x] `upsert_lead` called twice with the same `session_id` updates the existing row rather than creating a second one
+- [x] `list_leads` returns newest-first
+- [x] `get_history` returns messages in creation order
+- [x] Unit tests run against a temp SQLite file (not the dev DB) and cover the above plus a DB-error path
+- [x] `cd backend && pytest tests/unit -q` passes; test count recorded (18 passed)
 
 **Tests**: unit
 **Gate**: quick
