@@ -501,8 +501,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Key set matches T16 exactly (same keys, English values)
-- [ ] `python3 -m json.tool data/content-en.json >/dev/null` exits 0
+- [x] Key set matches T16 exactly (same keys, English values)
+- [x] `python3 -m json.tool data/content-en.json >/dev/null` exits 0
 
 **Tests**: none
 **Gate**: build

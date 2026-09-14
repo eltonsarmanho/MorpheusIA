@@ -104,5 +104,16 @@
     "whatsapp": "WhatsApp",
     "morpheusia": "Morpheus IA",
     "rights": "All rights reserved."
+  },
+  "chatWidget": {
+    "title": "Morpheus IA Assistant",
+    "greeting": "Hi! I'm the Morpheus IA assistant. Tell me what you need and we'll find the best solution for your business.",
+    "consent": "By continuing, you agree to the use of your data for Morpheus IA's commercial follow-up.",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "whatsappCta": "Continue on WhatsApp",
+    "rateLimited": "Too many messages in a short time. Please wait a moment before continuing.",
+    "offline": "Couldn't connect to the assistant. Check your connection and try again, or reach us on WhatsApp.",
+    "tooLong": "Your message must be under 1000 characters."
   }
 }
