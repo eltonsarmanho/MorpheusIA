@@ -144,9 +144,9 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `Settings` reads all listed env vars, with sane defaults for `ALLOWED_ORIGINS` (dev) and the rate-limit constants
-- [ ] The raw `MARITALK_API_KEY` value is never logged or included in `repr()`/error messages
-- [ ] `cd backend && pytest -q` still exits 0
+- [x] `Settings` reads all listed env vars, with sane defaults for `ALLOWED_ORIGINS` (dev) and the rate-limit constants
+- [x] The raw `MARITALK_API_KEY` value is never logged or included in `repr()`/error messages
+- [x] `cd backend && pytest -q` still exits 0
 
 **Tests**: none
 **Gate**: build
