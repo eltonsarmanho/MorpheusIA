@@ -383,8 +383,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Integration tests: no `Authorization` header → `401`; wrong token → `401`; correct token → `200` with the leads created in the test setup, newest first
-- [ ] `cd backend && pytest -q` passes; test count recorded
+- [x] Integration tests: no `Authorization` header → `401`; wrong token → `401`; correct token → `200` with the leads created in the test setup, newest first
+- [x] `cd backend && pytest -q` passes; test count recorded (44 passed)
 
 **Tests**: integration
 **Gate**: full

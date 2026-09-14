@@ -129,7 +129,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CHAT-12 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-13 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | LEAD-01 | P2: Lead retrieval for the sales team | Tasks | Implementing |
-| LEAD-02 | P2: Lead retrieval for the sales team | Tasks | In Tasks |
+| LEAD-02 | P2: Lead retrieval for the sales team | Tasks | Implementing |
 | OBS-01 | P3: Session continuity and basic observability | Tasks | Implementing |
 | OBS-02 | P3: Session continuity and basic observability | Tasks | Implementing |
 
