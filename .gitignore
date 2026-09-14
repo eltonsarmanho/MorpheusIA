@@ -9,8 +9,8 @@ __pycache__/
 .venv/
 venv/
 *.egg-info/
-
 # Backend data
+backend/data/
 backend/*.db
 backend/*.sqlite3
 
