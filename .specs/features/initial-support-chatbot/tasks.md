@@ -313,8 +313,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit tests (using `FakeLLMClient` + the T7 repositories against a temp SQLite file) cover, 1:1 with the ACs above: plain reply persisted as a message; contact asked at most once across two turns; declined contact still saves a lead with `has_contact=False`; a `save_lead_info` tool call persists a `Lead` with the right category/summary/contact and returns a non-null `whatsapp_url`; an `LLMUnavailableError` from the client yields the fallback reply + WhatsApp link without raising; a malformed/unparseable tool-call argument string falls back to treating the turn as plain text without raising
-- [ ] `cd backend && pytest tests/unit -q` passes; test count recorded
+- [x] Unit tests (using `FakeLLMClient` + the T7 repositories against a temp SQLite file) cover, 1:1 with the ACs above: plain reply persisted as a message; contact asked at most once across two turns; declined contact still saves a lead with `has_contact=False`; a `save_lead_info` tool call persists a `Lead` with the right category/summary/contact and returns a non-null `whatsapp_url`; an `LLMUnavailableError` from the client yields the fallback reply + WhatsApp link without raising; a malformed/unparseable tool-call argument string falls back to treating the turn as plain text without raising
+- [x] `cd backend && pytest tests/unit -q` passes; test count recorded (31 passed)
 
 **Tests**: unit
 **Gate**: quick

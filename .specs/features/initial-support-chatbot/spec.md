@@ -120,9 +120,9 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CHAT-03 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-04 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
 | CHAT-05 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-06 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-06 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-07 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
-| CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
+| CHAT-08 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-09 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-10 | P1: Chat, understand, categorize, and hand off | Tasks | Implementing |
 | CHAT-11 | P1: Chat, understand, categorize, and hand off | Tasks | In Tasks |
