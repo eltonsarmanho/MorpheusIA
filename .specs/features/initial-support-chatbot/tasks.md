@@ -478,8 +478,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Every `data-i18n` key added in T14 has a matching entry under `chatWidget` in this file
-- [ ] `python3 -m json.tool data/content-pt.json >/dev/null` exits 0
+- [x] Every `data-i18n` key added in T14 has a matching entry under `chatWidget` in this file
+- [x] `python3 -m json.tool data/content-pt.json >/dev/null` exits 0
 
 **Tests**: none
 **Gate**: build

@@ -104,5 +104,16 @@
     "whatsapp": "WhatsApp",
     "morpheusia": "Morpheus IA",
     "rights": "Todos os direitos reservados."
+  },
+  "chatWidget": {
+    "title": "Assistente Morpheus IA",
+    "greeting": "Olá! Sou o assistente da Morpheus IA. Me conte o que você precisa e vamos encontrar a melhor solução para o seu negócio.",
+    "consent": "Ao continuar, você concorda com o uso dos seus dados para retorno comercial da Morpheus IA.",
+    "placeholder": "Escreva sua mensagem...",
+    "send": "Enviar",
+    "whatsappCta": "Continuar no WhatsApp",
+    "rateLimited": "Muitas mensagens em pouco tempo. Aguarde um instante antes de continuar.",
+    "offline": "Não foi possível conectar ao assistente. Verifique sua conexão e tente novamente, ou fale conosco pelo WhatsApp.",
+    "tooLong": "Sua mensagem deve ter menos de 1000 caracteres."
   }
 }
