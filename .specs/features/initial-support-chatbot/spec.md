@@ -140,7 +140,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 **Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅ (see `tasks.md` Task Breakdown)
 
-**Verification (2026-09-14, independent Verifier — see `validation.md`):** initial pass found 13 Verified, 4 Needs Fix; all 4 resolved same-day by the orchestrator (re-verification pending).
+**Verification (2026-09-14, independent Verifier — see `validation.md`):** initial pass found 13 Verified, 4 Needs Fix; all 4 resolved same-day by the orchestrator and confirmed by an independent re-verification (iteration 1/3) — **17 Verified, 0 Needs Fix**, 53 tests passing, 5/5 discrimination-sensor mutations killed. Interactive UAT remains outstanding.
 
 ### Verification Notes (2026-09-14)
 
