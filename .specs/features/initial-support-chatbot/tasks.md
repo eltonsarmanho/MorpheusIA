@@ -571,8 +571,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] `docker compose build` succeeds for the backend service (or, if Docker is unavailable in this environment, the Dockerfile is reviewed line-by-line against `requirements.txt`/`app/main.py` for correctness and flagged as unverified-by-build)
-- [ ] README instructions are accurate against the actual env var names and default port used in the code
+- [x] `docker compose build` succeeds for the backend service (or, if Docker is unavailable in this environment, the Dockerfile is reviewed line-by-line against `requirements.txt`/`app/main.py` for correctness and flagged as unverified-by-build) — Docker daemon unreachable in this sandbox (`docker compose config` validated the compose YAML; `docker compose build`/`up` could not run); Dockerfile reviewed line-by-line against `backend/requirements.txt` and `backend/app/main.py`, flagged unverified-by-build
+- [x] README instructions are accurate against the actual env var names and default port used in the code
 
 **Tests**: none
 **Gate**: build
