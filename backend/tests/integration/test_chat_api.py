@@ -38,16 +38,18 @@ def build_client(engine, llm, rate_limiter=None):
         RequestValidationError, chat.validation_exception_handler
     )
 
+    message_repo = MessageRepository(engine=engine)
     service = ConversationService(
         llm=llm,
         lead_repo=LeadRepository(engine=engine),
-        message_repo=MessageRepository(engine=engine),
+        message_repo=message_repo,
         whatsapp_number=WHATSAPP_NUMBER,
     )
     limiter = rate_limiter or RateLimiter(per_minute=15, per_session=60)
 
     app.dependency_overrides[chat.get_conversation_service] = lambda: service
     app.dependency_overrides[chat.get_rate_limiter] = lambda: limiter
+    app.dependency_overrides[chat.get_message_repository] = lambda: message_repo
     return TestClient(app)
 
 
@@ -215,3 +217,51 @@ def test_llm_unavailable_returns_200_with_fallback_reply(engine, caplog):
         "outcome=upstream-fallback" in message and "session_id=s1" in message
         for message in log_messages(caplog)
     )
+
+
+# --- OBS-01: session history restore ----------------------------------------
+
+
+def test_history_for_unknown_session_returns_empty_list(engine):
+    client = build_client(engine, FakeLLMClient(result=LLMResult(text="Olá!")))
+
+    response = client.get("/api/chat/desconhecida/history")
+
+    assert response.status_code == 200
+    assert response.json() == {"messages": []}
+
+
+def test_history_returns_prior_messages_oldest_first(engine):
+    llm = FakeLLMClient(result=LLMResult(text="Olá! Como posso ajudar?"))
+    client = build_client(engine, llm)
+
+    client.post("/api/chat/message", json={"session_id": "s1", "message": "oi"})
+    llm.result = LLMResult(text="Entendi, posso ajudar com isso.")
+    client.post(
+        "/api/chat/message",
+        json={"session_id": "s1", "message": "quero automatizar meu atendimento"},
+    )
+
+    response = client.get("/api/chat/s1/history")
+
+    assert response.status_code == 200
+    messages = response.json()["messages"]
+    assert [(m["role"], m["content"]) for m in messages] == [
+        ("user", "oi"),
+        ("assistant", "Olá! Como posso ajudar?"),
+        ("user", "quero automatizar meu atendimento"),
+        ("assistant", "Entendi, posso ajudar com isso."),
+    ]
+    assert all(m["created_at"] for m in messages)
+
+
+def test_history_is_scoped_to_the_requested_session(engine):
+    llm = FakeLLMClient(result=LLMResult(text="Olá!"))
+    client = build_client(engine, llm)
+
+    client.post("/api/chat/message", json={"session_id": "s1", "message": "aba um"})
+    client.post("/api/chat/message", json={"session_id": "s2", "message": "aba dois"})
+
+    messages = client.get("/api/chat/s1/history").json()["messages"]
+
+    assert [m["content"] for m in messages] == ["aba um", "Olá!"]

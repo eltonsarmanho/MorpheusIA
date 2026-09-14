@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime
 from functools import lru_cache
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -35,6 +36,16 @@ class ChatMessageResponse(BaseModel):
     whatsapp_url: str | None = None
 
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+    created_at: datetime
+
+
+class HistoryResponse(BaseModel):
+    messages: list[HistoryMessage]
+
+
 @lru_cache(maxsize=1)
 def get_rate_limiter() -> RateLimiter:
     settings = Settings()
@@ -53,6 +64,11 @@ def get_conversation_service() -> ConversationService:
         message_repo=MessageRepository(),
         whatsapp_number=settings.WHATSAPP_NUMBER,
     )
+
+
+@lru_cache(maxsize=1)
+def get_message_repository() -> MessageRepository:
+    return MessageRepository()
 
 
 def _session_id_from_body(raw_body: bytes) -> str:
@@ -103,4 +119,22 @@ async def post_message(
         reply=result.reply,
         lead_captured=result.lead_captured,
         whatsapp_url=result.whatsapp_url,
+    )
+
+
+@router.get("/{session_id}/history", response_model=HistoryResponse)
+async def get_session_history(
+    session_id: str,
+    message_repo: MessageRepository = Depends(get_message_repository),
+) -> HistoryResponse:
+    messages = await message_repo.get_history(session_id)
+    return HistoryResponse(
+        messages=[
+            HistoryMessage(
+                role=message.role,
+                content=message.content,
+                created_at=message.created_at,
+            )
+            for message in messages
+        ]
     )

@@ -360,8 +360,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Integration test: unknown/new `session_id` returns an empty list; a session with prior messages (seeded via the T10 chat endpoint in the same test) returns them oldest-first
-- [ ] `cd backend && pytest -q` passes; test count recorded
+- [x] Integration test: unknown/new `session_id` returns an empty list; a session with prior messages (seeded via the T10 chat endpoint in the same test) returns them oldest-first
+- [x] `cd backend && pytest -q` passes; test count recorded (41 passed)
 
 **Tests**: integration
 **Gate**: full
