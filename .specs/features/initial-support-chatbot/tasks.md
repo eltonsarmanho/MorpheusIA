@@ -290,8 +290,8 @@ T19 → T20
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit tests cover: under-limit allowed, per-minute limit exceeded blocks, per-session limit exceeded blocks, and the per-minute window resets after time advances (inject a clock/monkeypatch `time.time`)
-- [ ] `cd backend && pytest tests/unit -q` passes; test count recorded
+- [x] Unit tests cover: under-limit allowed, per-minute limit exceeded blocks, per-session limit exceeded blocks, and the per-minute window resets after time advances (inject a clock/monkeypatch `time.time`)
+- [x] `cd backend && pytest tests/unit -q` passes; test count recorded (23 passed)
 
 **Tests**: unit
 **Gate**: quick
