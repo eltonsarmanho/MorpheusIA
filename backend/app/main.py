@@ -43,6 +43,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     application.include_router(chat.router)
     application.include_router(leads.router)
+
+    @application.get("/health", tags=["ops"])
+    def health() -> dict[str, str]:
+        """Liveness probe for the container healthcheck and the reverse proxy."""
+        return {"status": "ok"}
+
     return application
 
 

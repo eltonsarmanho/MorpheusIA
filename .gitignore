@@ -19,3 +19,6 @@ node_modules/
 
 # OS/editor
 .DS_Store
+
+# Credenciais de acesso (nunca versionar)
+Acesso*.txt
