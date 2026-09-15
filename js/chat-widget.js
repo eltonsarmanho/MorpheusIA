@@ -118,13 +118,14 @@
     var list = null;      // <ul>/<ol> em construção
     var paragraph = null; // <p> em construção
 
-    function closeBlocks() {
-      list = null;
-      paragraph = null;
-    }
-
     lines.forEach(function (line) {
-      if (!line.trim()) { closeBlocks(); return; }
+      if (!line.trim()) {
+        // Fecha o parágrafo, mas mantém a lista aberta: o modelo costuma
+        // separar os itens com linha em branco, e fechá-la aqui faria a
+        // numeração recomeçar do 1 a cada item.
+        paragraph = null;
+        return;
+      }
 
       var bullet = BULLET_RE.exec(line);
       var ordered = bullet ? null : ORDERED_RE.exec(line);
@@ -186,7 +187,7 @@
   function showTyping() {
     if (typingEl) return;
     typingEl = document.createElement('div');
-    typingEl.className = 'chat-widget__message chat-widget__message--bot chat-widget__typing';
+    typingEl.className = 'chat-widget__typing';
     typingEl.setAttribute('aria-label', t('chatWidget.typing', 'Assistente digitando'));
     for (var i = 0; i < 3; i++) {
       typingEl.appendChild(document.createElement('span'));
