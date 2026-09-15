@@ -54,19 +54,150 @@
     return id;
   }
 
+  /* ---------- Markdown leve ---------- */
+  /* O modelo responde em markdown (`**negrito**`, `*itálico*`, listas). Em vez
+     de mostrar os asteriscos crus, formatamos o texto — mas SEMPRE montando nós
+     do DOM, nunca innerHTML (AC CHAT-12): o conteúdo vem de um LLM e não pode
+     virar HTML executável. */
+
+  // `**x**` e `__x__` são negrito; `*x*` e `_x_` itálico; `` `x` `` código.
+  var INLINE_RE = /(\*\*|__)(?=\S)([\s\S]*?\S)\1|(\*|_)(?=\S)([\s\S]*?\S)\3|`([^`\n]+)`/;
+
+  // `_` dentro de palavra (snake_case, nomes de arquivo) não é ênfase.
+  function isWordChar(ch) {
+    return !!ch && /[\wÀ-ɏ]/.test(ch);
+  }
+
+  function renderInline(text, parent) {
+    var rest = text;
+    var guard = 0;
+    while (rest && guard++ < 500) {
+      var m = INLINE_RE.exec(rest);
+      if (!m) break;
+
+      var marker = m[1] || m[3];
+      var content = m[1] ? m[2] : (m[3] ? m[4] : m[5]);
+      var start = m.index;
+      var end = start + m[0].length;
+
+      // Descarta um `_`/`__` colado em palavra e segue a busca depois dele.
+      if (marker && marker.charAt(0) === '_' &&
+          (isWordChar(rest.charAt(start - 1)) || isWordChar(rest.charAt(end)))) {
+        parent.appendChild(document.createTextNode(rest.slice(0, end)));
+        rest = rest.slice(end);
+        continue;
+      }
+
+      if (start > 0) {
+        parent.appendChild(document.createTextNode(rest.slice(0, start)));
+      }
+
+      var tag = 'code';
+      if (marker === '**' || marker === '__') tag = 'strong';
+      else if (marker === '*' || marker === '_') tag = 'em';
+
+      var el = document.createElement(tag);
+      if (tag === 'code') {
+        el.textContent = content;
+      } else {
+        renderInline(content, el); // permite *itálico dentro de **negrito**
+      }
+      parent.appendChild(el);
+
+      rest = rest.slice(end);
+    }
+    if (rest) parent.appendChild(document.createTextNode(rest));
+  }
+
+  var BULLET_RE = /^\s*[-*+]\s+(.*)$/;
+  var ORDERED_RE = /^\s*\d+[.)]\s+(.*)$/;
+
+  // Agrupa as linhas em parágrafos e listas antes de formatar cada uma.
+  function renderMarkdown(text, parent) {
+    var lines = String(text == null ? '' : text).split(/\r?\n/);
+    var list = null;      // <ul>/<ol> em construção
+    var paragraph = null; // <p> em construção
+
+    function closeBlocks() {
+      list = null;
+      paragraph = null;
+    }
+
+    lines.forEach(function (line) {
+      if (!line.trim()) { closeBlocks(); return; }
+
+      var bullet = BULLET_RE.exec(line);
+      var ordered = bullet ? null : ORDERED_RE.exec(line);
+
+      if (bullet || ordered) {
+        var wanted = bullet ? 'UL' : 'OL';
+        if (!list || list.tagName !== wanted) {
+          list = document.createElement(bullet ? 'ul' : 'ol');
+          list.className = 'chat-widget__list';
+          parent.appendChild(list);
+        }
+        paragraph = null;
+        var li = document.createElement('li');
+        renderInline((bullet || ordered)[1], li);
+        list.appendChild(li);
+        return;
+      }
+
+      list = null;
+      if (!paragraph) {
+        paragraph = document.createElement('p');
+        paragraph.className = 'chat-widget__paragraph';
+        parent.appendChild(paragraph);
+      } else {
+        // Quebra simples dentro do mesmo parágrafo.
+        paragraph.appendChild(document.createElement('br'));
+      }
+      renderInline(line, paragraph);
+    });
+  }
+
   /* ---------- Rendering ---------- */
   function scrollToBottom() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  // AC CHAT-12: always textContent, never innerHTML/template-string HTML.
+  // AC CHAT-12: nada de innerHTML — o texto vira nós do DOM.
   function appendMessage(role, text) {
-    var bubble = document.createElement('p');
+    var isUser = role === 'user';
+    var bubble = document.createElement('div');
     bubble.className = 'chat-widget__message ' +
-      (role === 'user' ? 'chat-widget__message--user' : 'chat-widget__message--bot');
-    bubble.textContent = text;
+      (isUser ? 'chat-widget__message--user' : 'chat-widget__message--bot');
+
+    if (isUser) {
+      bubble.textContent = text; // o que o visitante digitou vai literal
+    } else {
+      renderMarkdown(text, bubble);
+    }
+
     messagesEl.appendChild(bubble);
     scrollToBottom();
+    return bubble;
+  }
+
+  /* ---------- Indicador de "digitando" ---------- */
+  /* A MariTalk leva alguns segundos; sem retorno visual o chat parece travado. */
+  var typingEl = null;
+
+  function showTyping() {
+    if (typingEl) return;
+    typingEl = document.createElement('div');
+    typingEl.className = 'chat-widget__message chat-widget__message--bot chat-widget__typing';
+    typingEl.setAttribute('aria-label', t('chatWidget.typing', 'Assistente digitando'));
+    for (var i = 0; i < 3; i++) {
+      typingEl.appendChild(document.createElement('span'));
+    }
+    messagesEl.appendChild(typingEl);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+    typingEl = null;
   }
 
   function hideStatus() {
@@ -136,6 +267,7 @@
     var sessionId = getOrCreateSessionId();
     appendMessage('user', text);
     setBusy(true); // AC CHAT-11: preserve ordering while a request is in flight
+    showTyping();
 
     fetch(apiBaseUrl() + '/api/chat/message', {
       method: 'POST',
@@ -143,6 +275,7 @@
       body: JSON.stringify({ session_id: sessionId, message: text })
     })
       .then(function (res) {
+        hideTyping();
         if (res.status === 429) {
           showStatus(rateLimitEl); // distinct rate-limited state
           return null;
@@ -160,6 +293,7 @@
         }
       })
       .catch(function () {
+        hideTyping();
         showStatus(offlineEl); // distinct offline/fallback state
       })
       .then(function () {

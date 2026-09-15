@@ -114,6 +114,7 @@
     "whatsappCta": "Continuar no WhatsApp",
     "rateLimited": "Muitas mensagens em pouco tempo. Aguarde um instante antes de continuar.",
     "offline": "Não foi possível conectar ao assistente. Verifique sua conexão e tente novamente, ou fale conosco pelo WhatsApp.",
-    "tooLong": "Sua mensagem deve ter menos de 1000 caracteres."
+    "tooLong": "Sua mensagem deve ter menos de 1000 caracteres.",
+    "typing": "Assistente digitando"
   }
 }
