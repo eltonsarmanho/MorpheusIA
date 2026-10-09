@@ -382,6 +382,13 @@ class SqliteKnowledgeStore:
                 "UPDATE documents SET review_state=?, review_reason=?, active=? WHERE doc_id=?",
                 (state.value, reason, 0 if state in (ReviewState.REJECTED, ReviewState.STALE) else 1, doc_id),
             )
+            if state in (ReviewState.STALE, ReviewState.NEEDS_REVIEW):
+                # a decisão automática vira o registro mais recente: nenhuma aprovação anterior pode ser reaplicada por recoleta
+                row = self._conn.execute("SELECT content_hash FROM documents WHERE doc_id=?", (doc_id,)).fetchone()
+                self._conn.execute(
+                    "INSERT INTO curation_decisions(doc_id,content_hash,decision,reviewer,reason,access_class,decided_at) VALUES(?,?,?,?,?,?,?)",
+                    (doc_id, row["content_hash"], state.value, "sistema", reason, None, _now()),
+                )
             if state is not ReviewState.APPROVED:
                 self._drop_index(doc_id)
         self._dirty = True
@@ -450,6 +457,21 @@ class SqliteKnowledgeStore:
             "ORDER BY p.process_number"
         ).fetchall()
         return [dict(r) for r in rows]
+
+    def processes_with_term(self, term: str) -> set[str]:
+        """Processos (com documentos elegíveis) em que o termo aparece; serve para ver se um termo identifica um único processo."""
+        t = "".join(ch for ch in fold(term) if ch.isalnum())
+        if not t:
+            return set()
+        try:
+            rows = self._exec(
+                "SELECT DISTINCT d.process_number FROM chunks_fts f JOIN chunks c ON c.chunk_id=f.rowid JOIN documents d ON d.doc_id=c.doc_id "
+                f"WHERE chunks_fts MATCH ? AND c.domain='processual' AND d.process_number IS NOT NULL AND {_ELIGIBLE}",
+                (f'"{t}"',),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return set()
+        return {r["process_number"] for r in rows}
 
     def approved_process_numbers(self) -> list[str]:
         """Processos que têm ao menos um documento elegível (candidatos legítimos a esclarecimento)."""

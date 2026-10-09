@@ -54,14 +54,16 @@ GENERIC_PROCESS_TERMS = frozenset(
     "valor causa reu autor autora parte partes juiz juiza vara data datas ultima ultimo recente mais cronologia andamento situacao "
     "foi quando quem onde qual quais existe existem acervo demonstracao tem ter deve mandado intimacao citacao acordao voto recurso".split()
 )
-_YES = frozenset("sim s pode quero claro aceito ok okay certo encaminhe encaminhar encaminha por favor gostaria".split())
-_NO = frozenset("nao não n nunca jamais".split())
+_YES = frozenset("sim s pode quero claro aceito ok okay certo encaminhe encaminhar encaminha favor gostaria desejo".split())
+_FILLER = frozenset("por um uma o a me de para pra atendente humano pessoa obrigado obrigada sim pode quero".split())
 
 
 def _is_affirmative(text: str) -> bool:
-    """Resposta curta de aceite ao oferecimento de encaminhamento ("sim", "pode encaminhar", "quero sim")."""
+    """Aceite curto ao oferecimento de encaminhamento: a mensagem inteira precisa ser feita de palavras de aceite."""
     words = re.findall(r"[a-zà-ÿ]+", text.lower())
-    return 0 < len(words) <= 6 and any(w in _YES for w in words) and not any(w in _NO for w in words) and "?" not in text
+    if not 0 < len(words) <= 6 or "?" in text:
+        return False
+    return all(w in _YES or w in _FILLER for w in words) and any(w in _YES for w in words)
 
 
 _LIST_PROCESSES = re.compile(r"(?i)\b(quais|que|lista|listar|liste|mostre|quantos)\b.{0,30}\b(processos|autos)\b|\bacervo\b")
@@ -174,11 +176,15 @@ class Orchestrator:
             if isinstance(recent, RetrievalResult):
                 return self._generate(text, recent, st, domain, intent.intent, trace, labels)
 
-        if domain is KnowledgeDomain.PROCESSUAL and not st.process_number and self._lacks_process_identity(text):
-            return self._clarify(st, domain, intent.intent, self.store.approved_process_numbers()[:6], trace, labels)  # type: ignore[attr-defined]  # ORQ-03
+        identified: str | None = None
+        if domain is KnowledgeDomain.PROCESSUAL and not st.process_number:
+            identified = self._identify_process(text)
+            if identified is None:
+                return self._clarify(st, domain, intent.intent, self.store.approved_process_numbers()[:6], trace, labels)  # type: ignore[attr-defined]  # ORQ-03
+            trace["process_identified_by_terms"] = identified
 
         try:
-            result, attempts = self._retrieve(text, domain, st)
+            result, attempts = self._retrieve(text, domain, st, process_override=identified)
         except Exception as exc:  # noqa: BLE001 - falha do mecanismo de recuperação vira abstenção técnica
             log.exception("falha na recuperação")
             trace["retrieval_error"] = type(exc).__name__
@@ -195,28 +201,28 @@ class Orchestrator:
         if not result.sufficient:
             return self._abstention(st, domain, intent.intent, self._abstain_text(domain), result.abstain_reason or "insuficiente", trace, labels)
 
-        inferred: str | None = None
-        if domain is KnowledgeDomain.PROCESSUAL and not st.process_number and result.evidences:
-            inferred = result.evidences[0].citation.get("processo") or None  # processo do trecho mais bem classificado
-            if inferred:
-                st.process_number = inferred
-                trace["process_inferred"] = inferred
-
+        inferred = identified  # o processo foi deduzido por termos exclusivos; a resposta avisa e a conversa não o fixa
         return self._generate(text, result, st, domain, intent.intent, trace, labels, inferred_process=inferred)
 
-    @staticmethod
-    def _lacks_process_identity(text: str) -> bool:
-        """Pergunta sobre "o" processo sem número e sem conteúdo que o identifique (nomes, assuntos, objetos)."""
-        specific = {t for t in query_terms(text) if t not in GENERIC_PROCESS_TERMS and not t.isdigit()}
-        has_names = bool(re.search(r"(?<![.!?]\s)(?<!^)\b[A-ZÀ-Ý][a-zà-ÿ]{2,}", text))  # nome próprio fora do início de frase
-        return len(specific) < 2 and not has_names
+    def _identify_process(self, text: str) -> str | None:
+        """Processo que a pergunta identifica sem citar o número: ao menos um termo específico (nome, objeto, assunto) aparece em
+        UM único processo e nenhum termo exclusivo aponta para outro. Sem isso, a pergunta é ambígua (ORQ-03)."""
+        terms = {t for t in query_terms(text) if t not in GENERIC_PROCESS_TERMS and not t.isdigit() and len(t) >= 4}
+        owners: list[str] = []
+        for t in sorted(terms):
+            procs = self.store.processes_with_term(t)  # type: ignore[attr-defined]
+            if len(procs) == 1:
+                owners.append(next(iter(procs)))
+        distinct = set(owners)
+        return next(iter(distinct)) if len(distinct) == 1 else None
 
     # -------------------------------------------------------------- recuperação
-    def _retrieve(self, text: str, domain: KnowledgeDomain, st: ConversationState) -> tuple[RetrievalResult, int]:
-        result = self.retriever.retrieve(text, domain, process_number=st.process_number)
+    def _retrieve(self, text: str, domain: KnowledgeDomain, st: ConversationState, process_override: str | None = None) -> tuple[RetrievalResult, int]:
+        pn = process_override or st.process_number
+        result = self.retriever.retrieve(text, domain, process_number=pn)
         if result.sufficient or result.abstain_reason == "processo_ausente_do_acervo":
             return result, 1
-        second = self.retriever.retrieve(reformulate(text), domain, process_number=st.process_number)
+        second = self.retriever.retrieve(reformulate(text), domain, process_number=pn)
         return (second if second.sufficient else result), 2
 
     def _recent_document(self, text: str, st: ConversationState, trace: dict, intent: Intent) -> BotReply | RetrievalResult | None:

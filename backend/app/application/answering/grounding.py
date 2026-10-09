@@ -16,7 +16,14 @@ _MONTHS = {"janeiro": 1, "fevereiro": 2, "marco": 3, "março": 3, "abril": 4, "m
            "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12}
 _DATE_LONG = re.compile(r"(?<!\d)(\d{1,2})º?\s+de\s+(" + "|".join(_MONTHS) + r")\s+de\s+(\d{4})(?!\d)", re.I)
 _MONEY = re.compile(r"R\$\s*([\d.]+(?:,\d{1,2})?)")
-_QUANTITY = re.compile(r"(?<![\d.,/-])(\d+(?:[.,]\d+)?)\s*(dias?|meses|m[eê]s|anos?|horas?|h\b|%|por cento|sal[aá]rios|parcelas?|vezes|reais)", re.I)
+_QUANTITY = re.compile(
+    r"(?<![\d.,/-])(\d+(?:[.,]\d+)?)\s*(dias?|meses|m[eê]s|anos?|horas?|h\b|%|por cento|sal[aá]rios|parcelas?|vezes|reais|"
+    r"r[eé]us?|autores?|partes?|processos?|documentos?|p[aá]ginas?|pessoas?|testemunhas?|v[ií]timas?|volumes?)", re.I)
+_ARTICLE = re.compile(r"(?i)\b(?:art\.?|artigos?|§)\s*(\d+)")
+_WORD_NUM = {"um": 1, "uma": 1, "dois": 2, "duas": 2, "três": 3, "tres": 3, "quatro": 4, "cinco": 5, "seis": 6, "sete": 7, "oito": 8, "nove": 9,
+             "dez": 10, "onze": 11, "doze": 12, "quinze": 15, "vinte": 20, "trinta": 30, "quarenta": 40, "cinquenta": 50, "sessenta": 60,
+             "noventa": 90, "cem": 100}
+_WORD_QTY = re.compile(r"(?i)\b(" + "|".join(_WORD_NUM) + r")\s+(dias?|meses|m[eê]s|anos?|horas?|parcelas?|vezes|r[eé]us?|autores?|partes?|testemunhas?)\b")
 _REF = re.compile(r"\[(E\d+)\]")
 
 
@@ -112,6 +119,17 @@ def verify_grounding(answer: ModelAnswer, evidences: list[Evidence], labels: dic
         pattern = rf"(?<![\d.,/-]){re.escape(raw)}(?![\d]|[.,]\d)"
         if not re.search(pattern, context):
             problems.append(f"quantidade_sem_lastro:{raw} {unit}")
+
+    for art in set(_ARTICLE.findall(answer_clean)):
+        checked["quantidades"] += 1
+        if not re.search(rf"(?i)(?:art\.?|artigos?|§)\s*{re.escape(art)}(?!\d)", context):
+            problems.append(f"artigo_sem_lastro:{art}")
+    for word, unit in set(_WORD_QTY.findall(answer_clean)):
+        checked["quantidades"] += 1
+        n = _WORD_NUM[word.lower()]
+        in_digits = re.search(rf"(?<![\d.,/-]){n}(?![\d]|[.,]\d)", context)
+        if not in_digits and not re.search(rf"(?i)\b{word}\b", context):
+            problems.append(f"quantidade_sem_lastro:{word} {unit}")
 
     cleaned = _MONEY.sub("", _DATE_ISO.sub("", answer_clean))
     cleaned = re.sub(r"\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}", "", cleaned)

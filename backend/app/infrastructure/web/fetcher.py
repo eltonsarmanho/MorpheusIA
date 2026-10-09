@@ -39,6 +39,10 @@ class HttpFetcher:
         parser: urllib.robotparser.RobotFileParser | None
         try:
             r = self._http.get(f"{origin}/robots.txt")
+            if r.status_code in (301, 302, 307, 308) and r.headers.get("location"):
+                target = httpx.URL(f"{origin}/robots.txt").join(r.headers["location"])
+                if target.host == p.hostname and target.scheme == "https":  # só segue no mesmo host
+                    r = self._http.get(str(target))
             if r.status_code == 200:
                 rp.parse(r.text.splitlines())
                 parser = rp

@@ -246,6 +246,10 @@ class ChatwootEventHandler:
         st = self.ops.transition(key, HandoffState.AUTOMATION_RESUMED, actor=actor, detail=reason)
         st.failed_retrievals, st.offer_pending, st.handoff_attempts = 0, False, 0
         self.ops.save(st)
+        try:
+            self.gw.set_status(account, conv_id, "pending")  # conversa volta a ser da automação
+        except Exception:  # noqa: BLE001 - o estado local já libera o bot; o status é só coerência no Chatwoot
+            self.ops.audit(key, "resume_status_failed", actor, "não foi possível voltar o status para pending")
         return st
 
     def _send(self, account: int, conv_id: int, text: str) -> int | None:
