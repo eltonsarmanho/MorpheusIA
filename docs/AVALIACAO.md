@@ -6,7 +6,7 @@ Tudo abaixo foi executado em 2026-10-09 sobre o código no commit indicado em ca
 
 | Conjunto | Comando | Resultado |
 | --- | --- | --- |
-| Suíte offline (sem rede, LLM nem Chatwoot reais) | `cd backend && .venv/bin/python -m pytest -q` | **206 passed**, 7 deselecionados (marcador `corpus`) |
+| Suíte offline (sem rede, LLM nem Chatwoot reais) | `cd backend && .venv/bin/python -m pytest -q` | **253 passed**, 7 deselecionados (marcador `corpus`) |
 | Portões de promoção sobre o índice real | `.venv/bin/python -m pytest -m corpus tests/eval -q` | **7 passed** |
 
 A suíte cobre as 17 situações pedidas no prompt (ETAPA 9):
@@ -105,7 +105,22 @@ Achados do teste real, todos corrigidos e cobertos por teste: o nginx do vhost d
 
 ## 6. Verificação independente
 
-Um verificador separado (outro agente, sem acesso ao meu raciocínio) auditou a especificação contra os testes e injetou 129 falhas em uma cópia isolada. Primeira rodada: veredito **FAIL**, 49 mutantes sobreviventes (40 lacunas reais) e 16 bugs, entre eles filtro de processo vazando para outro domínio, verificador de fundamentação aceitando "R$ 1.000,00" contra "R$ 11.000,00" e "15 dias" contra "5 dias", recoleta contornando a obsolescência, PDF marcado como processado após falha de indexação e transferência sem limite de tentativas. Todos foram corrigidos com testes de regressão (`test_verifier_regressions.py`). O resultado da segunda rodada está em `.specs/features/tjpa-atendimento-rag/validation.md`.
+Um verificador separado (outro agente, sem acesso ao meu raciocínio) auditou a especificação contra os testes e injetou falhas de comportamento em cópias isoladas. Foram três rodadas, o limite do processo:
+
+| Rodada | Veredito | Resumo |
+| --- | --- | --- |
+| 1 | FAIL | 129 mutantes, 49 sobreviventes (40 lacunas reais), 16 bugs: filtro de processo vazando para outro domínio, "R$ 1.000,00" aceito contra "R$ 11.000,00", recoleta contornando a obsolescência, PDF marcado como processado após falha de indexação, transferência sem limite de tentativas |
+| 2 | FAIL | defeito grave restante (recoleta repetida republicava conteúdo vencido), 3 regressões criadas pelas correções (aceite frouxo do encaminhamento, falsos pedidos de atendente, processo fixado por inferência), 19 mutantes sobreviventes |
+| 3 | **FAIL** | nenhum defeito grave nem regressão restante; 253 testes passando; pendem 4 itens, nenhum bloqueante |
+
+Itens que a rodada 3 deixou em aberto (detalhes com arquivo e linha em `.specs/features/tjpa-atendimento-rag/validation.md`):
+
+1. T16: verificação manual do console no navegador (não feita).
+2. B13: a retomada da automação não funciona se o Chatwoot mantiver um agente humano como responsável. Limitação conhecida, não corrigida.
+3. A verificação numérica ainda deixa passar um número de artigo com separador de milhar e quantidades com unidades fora da lista.
+4. 15 mutantes sobreviventes, entre eles dois que eu havia declarado cobertos (N105 e N109).
+
+Como o processo permite no máximo 3 rodadas, esses itens ficam como pendências para decisão humana. Pela regra do processo, o veredito FAIL impede declarar a feature concluída.
 
 ## 7. Critérios de promoção (checkpoint-promotion adaptado)
 
@@ -113,7 +128,7 @@ Esta é uma promoção de aplicação, não de um modelo ajustado; as etapas de 
 
 | Critério | Limite | Medido | Situação |
 | --- | --- | --- | --- |
-| Suíte offline | 100% passando | 206/206 | atende |
+| Suíte offline | 100% passando | 253/253 | atende |
 | Portões do índice real | 7/7 | 7/7 | atende |
 | Dados pessoais no índice (8 padrões, texto, título e contexto) | 0 ocorrências | 0 | atende |
 | Documento não aprovado, restrito ou rejeitado em resultado de busca | 0 | 0 | atende |
@@ -125,10 +140,11 @@ Esta é uma promoção de aplicação, não de um modelo ajustado; as etapas de 
 | Erros de execução nas avaliações | 0 | 0 | atende |
 | Transferência: bot silencioso até retomada explícita (teste no Chatwoot real) | sim | sim | atende |
 | Resposta processual sem fundamentação | 0 | 0 nas avaliações | atende |
+| Verificação independente | PASS | FAIL na rodada 3 (sem Major; 4 itens abertos) | **não atende** |
 | Revisão humana de amostra de respostas | feita | **pendente** | pendente |
 | Confirmação institucional do acervo e do uso de LLM externo | feita | **pendente** | pendente |
 
-Decisão: **promovida para demonstração controlada** (console e inbox de teste). **Não promovida** para atendimento real de usuários pelo WhatsApp enquanto houver pendências na última linha da tabela.
+Decisão: **liberada só para demonstração controlada** (console e inbox de teste), por decisão do responsável e sabendo do FAIL da verificação independente. **Não promovida** para atendimento real de usuários pelo WhatsApp enquanto houver pendências nas três últimas linhas da tabela.
 
 ## 7.1 Problemas conhecidos
 
