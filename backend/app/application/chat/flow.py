@@ -20,7 +20,7 @@ BELEM = timezone(timedelta(hours=-3))  # Belém não tem horário de verão
 
 class Kind(StrEnum):
     MENU = "menu"
-    PROCESS_LIST = "process_list"
+    PROCESS_ASK = "process_ask"  # "Consultar processo": pergunta qual processo
     SELECT_PROCESS = "select_process"
     ASK = "ask"  # executa uma pergunta pronta no RAG
     PROMPT = "prompt"  # pede texto livre
@@ -41,6 +41,8 @@ class Action:
 # ------------------------------------------------------------------------------------------------ opções
 OPT_MENU = Option("📋 Menu principal", "menu")
 OPT_PROCESS = Option("📄 Consultar processo", "processos")
+OPT_OTHER_PROC = Option("📄 Outro processo", "outro_processo")
+OPT_ASK = Option("🔎 Fazer pergunta", "fazer_pergunta")
 OPT_INST = Option("🏛️ Balcão Virtual", "institucional")
 OPT_LEGAL = Option("⚖️ Termos jurídicos", "juridico")
 OPT_HUMAN_LIST = Option("🙋 Falar com atendente", "humano")
@@ -50,7 +52,8 @@ OPT_CLOSE = Option("✅ Encerrar", "encerrar")
 
 MAIN_MENU = [OPT_PROCESS, OPT_INST, OPT_LEGAL, OPT_HUMAN_LIST, OPT_CLOSE_LIST]
 AFTER_ANSWER = [OPT_MENU, OPT_HUMAN, OPT_CLOSE]
-PROCESS_MENU = [Option("📋 Dados da capa", "capa"), Option("🗓️ Cronologia", "cronologia"), Option("🔎 Outra pergunta", "outra_proc")]
+PROCESS_MENU = [Option("🗓️ Cronologia", "cronologia"), OPT_ASK, OPT_OTHER_PROC, OPT_HUMAN_LIST, OPT_CLOSE_LIST, OPT_MENU]
+PROCESS_ASK_OPTIONS = [OPT_MENU]
 INST_ITEMS = [
     (Option("🕒 Horário", "inst_horario"), "Qual o horário de funcionamento do Balcão Virtual?"),
     (Option("📍 Unidades e contatos", "inst_contatos"), "Quais são as unidades e os contatos do Balcão Virtual?"),
@@ -71,7 +74,7 @@ PROCESS_QUESTIONS = {
 }
 
 PROMPTS = {
-    "outra_proc": "✍️ Escreva sua pergunta sobre o processo *{n}*.\nExemplo: _Qual foi a última decisão?_",
+    "outra_proc": "Claro! 😊 Pode escrever a sua pergunta sobre o processo *{n}*.\nPor exemplo: _Qual foi a última decisão?_ ou _Quem são as partes?_",
     "inst_outra": "✍️ Escreva sua dúvida sobre o Tribunal ou o Balcão Virtual.\nExemplo: _Quem pode usar o Balcão Virtual?_",
     "jur_outro": "✍️ Escreva o termo ou a dúvida jurídica.\nExemplo: _O que significa trânsito em julgado?_",
 }
@@ -91,18 +94,16 @@ def _register() -> None:
 
     for opt in (OPT_MENU,):
         add(opt, Action(Kind.MENU))
-    add(OPT_PROCESS, Action(Kind.PROCESS_LIST))
+    add(OPT_PROCESS, Action(Kind.PROCESS_ASK))
+    add(OPT_OTHER_PROC, Action(Kind.PROCESS_ASK))
     add(OPT_INST, Action(Kind.INST_MENU))
     add(OPT_LEGAL, Action(Kind.LEGAL_MENU))
     add(OPT_HUMAN_LIST, Action(Kind.HUMAN))
     add(OPT_HUMAN, Action(Kind.HUMAN))
     add(OPT_CLOSE_LIST, Action(Kind.CLOSE))
     add(OPT_CLOSE, Action(Kind.CLOSE))
-    for opt in PROCESS_MENU:
-        if opt.value in PROCESS_QUESTIONS:
-            add(opt, Action(Kind.ASK, opt.value))
-        else:
-            add(opt, Action(Kind.PROMPT, opt.value))
+    add(PROCESS_MENU[0], Action(Kind.ASK, "cronologia"))
+    add(OPT_ASK, Action(Kind.PROMPT, "outra_proc"))
     for opt, question in INST_ITEMS + LEGAL_ITEMS:
         add(opt, Action(Kind.ASK, question))
     add(OPT_INST_OTHER, Action(Kind.PROMPT, "inst_outra"))
@@ -127,11 +128,6 @@ def parse(text: str, known_processes: list[str]) -> Action:
         return Action(Kind.CLOSE_HINT)  # texto digitado pode ser sem intenção; encerrar só pelo menu
     if _GREETING.match(c):
         return Action(Kind.MENU)
-    short = re.fullmatch(r"(?:📄\s*)?(\d{7}-\d{2}\.\d{4})", text.strip().lstrip("📄").strip())
-    if short:  # título curto da lista: "6035625-24.2026"
-        for number in known_processes:
-            if number.startswith(short.group(1)):
-                return Action(Kind.SELECT_PROCESS, number)
     numbers = find_process_numbers(text)
     if len(numbers) == 1 and len(re.sub(r"[\d.\- ]", "", text).strip()) == 0 and numbers[0] in known_processes:
         return Action(Kind.SELECT_PROCESS, numbers[0])  # só o número digitado
@@ -155,26 +151,20 @@ def closing_text(ticket_id: str, opened_at: str, closed_at: str, closed_by: str)
             "Obrigado por falar com o assistente do TJPA (piloto). Para um novo atendimento, é só enviar uma mensagem. 👋")
 
 
-MAIN_MENU_TEXT = ("👋 Olá! Sou o assistente virtual do piloto do TJPA.\n\n"
-                  "Escolha uma opção abaixo 👇\n\n"
+MAIN_MENU_TEXT = ("👋 Olá{name}! Sou o assistente virtual do piloto do TJPA e vou te ajudar.\n\n"
+                  "Como posso ajudar hoje? Escolha uma opção abaixo 👇\n\n"
                   "ℹ️ As respostas sobre processos usam documentos de demonstração, não a consulta em tempo real ao PJe.")
 CLOSE_HINT_TEXT = "Para encerrar o atendimento, toque em *✅ Encerrar*. Se foi sem querer, siga normalmente ou volte ao menu 👇"
 CLOSE_HINT_OPTIONS = [OPT_CLOSE, OPT_MENU]
-AFTER_ANSWER_TEXT = "O que você quer fazer agora? 👇"
+AFTER_ANSWER_TEXT = "Posso ajudar com mais alguma coisa? 😊 Escreva a sua próxima pergunta ou escolha uma opção 👇"
 INST_MENU_TEXT = "🏛️ *Balcão Virtual e informações do Tribunal*\nEscolha um assunto 👇"
 LEGAL_MENU_TEXT = "⚖️ *Termos e conceitos jurídicos*\nEscolha um tema ou digite o seu 👇"
-PROCESS_MENU_TEXT = "✅ Processo selecionado: *{n}*\n{info}\n\nO que você quer ver? 👇"
-PROCESS_LIST_TEXT = "📄 *Processos do acervo de demonstração*\n{lines}\n\nEscolha um processo na lista 👇 (ou digite o número)"
-PROCESS_PICK_TEXT = "📄 Sobre qual processo é a sua pergunta? Escolha um na lista 👇 (ou digite o número)"
-
-
-def process_options(numbers: list[str]) -> list[Option]:
-    rows = [Option(f"📄 {n[:15]}", n) for n in numbers[:9]]
-    if len(numbers) > 9:
-        rows.append(OPT_MENU)
-    else:
-        rows = [Option(f"📄 {n[:15]}", n) for n in numbers[:10]]
-    return rows
+PROCESS_ASK_TEXT = ("Claro, posso ajudar com isso! 😊\nSobre *qual processo* você quer falar? Digite o número do processo, por exemplo: _6080680-32.2025.8.03.0001_.")
+PROCESS_NOT_FOUND_TEXT = ("Hmm, não encontrei esse número no acervo de demonstração 🤔\nConfira se digitou certinho (formato 0000000-00.0000.8.03.0000) "
+                          "e tente de novo, ou volte ao menu 👇")
+PROCESS_NO_NUMBER_TEXT = "Não consegui identificar um número de processo na sua mensagem 😅\nDigite o número completo do processo (0000000-00.0000.8.03.0000) ou volte ao menu 👇"
+PROCESS_NEXT_TEXT = "O que você gostaria de saber sobre este processo? ✍️ Escreva sua pergunta ou escolha uma opção 👇"
+PROCESS_PICK_TEXT = "Sobre qual processo é a sua pergunta? 🤔 Digite o número do processo."
 
 
 def inst_options() -> list[Option]:
@@ -183,3 +173,24 @@ def inst_options() -> list[Option]:
 
 def legal_options() -> list[Option]:
     return [o for o, _ in LEGAL_ITEMS] + [OPT_LEGAL_OTHER, OPT_MENU]
+
+
+def _money(raw: str) -> str:
+    return raw if raw and raw != "desconhecido" else "não informado"
+
+
+def process_summary(info: dict, documents: int) -> str:
+    """Resumo da capa (dentro do limite de 1024 caracteres do WhatsApp), só com dados lidos do PDF."""
+    def d(v: str) -> str:
+        return v if v and v != "desconhecido" else "não informado"
+
+    dist = d(info.get("distribution_date", ""))
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", dist):
+        dist = f"{dist[8:]}/{dist[5:7]}/{dist[:4]}"
+    parties = "; ".join(f"{p['nome'].title()} ({p['papel'].title()})" for p in (info.get("parties") or [])[:4]) or "não informadas"
+    text = (f"📄 *Processo {info['process_number']}*\n"
+            f"⚖️ Classe: {d(info.get('process_class', ''))}\n🏛️ Órgão: {d(info.get('court_unit', ''))}\n"
+            f"📅 Distribuição: {dist}\n💰 Valor da causa: {_money(info.get('case_value', ''))}\n"
+            f"📌 Assuntos: {d(info.get('subjects', ''))[:120]}\n👥 Partes: {parties[:200]}\n"
+            f"🗂️ {documents} documentos no acervo\n\nℹ️ Resumo da capa do PDF (acervo de demonstração).")
+    return text[:950]

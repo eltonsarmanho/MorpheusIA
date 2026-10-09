@@ -359,9 +359,9 @@ class Orchestrator:
             KnowledgeDomain.INSTITUCIONAL: "nas informações institucionais aprovadas",
             KnowledgeDomain.JURIDICO: "nas fontes jurídicas oficiais aprovadas",
         }[domain]
-        why = "Não encontrei" if grounded else "Não consegui confirmar com segurança"
-        return (f"{why} {where} informação suficiente para responder a essa pergunta. Prefiro não arriscar uma resposta sem fundamento. "
-                "Você pode reformular a pergunta ou, se preferir, posso encaminhar você a um atendente humano. Deseja o encaminhamento?")
+        why = "Poxa, não encontrei" if grounded else "Poxa, não consegui confirmar com segurança"
+        return (f"{why} {where} informação suficiente para responder a essa pergunta 😕 Prefiro não arriscar uma resposta sem fundamento. "
+                "Você pode reformular a pergunta ou, se preferir, posso pedir o encaminhamento para um atendente humano. Deseja o encaminhamento?")
 
     @staticmethod
     def _suggest_handoff_text() -> str:

@@ -17,6 +17,7 @@ from app.application.answering.orchestrator import TEAM_GENERAL, Orchestrator, Q
 from app.application.chat import flow
 from app.domain.handoff import HandoffState, InvalidTransition, bot_may_reply
 from app.domain.models import Option, ResponseKind
+from app.domain.policies import find_process_numbers
 from app.domain.ports import ChatwootGateway
 from app.infrastructure.sqlite.operational_store import ConversationState, OperationalStore
 
@@ -168,8 +169,11 @@ class ChatwootEventHandler:
         self.ops.save(turn.state)
         if reply.kind is ResponseKind.HANDOFF:
             return self._do_handoff(account, conv_id, key, turn.state, turn.handoff_team or TEAM_GENERAL, reply.handoff_reason or "", turn.labels)
-        if self.rich and reply.kind is ResponseKind.CLARIFY:
-            self._send(account, conv_id, flow.PROCESS_PICK_TEXT, self._process_options())  # em vez de pedir o número por extenso
+        if self.rich and (reply.kind is ResponseKind.CLARIFY or reply.trace.get("deterministic") == "lista_de_processos"):
+            # no WhatsApp o acervo não é listado: o usuário precisa informar o número do processo
+            turn.state.awaiting = "process"
+            self.ops.save(turn.state)
+            self._send(account, conv_id, flow.PROCESS_PICK_TEXT, flow.PROCESS_ASK_OPTIONS)
         else:
             self._send(account, conv_id, reply.text)
             if self.rich and reply.kind in (ResponseKind.ANSWER, ResponseKind.ABSTAIN, ResponseKind.GREETING):
@@ -183,13 +187,6 @@ class ChatwootEventHandler:
     # ------------------------------------------------------- fluxo guiado (WhatsApp)
     def _known_processes(self) -> list[str]:
         return list(self.orch.store.approved_process_numbers())  # type: ignore[attr-defined]
-
-    def _process_options(self) -> list[Option]:
-        return flow.process_options(self._known_processes())
-
-    def _process_info(self, number: str) -> str:
-        info = self.orch.store.process_info(number)  # type: ignore[attr-defined]
-        return f"{info['process_class']} · {info['court_unit']}" if info else ""
 
     def _ensure_ticket(self, account: int, conv_id: int, key: str, status: str | None) -> bool:
         """Garante o protocolo do atendimento. Devolve True quando acabou de abrir um novo (e o anunciou)."""
@@ -207,25 +204,46 @@ class ChatwootEventHandler:
 
     def _rich_incoming(self, payload: dict, account: int, conv_id: int, key: str, st: ConversationState, content: str) -> HandleResult:
         status = (payload.get("conversation") or {}).get("status")
-        opened_now = self._ensure_ticket(account, conv_id, key, status)
-        action = flow.parse(content, self._known_processes())
+        self._ensure_ticket(account, conv_id, key, status)
+        known = self._known_processes()
+        action = flow.parse(content, known)
         k = action.kind
+        awaiting, st.awaiting = st.awaiting, None  # a expectativa vale só para a mensagem seguinte
+        self.ops.save(st)
         if k is flow.Kind.CLOSE:
             return self._close_by_user(account, conv_id, key)
         if k is flow.Kind.CLOSE_HINT:
             self._send(account, conv_id, flow.CLOSE_HINT_TEXT, flow.CLOSE_HINT_OPTIONS)
             return HandleResult("processed", "encerrar_digitado_sem_efeito")
         if k is flow.Kind.MENU:
-            self._send(account, conv_id, flow.MAIN_MENU_TEXT, flow.MAIN_MENU)
+            name = ((payload.get("sender") or {}).get("name") or "").split(" ")[0].strip()
+            self._send(account, conv_id, flow.MAIN_MENU_TEXT.format(name=f", {name.title()}" if name.isalpha() else ""), flow.MAIN_MENU)
             return HandleResult("processed", "menu")
-        if k is flow.Kind.PROCESS_LIST:
-            lines = "\n".join(f"• {n} ({self._process_info(n)})" for n in self._known_processes())
-            self._send(account, conv_id, flow.PROCESS_LIST_TEXT.format(lines=lines), self._process_options())
-            return HandleResult("processed", "lista_de_processos")
+        if k is flow.Kind.PROCESS_ASK:
+            st.awaiting = "process"
+            self.ops.save(st)
+            self._send(account, conv_id, flow.PROCESS_ASK_TEXT, flow.PROCESS_ASK_OPTIONS)  # pergunta qual processo, em linguagem natural
+            return HandleResult("processed", "perguntou_qual_processo")
+        if awaiting == "process" and k is flow.Kind.FREE:
+            numbers = find_process_numbers(content)
+            if not numbers:
+                st.awaiting = "process"
+                self.ops.save(st)
+                self._send(account, conv_id, flow.PROCESS_NO_NUMBER_TEXT, flow.PROCESS_ASK_OPTIONS)
+                return HandleResult("processed", "numero_nao_identificado")
+            if numbers[0] not in known:
+                st.awaiting = "process"
+                self.ops.save(st)
+                self._send(account, conv_id, flow.PROCESS_NOT_FOUND_TEXT, flow.PROCESS_ASK_OPTIONS)
+                return HandleResult("processed", "processo_fora_do_acervo")
+            action, k = flow.Action(flow.Kind.SELECT_PROCESS, numbers[0]), flow.Kind.SELECT_PROCESS
         if k is flow.Kind.SELECT_PROCESS:
             st.process_number = action.arg
             self.ops.save(st)
-            self._send(account, conv_id, flow.PROCESS_MENU_TEXT.format(n=action.arg, info=self._process_info(action.arg)), flow.PROCESS_MENU)
+            docs = len(self.orch.store.list_documents(process_number=action.arg, limit=5000))  # type: ignore[attr-defined]
+            info = self.orch.store.process_info(action.arg)  # type: ignore[attr-defined]
+            self._send(account, conv_id, flow.process_summary(info, docs))
+            self._send(account, conv_id, flow.PROCESS_NEXT_TEXT, flow.PROCESS_MENU)
             return HandleResult("processed", "processo_selecionado")
         if k is flow.Kind.INST_MENU:
             self._send(account, conv_id, flow.INST_MENU_TEXT, flow.inst_options())
@@ -235,7 +253,9 @@ class ChatwootEventHandler:
             return HandleResult("processed", "menu_juridico")
         if k is flow.Kind.PROMPT:
             if action.arg == "outra_proc" and not st.process_number:
-                self._send(account, conv_id, flow.PROCESS_PICK_TEXT, self._process_options())
+                st.awaiting = "process"
+                self.ops.save(st)
+                self._send(account, conv_id, flow.PROCESS_ASK_TEXT, flow.PROCESS_ASK_OPTIONS)
             else:
                 self._send(account, conv_id, flow.PROMPTS[action.arg].format(n=st.process_number or ""))
             return HandleResult("processed", "aguardando_texto")
@@ -245,11 +265,13 @@ class ChatwootEventHandler:
             question = action.arg
             if action.arg in flow.PROCESS_QUESTIONS:
                 if not st.process_number:
-                    self._send(account, conv_id, flow.PROCESS_PICK_TEXT, self._process_options())
+                    st.awaiting = "process"
+                    self.ops.save(st)
+                    self._send(account, conv_id, flow.PROCESS_ASK_TEXT, flow.PROCESS_ASK_OPTIONS)
                     return HandleResult("processed", "processo_necessario")
                 question = flow.PROCESS_QUESTIONS[action.arg].format(n=st.process_number)
             return self._answer(account, conv_id, key, st, question)
-        # texto livre: só quando necessário. Uma saudação inicial já abriu o menu acima; aqui é pergunta de fato.
+        # texto livre: a pergunta de fato
         return self._answer(account, conv_id, key, st, content)
 
     def _close_by_user(self, account: int, conv_id: int, key: str) -> HandleResult:

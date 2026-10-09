@@ -65,51 +65,20 @@ def test_saudacao_abre_o_menu_principal_em_lista(env):
     assert len(opts[-1]) == 5 and "✅ Encerrar atendimento" in opts[-1] and all(len(x) <= 24 for x in opts[-1])
 
 
-def test_titulos_das_opcoes_respeitam_os_limites_do_whatsapp():
-    for group, limit in ((flow.AFTER_ANSWER, 20), (flow.PROCESS_MENU, 20)):
-        assert len(group) <= 3 and all(len(o.title) <= limit for o in group), [o.title for o in group if len(o.title) > limit]
-    for group in (flow.MAIN_MENU, flow.inst_options(), flow.legal_options(), flow.process_options([P1] * 12)):
-        assert len(group) <= 10 and all(len(o.title) <= 24 for o in group), [o.title for o in group if len(o.title) > 24]
+
 
 
 # ---------------------------------------------------------------------------------------------- menus
-def test_consultar_processo_lista_os_processos_e_a_escolha_mostra_o_submenu(env):
-    make, ops = env
-    h, gw = make()
-    say(h, "Olá", 1)
-    say(h, "📄 Consultar processo", 2)
-    assert P1 in texts(gw)[-1] and P2 in texts(gw)[-1]
-    titles = [o for _, o in gw.options if o][-1]
-    assert f"📄 {P1[:15]}" in titles
-    say(h, f"📄 {P1[:15]}", 3)
-    assert ops.get(KEY).process_number == P1
-    assert [o for _, o in gw.options if o][-1] == ["📋 Dados da capa", "🗓️ Cronologia", "🔎 Outra pergunta"]
 
 
-def test_botao_de_dados_da_capa_roda_a_pergunta_pronta_e_oferece_proximos_passos(env):
-    make, _ = env
-    h, gw = make()
-    say(h, "Olá", 1)
-    say(h, f"📄 {P1[:15]}", 2)
-    say(h, "📋 Dados da capa", 3)
-    assert "20/07/2026" in texts(gw)[-2]  # resposta do RAG (LLM falso)
-    assert [o for _, o in gw.options if o][-1] == ["📋 Menu principal", "🙋 Atendente", "✅ Encerrar"]
 
 
-def test_dados_da_capa_sem_processo_escolhido_pede_a_escolha_por_lista(env):
-    make, _ = env
-    h, gw = make()
-    say(h, "Olá", 1)
-    say(h, "📋 Dados da capa", 2)
-    assert "Sobre qual processo" in texts(gw)[-1]
 
 
-def test_pergunta_ambigua_vira_lista_de_processos_nao_pedido_de_numero_por_extenso(env):
-    make, _ = env
-    h, gw = make()
-    say(h, "Olá", 1)
-    say(h, "Qual foi a sentença?", 2)
-    assert "Sobre qual processo" in texts(gw)[-1] and [o for _, o in gw.options if o][-1][0].startswith("📄")
+
+
+
+
 
 
 def test_menus_institucional_e_juridico_e_texto_livre_so_quando_pedido(env):
@@ -297,14 +266,98 @@ def test_inatividade_com_atendimento_humano_fecha_e_a_proxima_mensagem_abre_novo
     assert ops.get_open_ticket(KEY).ticket_id != first and ops.get(KEY).handoff_state is S.AUTOMATION_RESUMED
 
 
-def test_corpo_interativo_longo_vai_em_mensagem_separada_e_nunca_passa_de_1024(env):  # falha real: lista de 10 processos com 1044 caracteres
+
+
+# ----------------------------------------------------------------- consulta de processo (digitando o número)
+def test_titulos_das_opcoes_respeitam_os_limites_do_whatsapp():
+    for group in (flow.AFTER_ANSWER, flow.CLOSE_HINT_OPTIONS, flow.PROCESS_ASK_OPTIONS):
+        assert len(group) <= 3 and all(len(o.title) <= 20 for o in group), [o.title for o in group if len(o.title) > 20]
+    for group in (flow.MAIN_MENU, flow.PROCESS_MENU, flow.inst_options(), flow.legal_options()):
+        assert len(group) <= 10 and all(len(o.title) <= 24 for o in group), [o.title for o in group if len(o.title) > 24]
+
+
+def test_consultar_processo_pergunta_qual_processo_sem_listar_nenhum(env):
     make, ops = env
     h, gw = make()
     say(h, "Olá", 1)
-    h.orch.store.approved_process_numbers = lambda: [f"{i:07d}-00.2026.8.03.0001" for i in range(10)]
-    h.orch.store.process_info = lambda n: {"process_class": "PROCEDIMENTO COMUM CÍVEL", "court_unit": "2ª Vara de Fazenda Pública de Macapá"}
     say(h, "📄 Consultar processo", 2)
-    with_options = [(c, o) for c, o in gw.options if o]
-    body = texts(gw)[-1]
-    assert len(body) <= 1024 and body == "Escolha uma opção 👇" and len(with_options[-1][1]) == 10
-    assert "0000009-00.2026.8.03.0001" in texts(gw)[-2]  # o detalhamento foi na mensagem comum anterior
+    reply = texts(gw)[-1]
+    assert "qual processo" in reply.lower() and "Digite o número" in reply and P1 not in reply and P2 not in reply
+    assert [o for _, o in gw.options if o][-1] == ["📋 Menu principal"] and ops.get(KEY).awaiting == "process"
+
+
+def test_usuario_digita_o_numero_e_recebe_resumo_e_a_pergunta_seguinte(env):
+    make, ops = env
+    h, gw = make()
+    ops_info = {"process_number": P1, "process_class": "PROCEDIMENTO COMUM CÍVEL", "court_unit": "2ª Vara Cível de Macapá", "distribution_date": "2026-05-12",
+                "case_value": "R$ 10.000,00", "subjects": "Indenização por dano moral", "parties": [{"nome": "MARIA EXEMPLO", "papel": "AUTOR"}]}
+    h.orch.store.process_info = lambda n: ops_info
+    say(h, "Olá", 1)
+    say(h, "📄 Consultar processo", 2)
+    say(h, f"é o processo {P1}", 3)  # número dentro de uma frase também vale
+    summary = texts(gw)[-2]
+    assert P1 in summary and "Classe" in summary and "R$ 10.000,00" in summary and "12/05/2026" in summary and "Maria Exemplo (Autor)" in summary and len(summary) <= 1024
+    assert "O que você gostaria de saber" in texts(gw)[-1]
+    nxt = [o for _, o in gw.options if o][-1]
+    assert "🙋 Falar com atendente" in nxt and "✅ Encerrar atendimento" in nxt and "🔎 Fazer pergunta" in nxt
+    assert ops.get(KEY).process_number == P1 and ops.get(KEY).awaiting is None
+
+
+def test_numero_fora_do_acervo_e_texto_sem_numero_pedem_de_novo_com_gentileza(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "📄 Consultar processo", 2)
+    say(h, "processo 9999999-99.2026.8.03.0001", 3)
+    assert "não encontrei esse número" in texts(gw)[-1] and ops.get(KEY).awaiting == "process"
+    say(h, "não sei qual é", 4)
+    assert "Não consegui identificar um número" in texts(gw)[-1] and ops.get(KEY).awaiting == "process"
+
+
+def test_depois_do_resumo_a_pergunta_livre_e_respondida_e_oferece_proximos_passos(env):
+    make, ops = env
+    h, gw = make()
+    h.orch.store.process_info = lambda n: {"process_number": n, "process_class": "X", "court_unit": "Y", "parties": []}
+    say(h, "Olá", 1)
+    say(h, P1, 2)  # número digitado sozinho já seleciona o processo
+    say(h, "Quando é a audiência de conciliação?", 3)
+    assert "20/07/2026" in texts(gw)[-2]
+    assert [o for _, o in gw.options if o][-1] == ["📋 Menu principal", "🙋 Atendente", "✅ Encerrar"]
+    assert "mais alguma coisa" in texts(gw)[-1]
+
+
+def test_cronologia_usa_o_processo_ja_escolhido(env):
+    make, ops = env
+    h, gw = make()
+    h.orch.store.process_info = lambda n: {"process_number": n, "process_class": "X", "court_unit": "Y", "parties": []}
+    say(h, "Olá", 1)
+    say(h, P1, 2)
+    seen = []
+    original = h.orch.respond
+    h.orch.respond = lambda msg, st: (seen.append(msg), original(msg, st))[1]
+    say(h, "🗓️ Cronologia", 3)
+    assert seen == [f"Liste as datas e tipos dos documentos juntados ao processo {P1}."]
+
+
+def test_pergunta_ambigua_pede_para_digitar_o_numero_em_vez_de_listar_processos(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "Qual foi a sentença?", 2)
+    reply = texts(gw)[-1]
+    assert "Digite o número" in reply and P1 not in reply and P2 not in reply and ops.get(KEY).awaiting == "process"
+
+
+def test_pergunta_sobre_quais_processos_existem_nao_lista_o_acervo_no_whatsapp(env):
+    make, _ = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "Quais processos existem no acervo?", 2)
+    assert P1 not in "".join(texts(gw)) and "Digite o número" in texts(gw)[-1]
+
+
+def test_corpo_interativo_longo_vai_em_mensagem_separada_e_nunca_passa_de_1024(env):
+    make, _ = env
+    h, gw = make()
+    h._send(1, 77, "x" * 1100, flow.MAIN_MENU)
+    assert [len(t) for t in texts(gw)] == [1100, len("Escolha uma opção 👇")] and gw.options[-1][1] is not None

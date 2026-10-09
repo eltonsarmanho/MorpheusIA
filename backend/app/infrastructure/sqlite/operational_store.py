@@ -16,7 +16,7 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS conversations (
   key TEXT PRIMARY KEY, handoff_state TEXT NOT NULL, profile TEXT NOT NULL DEFAULT 'indefinido',
   process_number TEXT, failed_retrievals INTEGER NOT NULL DEFAULT 0, offer_pending INTEGER NOT NULL DEFAULT 0,
-  handoff_attempts INTEGER NOT NULL DEFAULT 0, last_domain TEXT, last_message_at TEXT, handoff_team TEXT, handoff_reason TEXT, last_reply_hash TEXT,
+  handoff_attempts INTEGER NOT NULL DEFAULT 0, last_domain TEXT, last_message_at TEXT, awaiting TEXT, handoff_team TEXT, handoff_reason TEXT, last_reply_hash TEXT,
   updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS processed_events (event_key TEXT PRIMARY KEY, received_at TEXT);
@@ -54,6 +54,7 @@ class ConversationState:
     offer_pending: bool = False
     handoff_attempts: int = 0
     last_domain: str | None = None
+    awaiting: str | None = None  # o que o bot espera do usuário no próximo texto (ex.: "process")
     handoff_team: str | None = None
     handoff_reason: str | None = None
     last_reply_hash: str | None = None
@@ -71,6 +72,8 @@ class OperationalStore:
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.executescript(SCHEMA)
             cols = {r[1] for r in self._conn.execute("PRAGMA table_info(conversations)")}
+            if "awaiting" not in cols:
+                self._conn.execute("ALTER TABLE conversations ADD COLUMN awaiting TEXT")
             if "last_message_at" not in cols:  # bancos criados antes da inatividade
                 self._conn.execute("ALTER TABLE conversations ADD COLUMN last_message_at TEXT")
 
@@ -82,7 +85,7 @@ class OperationalStore:
         return ConversationState(
             key=key, handoff_state=HandoffState(r["handoff_state"]), profile=Profile(r["profile"]),
             process_number=r["process_number"], failed_retrievals=r["failed_retrievals"], offer_pending=bool(r["offer_pending"]),
-            handoff_attempts=r["handoff_attempts"], last_domain=r["last_domain"], handoff_team=r["handoff_team"], handoff_reason=r["handoff_reason"],
+            handoff_attempts=r["handoff_attempts"], last_domain=r["last_domain"], awaiting=r["awaiting"], handoff_team=r["handoff_team"], handoff_reason=r["handoff_reason"],
             last_reply_hash=r["last_reply_hash"],
         )
 
@@ -90,13 +93,13 @@ class OperationalStore:
         with self._lock, self._conn:
             self._conn.execute(
                 "INSERT INTO conversations(key,handoff_state,profile,process_number,failed_retrievals,offer_pending,handoff_attempts,"
-                "last_domain,handoff_team,handoff_reason,last_reply_hash,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?) "
+                "last_domain,awaiting,handoff_team,handoff_reason,last_reply_hash,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) "
                 "ON CONFLICT(key) DO UPDATE SET handoff_state=excluded.handoff_state, profile=excluded.profile, "
                 "process_number=excluded.process_number, failed_retrievals=excluded.failed_retrievals, offer_pending=excluded.offer_pending, "
-                "handoff_attempts=excluded.handoff_attempts, last_domain=excluded.last_domain, handoff_team=excluded.handoff_team, handoff_reason=excluded.handoff_reason, "
+                "handoff_attempts=excluded.handoff_attempts, last_domain=excluded.last_domain, awaiting=excluded.awaiting, handoff_team=excluded.handoff_team, handoff_reason=excluded.handoff_reason, "
                 "last_reply_hash=excluded.last_reply_hash, updated_at=excluded.updated_at",
                 (st.key, st.handoff_state.value, st.profile.value, st.process_number, st.failed_retrievals, int(st.offer_pending),
-                 st.handoff_attempts, st.last_domain, st.handoff_team, st.handoff_reason, st.last_reply_hash, _now()),
+                 st.handoff_attempts, st.last_domain, st.awaiting, st.handoff_team, st.handoff_reason, st.last_reply_hash, _now()),
             )
 
     def transition(self, key: str, target: HandoffState, *, actor: str, detail: str = "") -> ConversationState:
