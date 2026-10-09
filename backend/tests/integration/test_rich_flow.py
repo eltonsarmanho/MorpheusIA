@@ -225,7 +225,7 @@ def test_modo_somente_texto_continua_disponivel(store, embedder, ops):
 
 # -------------------------------------------------------------------------------------------- interpretação
 @pytest.mark.parametrize("text,kind", [
-    ("✅ Encerrar atendimento", flow.Kind.CLOSE), ("encerrar", flow.Kind.CLOSE), ("ENCERRAR ATENDIMENTO", flow.Kind.CLOSE),
+    ("✅ Encerrar atendimento", flow.Kind.CLOSE), ("✅ Encerrar", flow.Kind.CLOSE), ("encerrar", flow.Kind.CLOSE_HINT), ("ENCERRAR ATENDIMENTO", flow.Kind.CLOSE_HINT), ("tchau", flow.Kind.CLOSE_HINT),
     ("oi", flow.Kind.MENU), ("Menu", flow.Kind.MENU), ("📋 Menu principal", flow.Kind.MENU),
     ("🙋 Atendente", flow.Kind.HUMAN), ("Quando é a audiência do processo 1234567-89.2026.8.03.0001?", flow.Kind.FREE),
 ])
@@ -236,3 +236,62 @@ def test_interpretacao_de_opcoes_e_texto(text, kind):
 def test_numero_do_processo_digitado_sozinho_seleciona_o_processo():
     assert flow.parse(P1, [P1, P2]) == flow.Action(flow.Kind.SELECT_PROCESS, P1)
     assert flow.parse("o processo " + P1, [P1]).kind is flow.Kind.FREE
+
+
+def test_digitar_encerrar_nao_encerra_so_orienta(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    for i, word in enumerate(("encerrar", "Encerrar atendimento", "tchau", "sair"), start=2):
+        say(h, word, i)
+    assert ops.get_open_ticket(KEY) is not None and (77, "resolved") not in gw.statuses
+    assert "toque em *✅ Encerrar*" in texts(gw)[-1] and [o for _, o in gw.options if o][-1] == ["✅ Encerrar", "📋 Menu principal"]
+    say(h, "✅ Encerrar", 9)  # o toque no botão encerra
+    assert ops.get_open_ticket(KEY) is None and gw.statuses[-1] == (77, "resolved")
+
+
+def _ago(hours):
+    from datetime import datetime, timedelta, timezone
+    return (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")
+
+
+def test_inatividade_acima_de_23h_encerra_com_mensagem_e_ticket_fechado_pelo_sistema(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    tid = ops.get_open_ticket(KEY).ticket_id
+    ops.touch(KEY, _ago(23.5))
+    assert h.close_inactive(23) == [tid]
+    assert "por inatividade" in texts(gw)[-1] and tid in texts(gw)[-1] and gw.statuses[-1] == (77, "resolved")
+    closed = ops.list_tickets("closed")[0]
+    assert closed.closed_by == "sistema" and closed.closed_at
+    assert h.close_inactive(23) == []  # não repete
+
+
+def test_atividade_recente_nao_encerra(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    ops.touch(KEY, _ago(22.9))
+    assert h.close_inactive(23) == [] and ops.get_open_ticket(KEY) is not None
+
+
+def test_qualquer_mensagem_renova_o_prazo_de_inatividade(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    ops.touch(KEY, _ago(30))
+    say(h, "menu", 2)  # nova mensagem do cliente
+    assert h.close_inactive(23) == []
+
+
+def test_inatividade_com_atendimento_humano_fecha_e_a_proxima_mensagem_abre_novo_ticket(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "🙋 Falar com atendente", 2)
+    first = ops.get_open_ticket(KEY).ticket_id
+    ops.touch(KEY, _ago(24))
+    assert h.close_inactive(23) == [first] and ops.get(KEY).handoff_state is S.HUMAN_CLOSED
+    say(h, "Oi", 3)
+    assert ops.get_open_ticket(KEY).ticket_id != first and ops.get(KEY).handoff_state is S.AUTOMATION_RESUMED

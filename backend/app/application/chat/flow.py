@@ -28,6 +28,7 @@ class Kind(StrEnum):
     LEGAL_MENU = "legal_menu"
     HUMAN = "human"
     CLOSE = "close"
+    CLOSE_HINT = "close_hint"  # digitou "encerrar": só orienta, não encerra
     FREE = "free"
 
 
@@ -110,16 +111,20 @@ def _register() -> None:
 
 _register()
 _GREETING = re.compile(r"^(oi+|ola+|bom dia|boa tarde|boa noite|menu|inicio|iniciar|ajuda|opcoes|e ai|tudo bem)$")
-_CLOSE_WORDS = frozenset({"encerrar", "encerrar atendimento", "finalizar", "finalizar atendimento", "sair"})
+_CLOSE_WORDS = frozenset({"encerrar", "encerrar atendimento", "finalizar", "finalizar atendimento", "sair", "tchau", "fechar"})
 
 
 def parse(text: str, known_processes: list[str]) -> Action:
     """Interpreta a mensagem do usuário: opção do menu, número de processo escolhido ou texto livre."""
     c = clean(text)
     if c in _BY_TITLE:
-        return _BY_TITLE[c]
+        act = _BY_TITLE[c]
+        # o clique volta com o título (que traz o ✅); a palavra solta "encerrar" digitada não conta como clique
+        if act.kind is Kind.CLOSE and "✅" not in text:
+            return Action(Kind.CLOSE_HINT)
+        return act
     if c in _CLOSE_WORDS:
-        return Action(Kind.CLOSE)
+        return Action(Kind.CLOSE_HINT)  # texto digitado pode ser sem intenção; encerrar só pelo menu
     if _GREETING.match(c):
         return Action(Kind.MENU)
     short = re.fullmatch(r"(?:📄\s*)?(\d{7}-\d{2}\.\d{4})", text.strip().lstrip("📄").strip())
@@ -144,7 +149,7 @@ def opening_text(ticket_id: str, opened_at: str) -> str:
 
 
 def closing_text(ticket_id: str, opened_at: str, closed_at: str, closed_by: str) -> str:
-    who = {"usuario": "a seu pedido", "atendente": "pelo atendente", "sistema": "automaticamente"}.get(closed_by, "")
+    who = {"usuario": "a seu pedido", "atendente": "pelo atendente", "sistema": "por inatividade (mais de 23 horas sem mensagens)"}.get(closed_by, "")
     return (f"✅ *Atendimento encerrado* {who}\nProtocolo: *{ticket_id}*\n🕒 Aberto em {fmt_time(opened_at)}\n"
             f"🕒 Encerrado em {fmt_time(closed_at)} (horário de Belém)\n\n"
             "Obrigado por falar com o assistente do TJPA (piloto). Para um novo atendimento, é só enviar uma mensagem. 👋")
@@ -153,6 +158,8 @@ def closing_text(ticket_id: str, opened_at: str, closed_at: str, closed_by: str)
 MAIN_MENU_TEXT = ("👋 Olá! Sou o assistente virtual do piloto do TJPA.\n\n"
                   "Escolha uma opção abaixo 👇\n\n"
                   "ℹ️ As respostas sobre processos usam documentos de demonstração, não a consulta em tempo real ao PJe.")
+CLOSE_HINT_TEXT = "Para encerrar o atendimento, toque em *✅ Encerrar*. Se foi sem querer, siga normalmente ou volte ao menu 👇"
+CLOSE_HINT_OPTIONS = [OPT_CLOSE, OPT_MENU]
 AFTER_ANSWER_TEXT = "O que você quer fazer agora? 👇"
 INST_MENU_TEXT = "🏛️ *Balcão Virtual e informações do Tribunal*\nEscolha um assunto 👇"
 LEGAL_MENU_TEXT = "⚖️ *Termos e conceitos jurídicos*\nEscolha um tema ou digite o seu 👇"

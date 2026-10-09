@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import hmac
 import logging
 import time
@@ -44,8 +46,30 @@ class CollectIn(BaseModel):
 
 def create_app(container: Container | None = None, settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
-    app = FastAPI(title="Atendimento TJPA - piloto", version="0.1.0")
     state: dict[str, Any] = {"container": container}
+
+    @contextlib.asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        task = None
+        if settings.inactivity_close_hours > 0:
+            async def sweep() -> None:
+                while True:
+                    await asyncio.sleep(settings.inactivity_check_minutes * 60)
+                    try:
+                        c = get_container()
+                        if c.handler is not None:
+                            closed = await asyncio.to_thread(c.handler.close_inactive, settings.inactivity_close_hours)
+                            if closed:
+                                log.info("protocolos encerrados por inatividade: %s", closed)
+                    except Exception:  # noqa: BLE001 - o varredor nunca pode derrubar a API
+                        log.exception("falha no encerramento por inatividade")
+
+            task = asyncio.create_task(sweep())
+        yield
+        if task:
+            task.cancel()
+
+    app = FastAPI(title="Atendimento TJPA - piloto", version="0.1.0", lifespan=lifespan)
 
     def get_container() -> Container:
         if state["container"] is None:

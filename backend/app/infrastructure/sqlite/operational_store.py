@@ -16,7 +16,7 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS conversations (
   key TEXT PRIMARY KEY, handoff_state TEXT NOT NULL, profile TEXT NOT NULL DEFAULT 'indefinido',
   process_number TEXT, failed_retrievals INTEGER NOT NULL DEFAULT 0, offer_pending INTEGER NOT NULL DEFAULT 0,
-  handoff_attempts INTEGER NOT NULL DEFAULT 0, last_domain TEXT, handoff_team TEXT, handoff_reason TEXT, last_reply_hash TEXT,
+  handoff_attempts INTEGER NOT NULL DEFAULT 0, last_domain TEXT, last_message_at TEXT, handoff_team TEXT, handoff_reason TEXT, last_reply_hash TEXT,
   updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS processed_events (event_key TEXT PRIMARY KEY, received_at TEXT);
@@ -70,6 +70,9 @@ class OperationalStore:
         with self._lock:
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.executescript(SCHEMA)
+            cols = {r[1] for r in self._conn.execute("PRAGMA table_info(conversations)")}
+            if "last_message_at" not in cols:  # bancos criados antes da inatividade
+                self._conn.execute("ALTER TABLE conversations ADD COLUMN last_message_at TEXT")
 
     def get(self, key: str) -> ConversationState:
         with self._lock:
@@ -194,3 +197,18 @@ class OperationalStore:
         sql += " ORDER BY opened_at DESC LIMIT ?"; params.append(limit)
         with self._lock:
             return [self._row_ticket(r) for r in self._conn.execute(sql, params)]
+
+    # -------------------------------------------------------------- inatividade
+    def touch(self, conversation: str, when: str | None = None) -> None:
+        """Registra a última mensagem da conversa (qualquer lado, exceto notas privadas)."""
+        with self._lock, self._conn:
+            self._conn.execute(
+                "INSERT INTO conversations(key,handoff_state,last_message_at,updated_at) VALUES(?,?,?,?) "
+                "ON CONFLICT(key) DO UPDATE SET last_message_at=excluded.last_message_at",
+                (conversation, HandoffState.BOT_ACTIVE.value, when or _now(), _now()),
+            )
+
+    def last_activity(self, conversation: str) -> str | None:
+        with self._lock:
+            r = self._conn.execute("SELECT last_message_at FROM conversations WHERE key=?", (conversation,)).fetchone()
+        return r["last_message_at"] if r else None

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
@@ -116,6 +117,8 @@ class ChatwootEventHandler:
                 if cmd == "/encerrar" or cmd.startswith("/encerrar "):
                     return self._close_by_agent(account, conv_id, key)
             return HandleResult("ignored", "mensagem privada")
+        if self.rich:
+            self.ops.touch(key)  # base da regra de inatividade (qualquer mensagem pública)
         st = self.ops.get(key)
 
         if mtype == "outgoing":
@@ -208,6 +211,9 @@ class ChatwootEventHandler:
         k = action.kind
         if k is flow.Kind.CLOSE:
             return self._close_by_user(account, conv_id, key)
+        if k is flow.Kind.CLOSE_HINT:
+            self._send(account, conv_id, flow.CLOSE_HINT_TEXT, flow.CLOSE_HINT_OPTIONS)
+            return HandleResult("processed", "encerrar_digitado_sem_efeito")
         if k is flow.Kind.MENU:
             self._send(account, conv_id, flow.MAIN_MENU_TEXT, flow.MAIN_MENU)
             return HandleResult("processed", "menu")
@@ -248,6 +254,25 @@ class ChatwootEventHandler:
     def _close_by_user(self, account: int, conv_id: int, key: str) -> HandleResult:
         """Opção ENCERRAR do usuário: fecha o protocolo, avisa e marca a conversa como resolvida."""
         return self._finish(account, conv_id, key, "usuario")
+
+    def close_inactive(self, hours: float = 23.0, now: datetime | None = None) -> list[str]:
+        """Encerra protocolos sem nenhuma mensagem há mais de `hours` (23 h: ainda dentro da janela de 24 h do WhatsApp)."""
+        now = now or datetime.now(timezone.utc)
+        closed: list[str] = []
+        for t in self.ops.list_tickets("open", 500):
+            last = self.ops.last_activity(t.conversation) or t.opened_at
+            if now - datetime.fromisoformat(last) < timedelta(hours=hours):
+                continue
+            account, conv_id = (int(x) for x in t.conversation.split(":"))
+            with self._locks[t.conversation]:
+                if self.ops.get_open_ticket(t.conversation) is None:
+                    continue
+                try:
+                    self._finish(account, conv_id, t.conversation, "sistema")
+                    closed.append(t.ticket_id)
+                except Exception:  # noqa: BLE001 - tenta de novo no próximo ciclo
+                    log.warning("falha ao encerrar por inatividade %s", t.ticket_id)
+        return closed
 
     def _close_by_agent(self, account: int, conv_id: int, key: str) -> HandleResult:
         """Nota privada `/encerrar` do atendente: fecha o protocolo e resolve a conversa no Chatwoot."""
