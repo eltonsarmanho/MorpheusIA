@@ -126,7 +126,7 @@ class ChatwootEventHandler:
 
         meta = (payload.get("conversation") or {}).get("meta") or {}
         human_assignee = bool(meta.get("assignee")) and meta.get("assignee_type") != "AgentBot"  # o próprio bot pode ser o responsável
-        if human_assignee and st.handoff_state in (HandoffState.BOT_ACTIVE, HandoffState.AUTOMATION_RESUMED):
+        if human_assignee and st.handoff_state is HandoffState.BOT_ACTIVE:  # após retomada explícita, o responsável antigo é ignorado
             self._to_human_active(key, st, "conversa já atribuída a um agente")
             return HandleResult("silent", "atribuída a humano")
 
