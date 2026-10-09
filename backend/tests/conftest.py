@@ -141,6 +141,12 @@ def add_doc(store: SqliteKnowledgeStore, embedder, *, doc_id: str, text: str, do
     )
     chunk = ChunkRecord(doc_id, domain, 0, 2, text, f"Processo {process_number} | {doc_type}", f"h-{doc_id}", pje_page=1)
     store.upsert_document(doc, [chunk])
+    if process_number:
+        store._exec(
+            "INSERT OR IGNORE INTO processes(process_key, process_number, process_class, court_unit, subjects, pages, source_file) "
+            "VALUES(?,?,?,?,?,?,?)", (f"proc-{process_number}", process_number, "PROCEDIMENTO COMUM CÍVEL", "2ª Vara Cível de Macapá", "Indenização", 10, "teste.pdf"),
+        )
+        store._conn.commit()
     if index:
         store.index_pending(embedder, doc_id=doc_id)
 
