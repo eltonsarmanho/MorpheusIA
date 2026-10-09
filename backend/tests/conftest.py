@@ -103,6 +103,7 @@ class FakeGateway:
     def __init__(self, fail_assign: int = 0, fail_send: int = 0) -> None:
         self.sent: list[tuple[int, str]] = []
         self.notes: list[tuple[int, str]] = []
+        self.waited: list[int] = []
         self.options: list[tuple[int, list[str] | None]] = []
         self.labels: dict[int, list[str]] = {}
         self.assigned: list[tuple[int, str]] = []
@@ -119,6 +120,10 @@ class FakeGateway:
         self.sent.append((conversation_id, content))
         self.options.append((conversation_id, [o.title for o in options] if options else None))
         return len(self.sent)
+
+    def wait_dispatched(self, account_id, conversation_id, message_id, **kw):
+        self.waited.append(message_id)
+        return True
 
     def add_labels(self, account_id, conversation_id, labels):
         cur = self.labels.setdefault(conversation_id, [])

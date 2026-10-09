@@ -59,6 +59,7 @@ class ChatwootEventHandler:
         self.rich = rich_flow  # menus com botões/listas, protocolo (ticket) e encerramento guiado
         self.max_attempts, self.max_chars = max_handoff_attempts, max_question_chars
         self._locks: dict[str, threading.Lock] = defaultdict(threading.Lock)
+        self._last_public: dict[tuple[int, int], int] = {}
 
     # ---------------------------------------------------------- entrada
     def claim(self, payload: dict) -> tuple[str, str | None]:
@@ -432,6 +433,7 @@ class ChatwootEventHandler:
 
     def _send(self, account: int, conv_id: int, text: str, options: list[Option] | None = None, private: bool = False) -> int | None:
         """Envia e registra o id da mensagem para reconhecer o eco do webhook como do próprio bot."""
+        self._await_previous(account, conv_id)
         if options and len(text) > INTERACTIVE_BODY_LIMIT:
             # o WhatsApp rejeita corpo interativo acima de 1024 caracteres: o texto longo vai antes, em mensagem comum
             self._send(account, conv_id, text)
@@ -442,7 +444,19 @@ class ChatwootEventHandler:
             msg_id = self.gw.send_message(account, conv_id, text)
         if msg_id:
             self.ops.claim_event(f"botmsg:{account}:{msg_id}")
+            if not private:
+                self._last_public[(account, conv_id)] = msg_id
         return msg_id
+
+    def _await_previous(self, account: int, conv_id: int) -> None:
+        """Garante a ordem: a próxima mensagem só sai depois que a anterior foi entregue ao WhatsApp."""
+        prev = self._last_public.pop((account, conv_id), None)
+        wait = getattr(self.gw, "wait_dispatched", None)
+        if prev and wait:
+            try:
+                wait(account, conv_id, prev)
+            except Exception:  # noqa: BLE001 - ordem é desejável, não pode impedir o atendimento
+                log.warning("não foi possível confirmar a entrega da mensagem anterior")
 
     def _safe_label(self, account: int, conv_id: int, labels: list[str]) -> bool:
         try:

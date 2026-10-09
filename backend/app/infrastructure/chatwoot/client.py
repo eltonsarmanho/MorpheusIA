@@ -69,6 +69,26 @@ class ChatwootClient:
 
     # Verificado no Chatwoot 4.11.1 (2026-10-09): o token do Agent Bot só acessa mensagens, atribuições e status;
     # etiquetas, equipes e leitura da conversa exigem o token de usuário (401 "not authorized for bots").
+    def wait_dispatched(self, account_id: int, conversation_id: int, message_id: int, timeout_s: float = 8.0, interval_s: float = 0.4) -> bool:
+        """Espera o Chatwoot entregar a mensagem ao WhatsApp (ganha `source_id`) ou falhar, para manter a ordem das mensagens.
+
+        O envio é assíncrono (fila do Sidekiq); sem essa espera, duas mensagens seguidas podem chegar invertidas.
+        """
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            try:
+                data = self._request("GET", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages", admin=True)
+            except ChatwootError:
+                time.sleep(interval_s)
+                continue
+            for m in data.get("payload", []):
+                if m.get("id") == message_id:
+                    if m.get("source_id") or m.get("status") in (3, "failed"):
+                        return True
+                    break
+            time.sleep(interval_s)
+        return False
+
     def get_labels(self, account_id: int, conversation_id: int) -> list[str]:
         data = self._request("GET", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/labels", admin=True)
         return list(data.get("payload", []))

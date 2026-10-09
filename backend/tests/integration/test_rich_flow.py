@@ -361,3 +361,35 @@ def test_corpo_interativo_longo_vai_em_mensagem_separada_e_nunca_passa_de_1024(e
     h, gw = make()
     h._send(1, 77, "x" * 1100, flow.MAIN_MENU)
     assert [len(t) for t in texts(gw)] == [1100, len("Escolha uma opção 👇")] and gw.options[-1][1] is not None
+
+
+def test_cada_mensagem_espera_a_entrega_da_anterior_para_manter_a_ordem(env):
+    """Falha real: o resumo do processo chegava depois da mensagem de opções (envio assíncrono no Chatwoot)."""
+    make, ops = env
+    h, gw = make()
+    h.orch.store.process_info = lambda n: {"process_number": n, "process_class": "X", "court_unit": "Y", "parties": []}
+    say(h, "Olá", 1)
+    say(h, "📄 Consultar processo", 2)
+    gw.waited.clear()
+    say(h, P1, 3)  # resumo e, depois, a pergunta com opções
+    ids_sent = [i + 1 for i in range(len(gw.sent))]
+    summary_id = ids_sent[-2]
+    assert summary_id in gw.waited  # esperou o resumo ser entregue antes de enviar as opções
+    assert "Processo" in texts(gw)[-2] and "O que você gostaria de saber" in texts(gw)[-1]
+
+
+def test_cliente_espera_ate_a_mensagem_ser_despachada():
+    import httpx
+
+    from app.infrastructure.chatwoot.client import ChatwootClient
+
+    polls = {"n": 0}
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        polls["n"] += 1
+        sid = "wamid.X" if polls["n"] >= 3 else None
+        return httpx.Response(200, json={"payload": [{"id": 5, "source_id": sid, "status": 0}]})
+
+    c = ChatwootClient("https://cw.example", 1, api_token="a", transport=httpx.MockTransport(handler))
+    assert c.wait_dispatched(1, 9, 5, timeout_s=5, interval_s=0.01) is True and polls["n"] == 3
+    assert c.wait_dispatched(1, 9, 6, timeout_s=0.05, interval_s=0.01) is False  # mensagem inexistente: desiste no prazo
