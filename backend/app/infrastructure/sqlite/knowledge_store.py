@@ -91,6 +91,14 @@ def fts_query(text: str) -> str:
     return " OR ".join(f'"{t}"' for t in terms[:24])
 
 
+class _Rows(list):
+    def fetchone(self):
+        return self[0] if self else None
+
+    def fetchall(self):
+        return list(self)
+
+
 class SqliteKnowledgeStore:
     def __init__(self, path: Path | str) -> None:
         self.path = str(path)
@@ -114,9 +122,11 @@ class SqliteKnowledgeStore:
         with self._lock:
             self._conn.close()
 
-    def _exec(self, sql: str, params: Sequence[Any] = ()) -> sqlite3.Cursor:
+    def _exec(self, sql: str, params: Sequence[Any] = ()) -> "_Rows":
+        """Executa e busca as linhas sob o mesmo lock: a conexão é compartilhada entre threads."""
         with self._lock:
-            return self._conn.execute(sql, params)
+            cur = self._conn.execute(sql, params)
+            return _Rows(cur.fetchall() if cur.description else [])
 
     def log_collection(self, url: str, domain: str, outcome: str, detail: str = "") -> None:
         with self._lock, self._conn:

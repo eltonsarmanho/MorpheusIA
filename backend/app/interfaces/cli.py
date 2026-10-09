@@ -65,12 +65,8 @@ def _review(args, state: ReviewState) -> int:
     ids = args.doc_id
     if args.process:
         ids = [d.doc_id for d in store.list_documents(state=ReviewState.PENDING_REVIEW, process_number=args.process, limit=100000)]
-    for doc_id in ids:
-        store.set_review(doc_id, state, reviewer=args.reviewer, reason=args.reason)
-    if state is ReviewState.APPROVED:
-        embedder = build_embedder(s)
-        for doc_id in ids:
-            store.index_pending(embedder, doc_id=doc_id)
+    from app.application.curation.service import CurationService
+    CurationService(store, build_embedder(s)).review_many(ids, state, reviewer=args.reviewer, reason=args.reason)
     print(f"{len(ids)} documento(s) -> {state.value}")
     return 0
 

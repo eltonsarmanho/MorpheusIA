@@ -236,7 +236,9 @@ class IngestionService:
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")
         docs: list[DocumentRecord] = []
         chunks: list[ChunkRecord] = []
-        for seg in segments:
+        hidden: set[str] = set()  # documentos sensíveis: a capa não revela o nome (CUR-02)
+        ordered = [s for s in segments if s.pje_doc_id != "capa"] + [s for s in segments if s.pje_doc_id == "capa"]
+        for seg in ordered:
             doc_id = f"{process_key}:{seg.pje_doc_id}"
             ctx = " | ".join(
                 x for x in (f"Processo {number}", seg.doc_type if seg.doc_type != DESCONHECIDO else "", seg.name,
@@ -245,7 +247,7 @@ class IngestionService:
             page_texts: list[tuple[int, int | None, str]] = []
             review_pages: list[int] = []
             if seg.pje_doc_id == "capa":
-                synthetic = self._cover_chunks(cover, number)
+                synthetic = self._cover_chunks(cover, number, hidden)
                 if synthetic:
                     page_texts.append((seg.pdf_pages[0], None, synthetic))
             for pn in seg.pdf_pages:
@@ -286,6 +288,8 @@ class IngestionService:
                 "pages_needs_review": review_pages, "classe": cover.process_class, "orgao_julgador": cover.court_unit,
                 "tribunal_origem": cover.tribunal,
             }
+            if access is AccessClass.RESTRICTED:
+                hidden.add(seg.pje_doc_id)
             docs.append(
                 DocumentRecord(
                     doc_id=doc_id, domain=KnowledgeDomain.PROCESSUAL, title=seg.name, doc_type=seg.doc_type,
@@ -304,10 +308,12 @@ class IngestionService:
                         ChunkRecord(doc_id, KnowledgeDomain.PROCESSUAL, seq, pn, piece, ctx, content_hash(piece), pje_page=jp)
                     )
                     seq += 1
+        order = {sg.pje_doc_id: i for i, sg in enumerate(segments)}
+        docs.sort(key=lambda d: order.get(d.pje_doc_id or 'capa', 0))
         return docs, chunks, {}
 
     @staticmethod
-    def _cover_chunks(cover: CoverInfo, number: str) -> str:
+    def _cover_chunks(cover: CoverInfo, number: str, hidden: set[str] | None = None) -> str:
         if cover.number == DESCONHECIDO:
             return ""
         lines = [
@@ -322,7 +328,10 @@ class IngestionService:
             lines.append("")
             lines.append("Cronologia dos documentos listados na capa (data da juntada; tipo; documento; id):")
             for r in sorted(cover.rows, key=lambda r: (r.date, r.time)):
-                lines.append(f"{r.date} {r.time}; {r.doc_type}; {r.name}; id {r.doc_id}")
+                if hidden and r.doc_id in hidden:
+                    lines.append(f"{r.date} {r.time}; documento com acesso em revisão; id {r.doc_id}")
+                else:
+                    lines.append(f"{r.date} {r.time}; {r.doc_type}; {r.name}; id {r.doc_id}")
         return "\n\n".join(lines)
 
     @staticmethod

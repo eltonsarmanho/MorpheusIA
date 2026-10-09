@@ -12,7 +12,7 @@ import unicodedata
 from dataclasses import dataclass, field
 
 from app.application.answering.grounding import ModelAnswer, parse_model_output, verify_grounding
-from app.application.answering.intent import classify_intent, detect_profile
+from app.application.answering.intent import IntentResult, classify_intent, detect_profile
 from app.application.answering.prompts import SYSTEM_PROMPT, build_user_prompt, describe_source, evidence_label
 from app.application.retrieval.hybrid import HybridRetriever, RetrievalResult
 from app.domain.models import (
@@ -38,6 +38,7 @@ TEAM_BY_DOMAIN = {
     KnowledgeDomain.INSTITUCIONAL: "Informações Institucionais",
     KnowledgeDomain.JURIDICO: "Informações Jurídico-Institucionais",
 }
+_DOMAIN_INTENT = {v: k for k, v in INTENT_DOMAIN.items()}
 TEAM_GENERAL = "Atendimento Humano Geral"
 TEAM_TRIAGE = "Triagem e Orquestração"
 
@@ -118,13 +119,15 @@ class Orchestrator:
             return self._handoff(st, "pedido do usuário", TEAM_GENERAL, intent.intent, trace)
         if intent.intent is Intent.SAUDACAO:
             return Turn(BotReply(ResponseKind.GREETING, self._greeting(), intent=intent.intent, trace=trace), st)
+        if intent.intent is Intent.FORA_DE_ESCOPO and st.last_domain:
+            # continuação de uma conversa em andamento: mantém o domínio; a suficiência da evidência continua sendo verificada
+            intent = IntentResult(_DOMAIN_INTENT[KnowledgeDomain(st.last_domain)], 0.5, ("continuacao_da_conversa",))
+            trace["intent"], trace["followup_of"] = intent.intent.value, st.last_domain
         if intent.intent is Intent.FORA_DE_ESCOPO:
-            st.offer_pending = True
             msg = ("Não identifiquei uma pergunta sobre os assuntos que atendo neste piloto: documentos de processos do acervo de "
                    "demonstração, informações institucionais ou conceitos jurídicos gerais. Pode reformular? Se preferir, posso "
                    "encaminhar você a um atendente humano.")
-            return Turn(BotReply(ResponseKind.ABSTAIN, msg, intent=intent.intent, abstain_reason="fora_de_escopo", trace=trace), st,
-                        labels=["ia_orquestrador"])
+            return self._abstention(st, None, intent.intent, msg, "fora_de_escopo", trace, ["ia_orquestrador"])
 
         domain = INTENT_DOMAIN[intent.intent]
         st.last_domain = domain.value

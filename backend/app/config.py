@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     # Segurança da API
     admin_api_token: str = Field(default="")
     max_question_chars: int = 1000
+    console_public: bool = False  # true libera /api/chat sem token (use só com limite de custo)
 
     # Parâmetros de recuperação
     retrieval_top_k: int = 6

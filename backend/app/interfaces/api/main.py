@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.application.answering.orchestrator import QuestionError
+from app.application.curation.service import CurationService
 from app.config import REPO_ROOT, Settings, get_settings
 from app.container import Container, build_container
 from app.domain.models import KnowledgeDomain, ResponseKind, ReviewState
@@ -82,7 +83,11 @@ def create_app(container: Container | None = None, settings: Settings | None = N
         return {"status": "accepted"}
 
     # ------------------------------------------------------- console de teste
-    @app.post("/api/chat")
+    def console_guard(authorization: Annotated[str | None, Header()] = None) -> None:
+        if not settings.console_public:
+            require_admin(authorization)  # evita que o console público gaste a cota do LLM
+
+    @app.post("/api/chat", dependencies=[Depends(console_guard)])
     def chat(body: ChatIn) -> dict:
         """Console de teste do orquestrador. Não é um canal integrado: não faz transferência real."""
         c = get_container()
@@ -135,10 +140,9 @@ def create_app(container: Container | None = None, settings: Settings | None = N
         if body.decision not in (ReviewState.APPROVED, ReviewState.REJECTED, ReviewState.PENDING_REVIEW):
             raise HTTPException(422, "decisão deve ser approved, rejected ou pending_review")
         try:
-            c.store.set_review(doc_id, body.decision, reviewer=body.reviewer, reason=body.reason)
+            indexed = CurationService(c.store, c.embedder).review(doc_id, body.decision, reviewer=body.reviewer, reason=body.reason)
         except KeyError as exc:
             raise HTTPException(404, "documento não encontrado") from exc
-        indexed = c.store.index_pending(c.embedder, doc_id=doc_id) if body.decision is ReviewState.APPROVED else 0
         return {"doc_id": doc_id, "state": body.decision.value, "chunks_indexed": indexed}
 
     @router.get("/audit")

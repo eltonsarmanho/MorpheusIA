@@ -80,3 +80,15 @@ class ChatwootGateway(Protocol):
     def assign_team(self, account_id: int, conversation_id: int, team_name: str) -> bool: ...
 
     def set_status(self, account_id: int, conversation_id: int, status: str) -> bool: ...
+
+
+class ProcessLookupPort(Protocol):
+    """Evolução futura: consulta a uma API processual OFICIAL (PJe/e-SAJ ou equivalente).
+
+    Não há implementação no piloto e nenhuma é simulada: o sistema só responde sobre processos a partir do acervo
+    de demonstração. Quando existir uma API autorizada, ela entra aqui como nova infraestrutura, sem mudar o domínio.
+    """
+
+    def get_case(self, process_number: str) -> dict[str, Any]: ...
+
+    def list_movements(self, process_number: str, since: str | None = None) -> list[dict[str, Any]]: ...

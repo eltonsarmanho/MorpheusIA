@@ -22,7 +22,7 @@ _HUMAN = re.compile(
 _GREETING = re.compile(r"^\s*(oi+|ola+|bom dia|boa tarde|boa noite|e ai|tudo bem\??|menu|inicio|iniciar|ajuda)[\s!.,?]*$")
 
 _PROCESSUAL = re.compile(
-    r"\b(processo|autos|autor(a)?|reu|re|requerente|requerido|vara|decisao|decisoes|despacho|sentenca|certidao|peticao|"
+    r"\b(processos?|acervo|autos|autor(a)?|reu|re|requerente|requerido|vara|decisao|decisoes|despacho|sentenca|certidao|peticao|"
     r"audiencia|movimentacao|movimentacoes|juntad[ao]|documento[s]? do processo|cronologia|andamento|ultima decisao|"
     r"acordao|mandado|intimacao|citacao|contestacao|replica|alvara|honorarios|valor da causa|distribuicao|partes?)\b"
 )
