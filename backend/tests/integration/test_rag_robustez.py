@@ -72,3 +72,34 @@ def test_pergunta_curta_de_continuacao_com_processo_em_foco_e_processual(store, 
     st.process_number = P
     t = orc.respond("E quem foi a vítima?", st)  # sem "processo" na frase: vale o processo em foco
     assert t.reply.domain is D.PROCESSUAL and t.reply.kind.value == "answer"
+
+
+def test_mes_e_ano_na_pergunta_viram_filtro_de_data():
+    from app.application.retrieval.hybrid import find_query_date
+
+    assert find_query_date("na sentença de abril de 2026") == "2026-04"
+    assert find_query_date("decisão de 04/2026") == "2026-04"
+    assert find_query_date("decisão de 14/05/2026") == "2026-05-14"
+    assert find_query_date("art. 98, § 5º") is None
+
+
+def test_com_duas_sentencas_a_citada_pelo_mes_e_a_escolhida(store, embedder):
+    add_doc(store, embedder, doc_id="s2021", text="SENTENÇA. Extingo o feito por perempção.", doc_type="Sentença", doc_date="2021-06-23", pje_doc_id="1")
+    add_doc(store, embedder, doc_id="s2026", text="SENTENÇA. Julgo inadmissível a ação e extingo o processo sem resolução de mérito.",
+            doc_type="Sentença", doc_date="2026-04-15", pje_doc_id="2")
+    res = HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=4, min_vector_score=0.0)).retrieve(
+        "Como terminou a ação na sentença de abril de 2026?", D.PROCESSUAL, process_number=P)
+    assert res.evidences[0].doc_id == "s2026" and "s2021" not in [e.doc_id for e in res.evidences]
+
+
+def test_pergunta_sobre_o_desfecho_traz_o_dispositivo_da_sentenca(store, embedder):
+    add_doc(store, embedder, doc_id="rel", text="SENTENÇA. Relatório: trata-se de ação declaratória ajuizada pelos autores contra o Estado.", doc_type="Sentença",
+            doc_date="2026-04-15", pje_doc_id="1")
+    add_doc(store, embedder, doc_id="disp", text="Diante do exposto, julgo inadmissível a presente ação e extingo o processo sem resolução de mérito.",
+            doc_type="Sentença", doc_date="2026-04-15", pje_doc_id="1b")
+    for i in range(6):
+        add_doc(store, embedder, doc_id=f"o{i}", text=f"Ação declaratória ajuizada pelos autores, argumentação número {i} sobre a sentença.", doc_type="Petição",
+                pje_doc_id=str(10 + i))
+    res = HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=4, min_vector_score=0.0)).retrieve(
+        "Como terminou a ação na sentença?", D.PROCESSUAL, process_number=P)
+    assert "disp" in [e.doc_id for e in res.evidences]

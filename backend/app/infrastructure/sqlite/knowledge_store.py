@@ -524,7 +524,7 @@ class SqliteKnowledgeStore:
         if process_number:
             sql += " AND d.process_number=?"; params.append(process_number)
         if doc_date:
-            sql += " AND d.doc_date=?"; params.append(doc_date)
+            sql += " AND d.doc_date LIKE ?"; params.append(f"{doc_date}%")  # dia exato ou prefixo "AAAA-MM"
         if doc_type_like:
             sql += " AND lower(d.doc_type) LIKE ?"; params.append(f"%{doc_type_like}%")
         sql += " ORDER BY s LIMIT ?"
@@ -567,7 +567,7 @@ class SqliteKnowledgeStore:
         if process_number:
             mask &= self._proc == process_number
         if doc_date:
-            mask &= self._dates == doc_date
+            mask &= np.char.startswith(self._dates.astype(str), doc_date)
         if doc_type_like:
             mask &= np.char.find(self._types, doc_type_like) >= 0
         idx = np.flatnonzero(mask)

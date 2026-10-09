@@ -80,6 +80,16 @@ _DOC_TYPE_HINTS = (
 )
 
 
+# Pergunta sobre o desfecho -> buscar o DISPOSITIVO (parte final da decisão/sentença, onde o juiz decide)
+_OUTCOME = re.compile(r"\b(como (terminou|acabou|foi decidid)|resultado|desfecho|decidiu|decidido|julgou|julgad[oa]|dispositivo|procedente|improcedente|"
+                      r"condenou|condenad[oa]|absolvid[oa]|extint[oa]|extinguiu|deferi|indeferi|provimento)")
+_DISPOSITIVE_TERMS = " diante do exposto ante o exposto isto posto isso posto pelo exposto julgo dispositivo extingo condeno absolvo defiro indefiro"
+
+
+def asks_outcome(query: str) -> bool:
+    return bool(_OUTCOME.search(fold(query)))
+
+
 def find_doc_type(query: str) -> str | None:
     q = fold(query)
     for word, like in _DOC_TYPE_HINTS:
@@ -88,9 +98,25 @@ def find_doc_type(query: str) -> str | None:
     return None
 
 
+_MONTHS = {"janeiro": 1, "fevereiro": 2, "marco": 3, "abril": 4, "maio": 5, "junho": 6, "julho": 7, "agosto": 8, "setembro": 9,
+           "outubro": 10, "novembro": 11, "dezembro": 12}
+_MONTH_YEAR = re.compile(r"\b(" + "|".join(_MONTHS) + r")\s+de\s+(\d{4})\b")
+_MM_YYYY = re.compile(r"(?<![\d/])(\d{1,2})/(\d{4})(?!\d)")
+
+
 def find_query_date(query: str) -> str | None:
+    """Data citada na pergunta: dia exato ("14/05/2026") ou mês ("abril de 2026", "04/2026") como prefixo AAAA-MM."""
     m = _DATE_BR.search(query)
-    return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}" if m else None
+    if m:
+        return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+    q = fold(query)
+    m = _MONTH_YEAR.search(q)
+    if m:
+        return f"{m.group(2)}-{_MONTHS[m.group(1)]:02d}"
+    m = _MM_YYYY.search(query)
+    if m and 1 <= int(m.group(1)) <= 12:
+        return f"{m.group(2)}-{int(m.group(1)):02d}"
+    return None
 
 
 def _stem(term: str) -> str:
@@ -178,13 +204,25 @@ class HybridRetriever:
             # recuperação ciente de metadados: a pergunta cita um tipo de documento ("na sentença"), então os melhores trechos
             # desse tipo no processo entram primeiro, sem descartar os demais
             active_date = stages.get("date_filter") or None  # respeita o filtro de data quando ele se aplicou
-            t_lex = self.store.search_lexical(query, domain, self.candidates, process_number, active_date, doc_type)
+            t_query = query + _DISPOSITIVE_TERMS if asks_outcome(query) else query  # desfecho: o dispositivo entra na busca do tipo
+            t_lex = self.store.search_lexical(t_query, domain, self.candidates, process_number, active_date, doc_type)
             t_vec = self.store.search_vector(qvec, domain, self.candidates, process_number, active_date, doc_type)
             t_fused = reciprocal_rank_fusion([[c for c, _ in t_lex], [c for c, _ in t_vec]], self.rrf_k)
             # os 2 melhores da fusão + o 1º lexical e o 1º vetorial do tipo: o cabeçalho do documento (forte no BM25,
             # fraco no vetor) costuma trazer o dispositivo, a tipificação ou o resultado
-            t_ids = list(dict.fromkeys(sorted(t_fused, key=lambda c: -t_fused[c])[:2] + [c for c, _ in t_lex[:1]] + [c for c, _ in t_vec[:1]]))
-            typed = {e.chunk_id: e for e in self.store.load_evidences(t_ids, domain)}
+            ranked = sorted(t_fused, key=lambda c: -t_fused[c])
+            pool = {e.chunk_id: e for e in self.store.load_evidences(list(dict.fromkeys(ranked[:12] + [c for c, _ in t_lex[:1]] + [c for c, _ in t_vec[:1]])), domain)}
+            # diversidade: o melhor trecho de cada documento do tipo (há processos com mais de uma sentença), mais o 1º lexical e o 1º vetorial
+            per_doc: list[int] = []
+            seen_docs: set[str] = set()
+            for c in ranked:
+                if c in pool and pool[c].doc_id not in seen_docs:
+                    per_doc.append(c)
+                    seen_docs.add(pool[c].doc_id)
+                if len(per_doc) == 2:
+                    break
+            t_ids = list(dict.fromkeys(per_doc + [c for c, _ in t_lex[:1]] + [c for c, _ in t_vec[:1]]))[:4]
+            typed = {c: pool[c] for c in t_ids if c in pool}
             lex_rank.update({c: lex_rank.get(c) or i for i, (c, _) in enumerate(t_lex, 1)})
             first = [replace(typed[c], score=max(fused.get(c, 0.0), t_fused[c]) + 1.0, lexical_rank=lex_rank.get(c), vector_rank=vec_rank.get(c),
                              lexical_score=dict(t_lex).get(c), vector_score=dict(t_vec).get(c)) for c in t_ids if c in typed]
