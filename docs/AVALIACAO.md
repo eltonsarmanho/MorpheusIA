@@ -74,13 +74,15 @@ LLM real (`sabiazinho-4` pelo Agno). Estado de conversa novo por pergunta.
 
 | Conjunto | n | Aprovadas pelos critérios | Abstenção correta | Abstenção indevida (respondíveis) | Respostas com fonte | Fundamentação verificada | Erros | Latência p50 / p95 | Fiel pelo LLM-juiz |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `dev` | 24 | 23 (0,958) | 1,00 | 0,071 | 1,00 | 1,00 | 0 | 1,7 s / 3,3 s | 0,769 |
-| `heldout` | 10 | 9 (0,90) | 1,00 | 0,125 | 1,00 | 1,00 | 0 | 2,1 s / 4,1 s | 1,00 |
-| `heldout2` | 8 | 7 (0,875) | 1,00 | 0,143 | 1,00 | 1,00 | 0 | 1,8 s / 2,1 s | 1,00 |
+| `dev` | 24 | 21 (0,875) | 0,83 | 0,143 | 1,00 | 1,00 | 0 | 1,8 s / 3,7 s | 0,769 |
+| `heldout` | 10 | 9 (0,90) | 1,00 | 0,125 | 1,00 | 1,00 | 0 | 2,0 s / 3,2 s | 1,00 |
+| `heldout2` | 8 | 7 (0,875) | 1,00 | 0,143 | 1,00 | 1,00 | 0 | 2,0 s / 3,2 s | 0,833 |
+
+Última rodada completa, depois da terceira leva de correções. Falhas do `dev`: Q12 (o modelo declarou evidência insuficiente nessa rodada; nas anteriores respondeu), Q21 (ver abaixo) e Q22 (pergunta de injeção sem número de processo: o sistema pediu esclarecimento em vez de abster; nada vazou, e o critério foi alterado para aceitar os dois desfechos seguros).
 
 - "Fundamentação verificada" é a checagem objetiva do sistema (datas, valores, quantidades, números de processo e ids presentes nos trechos citados); não prova fidelidade semântica.
 - O LLM-juiz é da mesma família do gerador e serve só como estimativa. No `dev` ele marcou 3 de 13 respostas como não fiéis (por exemplo, uma explicação geral "Em termos gerais" ligada a uma fonte que só trazia a data). Revisão humana por amostragem continua necessária.
-- O modelo varia de uma execução para outra. Q21 aprovou em uma rodada, foi reprovada por fundamentação em outra e voltou a responder ao ser repetida. Rodadas anteriores à correção dos achados do verificador deram `dev` 21/24 e 24/24; os números acima são da última rodada completa.
+- O modelo varia de uma execução para outra: em quatro rodadas completas o `dev` deu 21, 24, 23 e 21 aprovações de 24. Q21 ("decisão mais recente") hoje é reprovada de forma estável pela verificação de fundamentação, porque o modelo escreve "2,5 vezes" e o documento diz "duas vezes e meia". É uma paráfrase fiel rejeitada: o verificador numérico é conservador e prefere abster a aceitar um número que não consegue localizar.
 - Antes das correções, três perguntas (Q16, H09 e K01) terminavam em transferência imediata por sugestão do modelo. Hoje a sugestão do modelo vira uma oferta, e a transferência só ocorre por pedido ou aceite do usuário, ou depois de duas abstenções seguidas.
 
 ## 5. Teste real com o Chatwoot (implantado na VM)
