@@ -127,7 +127,8 @@ def test_capa_oculta_documento_pendente_por_sigilo_no_texto(store, embedder, tmp
     doc = [d for d in store.list_documents(limit=20) if d.pje_doc_id == "1000002"][0]
     assert doc.review_state is R.PENDING_REVIEW
     cover = " ".join(r["text"] for r in store._exec("select text from chunks where doc_id like '%:capa'"))
-    assert "1000002; Decisão" not in cover and "id 1000002" in cover and "acesso em revisão" in cover
+    import re as _re
+    assert not _re.search(r"2026-05-14[^\n]*Decisão[^\n]*id 1000002", cover) and "documento com acesso em revisão; id 1000002" in cover
 
 
 # --------------------------------------------------------------------------- N100/N98c/N109/N110: transferência e retry
@@ -275,7 +276,7 @@ def test_redirect_para_http_e_recusado():
             return httpx.Response(404)
         return httpx.Response(302, headers={"location": "http://centralservicos.tjpa.jus.br/novo"})
 
-    with pytest.raises(CollectionError):
+    with pytest.raises(CollectionError, match="outro host"):
         _fetcher(handler).fetch("https://centralservicos.tjpa.jus.br/bv/balcao.php")
 
 
@@ -311,3 +312,83 @@ def test_robots_com_redirect_no_mesmo_host_e_seguido():
         return httpx.Response(200, text="<html>ok</html>", headers={"content-type": "text/html"})
 
     assert _fetcher(handler).fetch("https://centralservicos.tjpa.jus.br/bv/balcao.php").status == 200
+
+
+# ------------------------------------------------------------- lacunas restantes da rodada 3
+@pytest.mark.parametrize("answer,text", [
+    ("Aplica-se o art. 1.016 do CPC [E1].", "aplica-se o art. 1.015 do CPC"),
+    ("O prazo é de 3 semanas [E1].", "o prazo é de 15 dias"),
+    ("O prazo é de duas semanas [E1].", "o prazo é de 15 dias"),
+])
+def test_artigo_com_milhar_e_semanas_sem_lastro_reprovam(answer, text):
+    assert not _check(answer, text).ok
+
+
+def test_artigo_com_milhar_com_lastro_e_aprovado():
+    assert _check("Aplica-se o art. 1.015 do CPC [E1].", "aplica-se o art. 1.015, inciso I, do CPC").ok
+
+
+def test_retomada_ignora_o_responsavel_humano_antigo(store, embedder, ops):
+    add_doc(store, embedder, doc_id="d1", text="Decido. Designo audiência de conciliação para 20/07/2026.", doc_type="Despacho")
+    gw = FakeGateway()
+    h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("É em 20/07/2026 [E1]."))), ops, gw)
+    process(h, msg_event("quero falar com um atendente", msg_id=1))
+    ops.transition(KEY, S.HUMAN_CLOSED, actor="chatwoot")
+    h.resume_automation(1, 77, "sup", "ok")
+    assert process(h, msg_event(msg_id=2, assignee={"id": 9})).outcome == "processed"  # o responsável anterior continua no Chatwoot
+    assert ops.get(KEY).handoff_state is S.AUTOMATION_RESUMED
+
+
+def test_processo_deduzido_chega_ao_retriever(store, embedder):
+    seen = []
+
+    class Spy(HybridRetriever):
+        def retrieve(self, query, domain, process_number=None):
+            seen.append(process_number)
+            return super().retrieve(query, domain, process_number=process_number)
+
+    add_doc(store, embedder, doc_id="a", text="Decisão sobre tarifas bancárias indevidas.", process_number=P1, pje_doc_id="1")
+    add_doc(store, embedder, doc_id="b", text="Decisão sobre gratificação de engenharia.", process_number=P2, pje_doc_id="2")
+    orc = Orchestrator(Spy(store, embedder, policy=AbstentionPolicy(min_vector_score=0.0)), store, FakeLLM(out("Trata de tarifas [E1].")), OrchestratorConfig())
+    orc.respond("Qual a decisão sobre tarifas bancárias indevidas?", ConversationState("t"))
+    assert seen[0] == P1
+
+
+def test_termo_de_documento_pendente_nao_identifica_processo(store, embedder):
+    add_doc(store, embedder, doc_id="a", text="Decisão sobre tarifas bancárias.", process_number=P1, pje_doc_id="1", state=R.PENDING_REVIEW, index=False)
+    assert store.processes_with_term("tarifas") == set()
+    store.set_review("a", R.APPROVED, reviewer="Cur", reason="ok")
+    store.index_pending(embedder, doc_id="a")
+    assert store.processes_with_term("tarifas") == {P1}
+
+
+def test_documento_marcado_para_revisao_por_divergencia_nao_volta_aprovado_ao_recoletar(store, embedder):
+    svc = CollectionService(store, SourceRegistry.from_file(REG), FakeFetcher({BV: HTML_BV}), embedder)
+    r = svc.collect_url(D.INSTITUCIONAL, BV)
+    store.set_review(r["doc_id"], R.APPROVED, reviewer="Cur", reason="ok")
+    store.mark_review_system(r["doc_id"], R.NEEDS_REVIEW, "divergência com outra fonte")
+    assert svc.collect_url(D.INSTITUCIONAL, BV)["state"] != "approved"
+
+
+@pytest.mark.parametrize("msg", ["falar com um atendente", "quero falar com uma pessoa", "quero falar com alguém", "gostaria de falar com um servidor"])
+def test_variantes_de_pedido_de_atendente(msg):
+    assert classify_intent(msg).intent is Intent.ATENDIMENTO_HUMANO
+
+
+def test_aceite_com_interrogacao_nao_e_aceite():
+    assert not _is_affirmative("sim?")
+
+
+def test_falha_ao_voltar_o_status_pending_na_retomada_fica_na_auditoria(store, embedder, ops):
+    class NoPending(FakeGateway):
+        def set_status(self, a, c, status):
+            if status == "pending":
+                raise RuntimeError("falha")
+            return super().set_status(a, c, status)
+
+    h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("x"))), ops, NoPending())
+    process(h, msg_event("quero falar com um atendente", msg_id=1))
+    ops.transition(KEY, S.HUMAN_CLOSED, actor="chatwoot")
+    h.resume_automation(1, 77, "sup", "ok")
+    assert ops.get(KEY).handoff_state is S.AUTOMATION_RESUMED
+    assert "resume_status_failed" in [a["action"] for a in ops.audit_rows(KEY)]
