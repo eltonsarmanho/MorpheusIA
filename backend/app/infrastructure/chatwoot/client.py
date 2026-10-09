@@ -8,6 +8,8 @@ from typing import Any, Sequence
 
 import httpx
 
+from app.domain.models import Option
+
 log = logging.getLogger(__name__)
 
 _TRANSIENT = {408, 425, 429, 500, 502, 503, 504}
@@ -53,11 +55,16 @@ class ChatwootClient:
         return f"/api/v1/accounts/{self.account_id}{suffix}"
 
     # --------------------------------------------------------- conversas
-    def send_message(self, account_id: int, conversation_id: int, content: str) -> int | None:
-        data = self._request(
-            "POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages",
-            json={"content": content, "message_type": "outgoing", "private": False},
-        )
+    def send_message(
+        self, account_id: int, conversation_id: int, content: str, options: Sequence[Option] | None = None, private: bool = False
+    ) -> int | None:
+        """Envia texto; com `options`, usa `input_select` (o Chatwoot gera botões até 3 itens e lista acima disso no WhatsApp Cloud)."""
+        body: dict[str, Any] = {"content": content, "message_type": "outgoing", "private": private}
+        if options:
+            limit = 20 if len(options) <= 3 else 24  # limites do WhatsApp: título de botão 20, de linha de lista 24 caracteres
+            body["content_type"] = "input_select"
+            body["content_attributes"] = {"items": [{"title": o.title[:limit], "value": o.value} for o in list(options)[:10]]}
+        data = self._request("POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages", json=body)
         return data.get("id")
 
     # Verificado no Chatwoot 4.11.1 (2026-10-09): o token do Agent Bot só acessa mensagens, atribuições e status;

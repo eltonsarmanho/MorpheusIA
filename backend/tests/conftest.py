@@ -102,16 +102,22 @@ class FakeLLM:
 class FakeGateway:
     def __init__(self, fail_assign: int = 0, fail_send: int = 0) -> None:
         self.sent: list[tuple[int, str]] = []
+        self.notes: list[tuple[int, str]] = []
+        self.options: list[tuple[int, list[str] | None]] = []
         self.labels: dict[int, list[str]] = {}
         self.assigned: list[tuple[int, str]] = []
         self.statuses: list[tuple[int, str]] = []
         self.fail_assign, self.fail_send = fail_assign, fail_send
 
-    def send_message(self, account_id, conversation_id, content):
+    def send_message(self, account_id, conversation_id, content, options=None, private=False):
         if self.fail_send:
             self.fail_send -= 1
             raise RuntimeError("chatwoot fora do ar")
+        if private:
+            self.notes.append((conversation_id, content))
+            return 1000 + len(self.notes)
         self.sent.append((conversation_id, content))
+        self.options.append((conversation_id, [o.title for o in options] if options else None))
         return len(self.sent)
 
     def add_labels(self, account_id, conversation_id, labels):

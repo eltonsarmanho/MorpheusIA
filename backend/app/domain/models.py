@@ -139,3 +139,11 @@ class BotReply:
     abstain_reason: str | None = None
     handoff_reason: str | None = None
     trace: dict[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class Option:
+    """Opção de botão (até 3) ou de lista (até 10) do WhatsApp. O texto do título volta como a mensagem do usuário."""
+
+    title: str
+    value: str

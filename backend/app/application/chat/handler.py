@@ -13,8 +13,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.application.answering.orchestrator import TEAM_GENERAL, Orchestrator, QuestionError
+from app.application.chat import flow
 from app.domain.handoff import HandoffState, InvalidTransition, bot_may_reply
-from app.domain.models import ResponseKind
+from app.domain.models import Option, ResponseKind
 from app.domain.ports import ChatwootGateway
 from app.infrastructure.sqlite.operational_store import ConversationState, OperationalStore
 
@@ -49,9 +50,10 @@ def _msg_type(value: Any) -> str:
 
 class ChatwootEventHandler:
     def __init__(self, orchestrator: Orchestrator, ops: OperationalStore, gateway: ChatwootGateway, *, max_handoff_attempts: int = 3,
-                 max_question_chars: int = 1000, default_account_id: int = 1) -> None:
+                 max_question_chars: int = 1000, default_account_id: int = 1, rich_flow: bool = False) -> None:
         self.orch, self.ops, self.gw = orchestrator, ops, gateway
         self.default_account = default_account_id
+        self.rich = rich_flow  # menus com botões/listas, protocolo (ticket) e encerramento guiado
         self.max_attempts, self.max_chars = max_handoff_attempts, max_question_chars
         self._locks: dict[str, threading.Lock] = defaultdict(threading.Lock)
 
@@ -109,6 +111,10 @@ class ChatwootEventHandler:
         sender = payload.get("sender") or {}
         sender_type = str(sender.get("type") or "").lower()
         if payload.get("private"):
+            if self.rich and mtype == "outgoing" and sender_type in ("user", "agent"):
+                cmd = (payload.get("content") or "").strip().lower()
+                if cmd == "/encerrar" or cmd.startswith("/encerrar "):
+                    return self._close_by_agent(account, conv_id, key)
             return HandleResult("ignored", "mensagem privada")
         st = self.ops.get(key)
 
@@ -130,6 +136,9 @@ class ChatwootEventHandler:
             self._to_human_active(key, st, "conversa já atribuída a um agente")
             return HandleResult("silent", "atribuída a humano")
 
+        if self.rich and st.handoff_state is HandoffState.HUMAN_CLOSED and self.ops.get_open_ticket(key) is None:
+            # o atendimento anterior foi encerrado: a nova mensagem abre um novo protocolo e devolve a conversa à automação
+            st = self.ops.transition(key, HandoffState.AUTOMATION_RESUMED, actor="sistema", detail="novo atendimento após encerramento")
         if st.handoff_state is HandoffState.HANDOFF_IN_PROGRESS:
             # tentativa interrompida (queda do processo): volta a "solicitado" para repetir
             st = self.ops.transition(key, HandoffState.HANDOFF_REQUESTED, actor="bot", detail="recuperação após interrupção")
@@ -140,6 +149,11 @@ class ChatwootEventHandler:
             return HandleResult("silent", st.handoff_state.value)  # CHW-02
 
         content = (payload.get("content") or "").strip()
+        if self.rich:
+            return self._rich_incoming(payload, account, conv_id, key, st, content)
+        return self._answer(account, conv_id, key, st, content)
+
+    def _answer(self, account: int, conv_id: int, key: str, st: ConversationState, content: str) -> HandleResult:
         try:
             turn = self.orch.respond(content, st)
         except QuestionError:
@@ -150,12 +164,116 @@ class ChatwootEventHandler:
         self.ops.save(turn.state)
         if reply.kind is ResponseKind.HANDOFF:
             return self._do_handoff(account, conv_id, key, turn.state, turn.handoff_team or TEAM_GENERAL, reply.handoff_reason or "", turn.labels)
-        self._send(account, conv_id, reply.text)
+        if self.rich and reply.kind is ResponseKind.CLARIFY:
+            self._send(account, conv_id, flow.PROCESS_PICK_TEXT, self._process_options())  # em vez de pedir o número por extenso
+        else:
+            self._send(account, conv_id, reply.text)
+            if self.rich and reply.kind in (ResponseKind.ANSWER, ResponseKind.ABSTAIN, ResponseKind.GREETING):
+                self._send(account, conv_id, flow.AFTER_ANSWER_TEXT, flow.AFTER_ANSWER)
         self._safe_label(account, conv_id, turn.labels + (["ia_falha"] if "ia_falha" in turn.labels else []))
         self.ops.audit(key, f"reply:{reply.kind.value}", "bot", str(reply.trace.get("abstain_reason") or ""))
         if reply.trace.get("injection_flagged"):  # SEC-02: o evento fica no registro de auditoria, não só no trace
             self.ops.audit(key, "injection_flagged", "bot", ",".join(reply.trace["injection_flagged"]))
         return HandleResult("processed", reply.kind.value)
+
+    # ------------------------------------------------------- fluxo guiado (WhatsApp)
+    def _known_processes(self) -> list[str]:
+        return list(self.orch.store.approved_process_numbers())  # type: ignore[attr-defined]
+
+    def _process_options(self) -> list[Option]:
+        return flow.process_options(self._known_processes())
+
+    def _process_info(self, number: str) -> str:
+        info = self.orch.store.process_info(number)  # type: ignore[attr-defined]
+        return f"{info['process_class']} · {info['court_unit']}" if info else ""
+
+    def _ensure_ticket(self, account: int, conv_id: int, key: str, status: str | None) -> bool:
+        """Garante o protocolo do atendimento. Devolve True quando acabou de abrir um novo (e o anunciou)."""
+        if self.ops.get_open_ticket(key) is not None:
+            return False
+        ticket = self.ops.open_ticket(key)
+        self._send(account, conv_id, flow.opening_text(ticket.ticket_id, ticket.opened_at))
+        try:  # nota privada para a equipe e conversa de volta a "pendente" (atendida pelo bot)
+            self._send(account, conv_id, f"🎫 {ticket.ticket_id} aberto em {flow.fmt_time(ticket.opened_at)}", private=True)
+            if status and status != "pending":
+                self.gw.set_status(account, conv_id, "pending")
+        except Exception:  # noqa: BLE001 - informativo
+            log.warning("não foi possível registrar a nota do ticket")
+        return True
+
+    def _rich_incoming(self, payload: dict, account: int, conv_id: int, key: str, st: ConversationState, content: str) -> HandleResult:
+        status = (payload.get("conversation") or {}).get("status")
+        opened_now = self._ensure_ticket(account, conv_id, key, status)
+        action = flow.parse(content, self._known_processes())
+        k = action.kind
+        if k is flow.Kind.CLOSE:
+            return self._close_by_user(account, conv_id, key)
+        if k is flow.Kind.MENU:
+            self._send(account, conv_id, flow.MAIN_MENU_TEXT, flow.MAIN_MENU)
+            return HandleResult("processed", "menu")
+        if k is flow.Kind.PROCESS_LIST:
+            lines = "\n".join(f"• {n} ({self._process_info(n)})" for n in self._known_processes())
+            self._send(account, conv_id, flow.PROCESS_LIST_TEXT.format(lines=lines), self._process_options())
+            return HandleResult("processed", "lista_de_processos")
+        if k is flow.Kind.SELECT_PROCESS:
+            st.process_number = action.arg
+            self.ops.save(st)
+            self._send(account, conv_id, flow.PROCESS_MENU_TEXT.format(n=action.arg, info=self._process_info(action.arg)), flow.PROCESS_MENU)
+            return HandleResult("processed", "processo_selecionado")
+        if k is flow.Kind.INST_MENU:
+            self._send(account, conv_id, flow.INST_MENU_TEXT, flow.inst_options())
+            return HandleResult("processed", "menu_institucional")
+        if k is flow.Kind.LEGAL_MENU:
+            self._send(account, conv_id, flow.LEGAL_MENU_TEXT, flow.legal_options())
+            return HandleResult("processed", "menu_juridico")
+        if k is flow.Kind.PROMPT:
+            if action.arg == "outra_proc" and not st.process_number:
+                self._send(account, conv_id, flow.PROCESS_PICK_TEXT, self._process_options())
+            else:
+                self._send(account, conv_id, flow.PROMPTS[action.arg].format(n=st.process_number or ""))
+            return HandleResult("processed", "aguardando_texto")
+        if k is flow.Kind.HUMAN:
+            return self._answer(account, conv_id, key, st, "quero falar com um atendente")
+        if k is flow.Kind.ASK:
+            question = action.arg
+            if action.arg in flow.PROCESS_QUESTIONS:
+                if not st.process_number:
+                    self._send(account, conv_id, flow.PROCESS_PICK_TEXT, self._process_options())
+                    return HandleResult("processed", "processo_necessario")
+                question = flow.PROCESS_QUESTIONS[action.arg].format(n=st.process_number)
+            return self._answer(account, conv_id, key, st, question)
+        # texto livre: só quando necessário. Uma saudação inicial já abriu o menu acima; aqui é pergunta de fato.
+        return self._answer(account, conv_id, key, st, content)
+
+    def _close_by_user(self, account: int, conv_id: int, key: str) -> HandleResult:
+        """Opção ENCERRAR do usuário: fecha o protocolo, avisa e marca a conversa como resolvida."""
+        return self._finish(account, conv_id, key, "usuario")
+
+    def _close_by_agent(self, account: int, conv_id: int, key: str) -> HandleResult:
+        """Nota privada `/encerrar` do atendente: fecha o protocolo e resolve a conversa no Chatwoot."""
+        return self._finish(account, conv_id, key, "atendente")
+
+    def _finish(self, account: int, conv_id: int, key: str, closed_by: str) -> HandleResult:
+        ticket = self.ops.close_ticket(key, closed_by)
+        if ticket is not None:
+            self._send(account, conv_id, flow.closing_text(ticket.ticket_id, ticket.opened_at, ticket.closed_at or ticket.opened_at, closed_by))
+            if closed_by == "atendente":
+                try:
+                    self._send(account, conv_id, f"✅ {ticket.ticket_id} encerrado via /encerrar", private=True)
+                except Exception:  # noqa: BLE001
+                    pass
+        st = self.ops.get(key)
+        if st.handoff_state is HandoffState.HUMAN_ACTIVE:
+            self.ops.transition(key, HandoffState.HUMAN_CLOSED, actor=closed_by, detail="atendimento encerrado")
+        st = self.ops.get(key)
+        st.process_number, st.offer_pending, st.failed_retrievals = None, False, 0
+        self.ops.save(st)
+        try:
+            self.gw.set_status(account, conv_id, "resolved")  # "Resolvido" no Chatwoot
+        except Exception:  # noqa: BLE001
+            self.ops.audit(key, "resolve_failed", "bot", closed_by)
+            self._safe_label(account, conv_id, ["ia_falha"])
+        return HandleResult("processed", f"encerrado_por_{closed_by}")
 
     # ------------------------------------------------------ transferência
     def _do_handoff(self, account: int, conv_id: int, key: str, st: ConversationState, team: str, reason: str, labels: list[str]) -> HandleResult:
@@ -204,7 +322,11 @@ class ChatwootEventHandler:
             st.handoff_attempts = 0
             self.ops.save(st)
             try:
-                self._send(account, conv_id, HANDOFF_OK_TEXT.format(team=team))  # só informa após a confirmação (CHW-10)
+                notice = HANDOFF_OK_TEXT.format(team=team)
+                ticket = self.ops.get_open_ticket(key) if self.rich else None
+                if ticket:
+                    notice += f"\n🎫 Protocolo: *{ticket.ticket_id}*"
+                self._send(account, conv_id, notice)  # só informa após a confirmação (CHW-10)
             except Exception:  # noqa: BLE001 - a transferência já ocorreu; o aviso falhou
                 log.warning("transferência confirmada, mas o aviso ao usuário falhou")
                 self.ops.audit(key, "handoff_notice_failed", "bot", team)
@@ -235,6 +357,14 @@ class ChatwootEventHandler:
         if payload.get("event") == "conversation_resolved":
             status = "resolved"
         st = self.ops.get(key)
+        if status == "resolved" and self.rich:
+            ticket = self.ops.close_ticket(key, "atendente")  # resolvido direto na interface do Chatwoot
+            if ticket is not None:
+                account, conv_id = (int(x) for x in key.split(":"))
+                try:
+                    self._send(account, conv_id, flow.closing_text(ticket.ticket_id, ticket.opened_at, ticket.closed_at or ticket.opened_at, "atendente"))
+                except Exception:  # noqa: BLE001
+                    self.ops.audit(key, "closing_notice_failed", "bot", ticket.ticket_id)
         if status == "resolved" and st.handoff_state is HandoffState.HUMAN_ACTIVE:
             self.ops.transition(key, HandoffState.HUMAN_CLOSED, actor="chatwoot", detail="conversa resolvida")
             return HandleResult("processed", "human_closed")
@@ -252,9 +382,12 @@ class ChatwootEventHandler:
             self.ops.audit(key, "resume_status_failed", actor, "não foi possível voltar o status para pending")
         return st
 
-    def _send(self, account: int, conv_id: int, text: str) -> int | None:
+    def _send(self, account: int, conv_id: int, text: str, options: list[Option] | None = None, private: bool = False) -> int | None:
         """Envia e registra o id da mensagem para reconhecer o eco do webhook como do próprio bot."""
-        msg_id = self.gw.send_message(account, conv_id, text)
+        if options or private:
+            msg_id = self.gw.send_message(account, conv_id, text, options=options, private=private)
+        else:
+            msg_id = self.gw.send_message(account, conv_id, text)
         if msg_id:
             self.ops.claim_event(f"botmsg:{account}:{msg_id}")
         return msg_id

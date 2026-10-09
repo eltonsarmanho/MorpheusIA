@@ -14,6 +14,7 @@
     <nav role="tablist">
       <button role="tab" id="tab-chat" aria-selected="true">Conversa</button>
       <button role="tab" id="tab-cur" aria-selected="false">Curadoria</button>
+      <button role="tab" id="tab-int" aria-selected="false">Integração e tickets</button>
     </nav>
   </header>
 
@@ -47,6 +48,19 @@
         </table>
       </div>
       <p id="cur-msg" class="hint" role="status"></p>
+    </section>
+
+    <section id="panel-int" hidden>
+      <p class="hint">Use estes dados no painel do Chatwoot. Eventos repetidos são ignorados, então Webhook e Bot juntos não duplicam respostas.</p>
+      <button id="load-int" type="button" class="bar-btn">Carregar</button>
+      <dl id="int-info"></dl>
+      <h2>Tickets</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Protocolo</th><th>Conversa</th><th>Aberto em</th><th>Encerrado em</th><th>Encerrado por</th><th>Estado</th></tr></thead>
+          <tbody id="tickets"></tbody>
+        </table>
+      </div>
     </section>
   </main>
   <script src="app.js"></script>

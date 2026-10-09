@@ -11,9 +11,10 @@ const session = (() => {
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
 
 // ---- abas
-for (const [tab, panel] of [["tab-chat", "panel-chat"], ["tab-cur", "panel-cur"]]) {
+const TABS = [["tab-chat", "panel-chat"], ["tab-cur", "panel-cur"], ["tab-int", "panel-int"]];
+for (const [tab, panel] of TABS) {
   $(tab).addEventListener("click", () => {
-    for (const [t, p] of [["tab-chat", "panel-chat"], ["tab-cur", "panel-cur"]]) {
+    for (const [t, p] of TABS) {
       $(t).setAttribute("aria-selected", String(t === tab)); $(p).hidden = p !== panel;
     }
   });
@@ -83,3 +84,23 @@ async function review(docId, decision) {
   if (r.ok) loadDocs();
 }
 $("load").addEventListener("click", loadDocs);
+
+// ---- integração e tickets
+const fmt = (iso) => (iso ? new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Belem" }) : "-");
+async function loadIntegration() {
+  const [ri, rt] = await Promise.all([fetch(api("/api/admin/integration"), { headers: headers() }), fetch(api("/api/admin/tickets?limit=100"), { headers: headers() })]);
+  if (ri.status === 401 || rt.status === 401) { $("int-info").replaceChildren(el("dd", null, "Token de acesso ausente ou inválido.")); return; }
+  const info = await ri.json(); const tickets = await rt.json();
+  const dl = [];
+  for (const [label, value] of [["URL pública do webhook", info.webhook_url_publica], ["URL interna (Bot)", info.webhook_url_interna], ["Método", info.metodo],
+    ["Eventos", info.eventos.join(", ")], ["Onde cadastrar", info.onde_cadastrar], ["Comando do atendente", Object.entries(info.comandos_do_atendente).map(([k, v]) => `${k}: ${v}`).join("; ")]]) {
+    dl.push(el("dt", null, label), el("dd", null, value));
+  }
+  $("int-info").replaceChildren(...dl);
+  $("tickets").replaceChildren(...tickets.map((t) => {
+    const tr = el("tr");
+    tr.append(el("td", null, t.ticket_id), el("td", null, t.conversation), el("td", null, fmt(t.opened_at)), el("td", null, fmt(t.closed_at)), el("td", null, t.closed_by || "-"), el("td", `state-${t.status === "open" ? "pending_review" : "approved"}`, t.status));
+    return tr;
+  }));
+}
+$("load-int").addEventListener("click", loadIntegration);

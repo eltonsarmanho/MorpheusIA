@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS conversations (
   updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS processed_events (event_key TEXT PRIMARY KEY, received_at TEXT);
+CREATE TABLE IF NOT EXISTS tickets (
+  ticket_id TEXT PRIMARY KEY, conversation TEXT NOT NULL, opened_at TEXT NOT NULL, closed_at TEXT, closed_by TEXT, status TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_tickets_conv ON tickets(conversation, status);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, conversation TEXT, action TEXT, actor TEXT, detail TEXT
 );
@@ -28,6 +32,16 @@ CREATE TABLE IF NOT EXISTS audit (
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+@dataclass(frozen=True)
+class Ticket:
+    ticket_id: str
+    conversation: str
+    opened_at: str  # ISO 8601 UTC
+    status: str  # open | closed
+    closed_at: str | None = None
+    closed_by: str | None = None  # usuario | atendente | sistema
 
 
 @dataclass
@@ -125,3 +139,58 @@ class OperationalStore:
         sql += " ORDER BY id DESC LIMIT ?"; params.append(limit)
         with self._lock:
             return [dict(r) for r in self._conn.execute(sql, params)]
+
+    # ------------------------------------------------------------------ tickets
+    @staticmethod
+    def _new_ticket_id(conversation: str, opened_at: str) -> str:
+        import hashlib
+        import secrets
+
+        digest = hashlib.sha256(f"{conversation}|{opened_at}|{secrets.token_hex(8)}".encode()).hexdigest()
+        return "TKT-" + digest[:8].upper()
+
+    def open_ticket(self, conversation: str) -> Ticket:
+        """Abre o protocolo do atendimento (data e hora gravadas); se já houver um aberto, devolve o existente."""
+        with self._lock:
+            existing = self.get_open_ticket(conversation)
+            if existing:
+                return existing
+            opened = _now()
+            with self._conn:
+                for _ in range(5):
+                    tid = self._new_ticket_id(conversation, opened)
+                    try:
+                        self._conn.execute("INSERT INTO tickets(ticket_id,conversation,opened_at,status) VALUES(?,?,?,'open')", (tid, conversation, opened))
+                        break
+                    except sqlite3.IntegrityError:
+                        continue
+            self.audit(conversation, "ticket_opened", "sistema", tid)
+            return Ticket(tid, conversation, opened, "open")
+
+    @staticmethod
+    def _row_ticket(r: sqlite3.Row) -> Ticket:
+        return Ticket(r["ticket_id"], r["conversation"], r["opened_at"], r["status"], r["closed_at"], r["closed_by"])
+
+    def get_open_ticket(self, conversation: str) -> Ticket | None:
+        with self._lock:
+            r = self._conn.execute("SELECT * FROM tickets WHERE conversation=? AND status='open' ORDER BY opened_at DESC LIMIT 1", (conversation,)).fetchone()
+        return self._row_ticket(r) if r else None
+
+    def close_ticket(self, conversation: str, closed_by: str) -> Ticket | None:
+        """Fecha o protocolo aberto (uma única vez); devolve o ticket fechado ou None se não havia ticket aberto."""
+        with self._lock, self._conn:
+            r = self._conn.execute("SELECT * FROM tickets WHERE conversation=? AND status='open' ORDER BY opened_at DESC LIMIT 1", (conversation,)).fetchone()
+            if r is None:
+                return None
+            closed = _now()
+            self._conn.execute("UPDATE tickets SET status='closed', closed_at=?, closed_by=? WHERE ticket_id=?", (closed, closed_by, r["ticket_id"]))
+            self.audit(conversation, "ticket_closed", closed_by, r["ticket_id"])
+            return Ticket(r["ticket_id"], conversation, r["opened_at"], "closed", closed, closed_by)
+
+    def list_tickets(self, status: str | None = None, limit: int = 100) -> list[Ticket]:
+        sql, params = "SELECT * FROM tickets", []
+        if status:
+            sql += " WHERE status=?"; params.append(status)
+        sql += " ORDER BY opened_at DESC LIMIT ?"; params.append(limit)
+        with self._lock:
+            return [self._row_ticket(r) for r in self._conn.execute(sql, params)]

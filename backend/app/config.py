@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     chatwoot_bot_token: str = ""  # token do Agent Bot (respostas e transferência)
     chatwoot_webhook_secret: str = ""  # segredo na URL do webhook (?token=...)
     handoff_max_attempts: int = 3
+    chat_rich_flow: bool = True  # menus com botões/listas, protocolo (TKT) e encerramento guiado; false = só texto
+    public_base_url: str = "https://srv1633081.hstgr.cloud/atendimento"  # exibido na tela de integração
 
     # Segurança da API
     admin_api_token: str = Field(default="")

@@ -105,6 +105,7 @@ def build_container(
     handler = ChatwootEventHandler(
         orchestrator, ops, gateway, max_handoff_attempts=settings.handoff_max_attempts, max_question_chars=settings.max_question_chars,
         default_account_id=settings.chatwoot_account_id,
+        rich_flow=settings.chat_rich_flow,
     ) if gateway is not None else None
     return Container(settings, store, ops, embedder, retriever, orchestrator, handler, gateway, llm)  # type: ignore[arg-type]
 

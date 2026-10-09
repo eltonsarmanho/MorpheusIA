@@ -175,6 +175,24 @@ def create_app(container: Container | None = None, settings: Settings | None = N
             raise HTTPException(409, str(exc)) from exc
         return {"outcome": res.outcome, "detail": res.detail}
 
+    @router.get("/tickets")
+    def tickets(status: str | None = Query(None, pattern="^(open|closed)$"), limit: int = Query(100, le=500)) -> list[dict]:
+        return [t.__dict__ for t in get_container().ops.list_tickets(status, limit)]
+
+    @router.get("/integration")
+    def integration() -> dict:
+        """Dados para cadastrar o webhook no painel do Chatwoot (Configurações > Integrações > Webhooks ou Bots)."""
+        secret = settings.chatwoot_webhook_secret
+        return {
+            "webhook_url_publica": f"{settings.public_base_url}/webhooks/chatwoot?token={secret}",
+            "webhook_url_interna": f"http://tjpa_backend:8300/webhooks/chatwoot?token={secret}",
+            "eventos": ["message_created", "conversation_resolved", "conversation_opened"],
+            "metodo": "POST (JSON)",
+            "onde_cadastrar": "Chatwoot > Configurações > Integrações > Webhooks (URL pública) ou Configurações > Bots (URL interna)",
+            "comandos_do_atendente": {"/encerrar": "nota privada que encerra o atendimento e marca a conversa como Resolvida"},
+            "observacao": "Eventos repetidos são ignorados pelo id da mensagem; usar Webhook e Bot ao mesmo tempo não duplica respostas.",
+        }
+
     @router.post("/collect")
     def collect(body: CollectIn) -> dict:
         from app.application.collection.service import CollectionError

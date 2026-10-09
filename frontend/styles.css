@@ -35,3 +35,6 @@ td.actions button { margin-right: 6px; padding: 4px 10px; min-height: 32px; bord
 .state-approved { color: var(--ok); } .state-pending_review, .state-needs_review, .state-stale { color: var(--warn); } .state-rejected { color: var(--bad); }
 .sr { position: absolute; left: -9999px; }
 @media (max-width: 600px) { form#chat-form { flex-direction: column; } .msg { max-width: 100%; } }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; font-size: .9rem; } dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+.bar-btn { background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 0 18px; min-height: 40px; cursor: pointer; margin-bottom: 8px; }
+h2 { font-size: 1.05rem; margin: 20px 0 8px; }

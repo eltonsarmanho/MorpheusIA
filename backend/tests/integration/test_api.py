@@ -46,7 +46,8 @@ def test_webhook_aceita_responde_em_background_e_ignora_duplicata(client):
     r1 = client.post("/webhooks/chatwoot?token=seg-webhook", json=event(7))
     r2 = client.post("/webhooks/chatwoot?token=seg-webhook", json=event(7))
     assert r1.json()["status"] == "accepted" and r2.json()["status"] == "duplicate"
-    assert len(client.gw.sent) == 1 and "20/07/2026" in client.gw.sent[0][1]
+    texts = [t for _, t in client.gw.sent]
+    assert any("TKT-" in t for t in texts) and sum("20/07/2026" in t for t in texts) == 1  # protocolo + uma resposta (sem duplicar)
 
 
 def test_console_responde_com_fontes_e_valida_entrada(client):
@@ -91,3 +92,14 @@ def test_console_publico_so_com_configuracao_explicita(store, embedder, ops):
     c = build_container(settings, store=store, ops=ops, embedder=embedder, llm=FakeLLM("{}"), gateway=FakeGateway())
     tc = TestClient(create_app(c, settings))
     assert tc.post("/api/chat", json={"session_id": "sessao-teste-4", "message": "oi"}).status_code == 200
+
+
+def test_tickets_e_dados_de_integracao_para_o_painel_do_chatwoot(client):
+    h = {"Authorization": "Bearer adm-token"}
+    client.post("/webhooks/chatwoot?token=seg-webhook", json=event(31))
+    tickets = client.get("/api/admin/tickets", headers=h).json()
+    assert len(tickets) == 1 and tickets[0]["ticket_id"].startswith("TKT-") and tickets[0]["status"] == "open" and tickets[0]["opened_at"]
+    info = client.get("/api/admin/integration", headers=h).json()
+    assert info["webhook_url_publica"].endswith("/webhooks/chatwoot?token=seg-webhook") and "message_created" in info["eventos"]
+    assert "/encerrar" in info["comandos_do_atendente"]
+    assert client.get("/api/admin/integration").status_code == 401

@@ -8,7 +8,7 @@ from typing import Any, Protocol, Sequence
 
 import numpy as np
 
-from app.domain.models import ChunkRecord, DocumentRecord, Evidence, KnowledgeDomain, ReviewState
+from app.domain.models import ChunkRecord, DocumentRecord, Evidence, KnowledgeDomain, Option, ReviewState
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,9 @@ class LlmGenerator(Protocol):
 
 
 class ChatwootGateway(Protocol):
-    def send_message(self, account_id: int, conversation_id: int, content: str) -> int | None: ...
+    def send_message(
+        self, account_id: int, conversation_id: int, content: str, options: Sequence[Option] | None = None, private: bool = False
+    ) -> int | None: ...
 
     def add_labels(self, account_id: int, conversation_id: int, labels: Sequence[str]) -> None: ...
 
