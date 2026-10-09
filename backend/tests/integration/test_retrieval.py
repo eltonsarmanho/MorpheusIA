@@ -20,12 +20,12 @@ def seed(store, embedder):
 
 
 def retr(store, embedder, **kw):
-    return HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=5), **kw)
+    return HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=5, min_vector_score=0.0), **kw)
 
 
 def test_rrf_combina_listas_e_premia_consenso():  # RAG-01
     fused = reciprocal_rank_fusion([[1, 2, 3], [3, 2, 9]], k=60)
-    assert fused[2] > fused[1] and fused[3] > fused[1] and fused[2] == fused[3] or fused[3] >= fused[2]
+    assert fused[2] > fused[1] and fused[3] > fused[1]  # 2 e 3 aparecem nas duas listas e superam o 1
     assert abs(fused[1] - 1 / 61) < 1e-9
 
 
@@ -98,3 +98,19 @@ def test_falha_do_reranker_nao_derruba_a_recuperacao(store, embedder):
 
     res = retr(store, embedder, reranker=Broken()).retrieve("audiência de conciliação", D.PROCESSUAL)
     assert res.sufficient and res.stages["reranked"] is False
+
+
+def test_piso_de_similaridade_semantica_abstem_quando_nada_se_parece(store, embedder):  # RAG-04
+    seed(store, embedder)
+    strict = HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=5, min_vector_score=0.99))
+    res = strict.retrieve("audiência de conciliação", D.PROCESSUAL)
+    assert res.abstain_reason == "baixa_similaridade_semantica" and not res.sufficient
+
+
+def test_filtro_por_data_do_documento(store, embedder):
+    add_doc(store, embedder, doc_id="a", text="Decisão sobre gratuidade: determino a comprovação da hipossuficiência.", doc_date="2026-05-14", pje_doc_id="1")
+    add_doc(store, embedder, doc_id="b", text="Decisão sobre gratuidade: defiro em parte o pedido de gratuidade.", doc_date="2026-08-13", pje_doc_id="2")
+    r = retr(store, embedder).retrieve(f"O que a decisão de 14/05/2026 do processo {P} determinou sobre a gratuidade?", D.PROCESSUAL)
+    assert [e.doc_id for e in r.evidences] == ["a"] and r.stages["date_filter"] == "2026-05-14"
+    r2 = retr(store, embedder).retrieve(f"O que a decisão de 01/01/2020 do processo {P} determinou sobre a gratuidade?", D.PROCESSUAL)
+    assert r2.stages["date_filter"] is None and {e.doc_id for e in r2.evidences} == {"a", "b"}

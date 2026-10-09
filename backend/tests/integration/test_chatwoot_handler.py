@@ -24,7 +24,7 @@ def msg_event(content="Quando é a audiência de conciliação do processo " + P
 def env(store, embedder, ops):
     add_doc(store, embedder, doc_id="d1", text="Decido. Designo audiência de conciliação para 20/07/2026 às 10h.", doc_type="Despacho", title="Despacho")
     llm = FakeLLM(json.dumps({"resposta": "A audiência é em 20/07/2026 às 10h [E1].", "referencias": ["E1"], "suficiente": True, "encaminhar": False}))
-    orc = Orchestrator(HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=4)), store, llm, OrchestratorConfig())
+    orc = Orchestrator(HybridRetriever(store, embedder, policy=AbstentionPolicy(top_k=4, min_vector_score=0.0)), store, llm, OrchestratorConfig())
 
     def make(gw=None):
         gw = gw or FakeGateway()
@@ -145,3 +145,59 @@ def test_erro_interno_libera_o_evento_para_reentrega_e_marca_falha(env):  # CHW-
     assert process(h, payload).outcome == "error"
     assert "ia_falha" in gw.labels[77]
     assert process(h, payload).outcome == "processed"  # reentrega funciona
+
+
+def test_falha_da_recuperacao_ainda_responde_ao_usuario_e_etiqueta(env):  # teste 15 no canal
+    make, ops = env
+    h, gw = make()
+
+    class Broken:
+        def retrieve(self, *a, **k):
+            raise RuntimeError("índice indisponível")
+
+    h.orch.retriever = Broken()
+    assert process(h, msg_event(msg_id=70)).outcome == "processed"
+    assert "dificuldade técnica" in gw.sent[0][1] and "ia_falha" in gw.labels[77]
+
+
+def test_evento_conversation_resolved_do_agent_bot_vem_sem_account_e_fecha_o_atendimento(env):  # formato real lido no código do Chatwoot 4.11.1
+    make, ops = env
+    h, gw = make()
+    process(h, msg_event("quero falar com um atendente", msg_id=3))
+    payload = {"event": "conversation_resolved", "id": 77, "inbox_id": 1, "status": "resolved", "updated_at": 1760000000.5, "meta": {}}
+    assert "account" not in payload and process(h, payload).outcome == "processed"
+    assert ops.get(KEY).handoff_state is S.HUMAN_CLOSED
+    assert process(h, payload) == "duplicate"
+
+
+def test_conversa_atribuida_ao_proprio_bot_nao_conta_como_humano(env):
+    make, ops = env
+    h, gw = make()
+    ev = msg_event(msg_id=1, assignee={"id": 3, "type": "agent_bot"})
+    ev["conversation"]["meta"]["assignee_type"] = "AgentBot"
+    assert process(h, ev).outcome == "processed"
+
+
+def test_transferencia_interrompida_em_andamento_e_retomada_na_proxima_mensagem(env):
+    make, ops = env
+    h, gw = make()
+    process(h, msg_event("quero falar com um atendente", msg_id=3))
+    st = ops.get(KEY)
+    # simula queda do processo no meio da tentativa
+    ops._conn.execute("UPDATE conversations SET handoff_state='handoff_in_progress' WHERE key=?", (KEY,))
+    ops._conn.commit()
+    assert process(h, msg_event("alô?", msg_id=8)).outcome == "handoff"
+    assert ops.get(KEY).handoff_state is S.HUMAN_ACTIVE
+
+
+def test_falha_so_na_etiqueta_nao_impede_a_transferencia(env):  # achado no teste real: o token do bot não pode etiquetar
+    make, ops = env
+
+    class NoLabels(FakeGateway):
+        def add_labels(self, *a, **k):
+            raise RuntimeError("401 not authorized for bots")
+
+    h, gw = make(NoLabels())
+    assert process(h, msg_event("quero falar com um atendente", msg_id=3)).outcome == "handoff"
+    assert ops.get(KEY).handoff_state is S.HUMAN_ACTIVE and gw.assigned and gw.statuses == [(77, "open")]
+    assert any("Encaminhei" in t for _, t in gw.sent)

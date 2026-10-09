@@ -16,7 +16,7 @@ ADM = {"Authorization": "Bearer adm-token"}
 
 @pytest.fixture
 def client(store, embedder, ops):
-    settings = Settings(_env_file=None, admin_api_token="adm-token", chatwoot_webhook_secret="seg-webhook", embedder_backend="hashing")
+    settings = Settings(_env_file=None, admin_api_token="adm-token", chatwoot_webhook_secret="seg-webhook", embedder_backend="hashing", min_vector_score=0.0)
     add_doc(store, embedder, doc_id="d1", text="Decido. Designo audiência de conciliação para 20/07/2026 às 10h.", doc_type="Despacho", title="Despacho")
     add_doc(store, embedder, doc_id="p1", text="Pendente de revisão sobre audiência.", state=ReviewState.PENDING_REVIEW, index=False)
     llm = FakeLLM(json.dumps({"resposta": "É em 20/07/2026 [E1].", "referencias": ["E1"], "suficiente": True, "encaminhar": False}))
@@ -87,7 +87,7 @@ def test_console_exige_token_por_padrao(client):
 
 
 def test_console_publico_so_com_configuracao_explicita(store, embedder, ops):
-    settings = Settings(_env_file=None, admin_api_token="adm-token", console_public=True, embedder_backend="hashing")
+    settings = Settings(_env_file=None, admin_api_token="adm-token", console_public=True, embedder_backend="hashing", min_vector_score=0.0)
     c = build_container(settings, store=store, ops=ops, embedder=embedder, llm=FakeLLM("{}"), gateway=FakeGateway())
     tc = TestClient(create_app(c, settings))
     assert tc.post("/api/chat", json={"session_id": "sessao-teste-4", "message": "oi"}).status_code == 200

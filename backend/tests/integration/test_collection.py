@@ -8,6 +8,7 @@ from app.application.collection.service import CollectionService
 from app.application.collection.sources import CollectionError, SourceRegistry
 from app.application.retrieval.hybrid import HybridRetriever
 from app.domain.models import KnowledgeDomain as D, ReviewState as R
+from app.domain.policies import AbstentionPolicy
 from app.infrastructure.web.fetcher import FetchResult, HttpFetcher
 
 REG = Path(__file__).resolve().parents[2] / "config" / "sources.yaml"
@@ -39,7 +40,7 @@ def svc(store, embedder):
 
 
 def search(store, embedder, q, domain):
-    return HybridRetriever(store, embedder).retrieve(q, domain)
+    return HybridRetriever(store, embedder, policy=AbstentionPolicy(min_vector_score=0.0)).retrieve(q, domain)
 
 
 def test_fonte_nao_autorizada_e_recusada_e_registrada(svc, store):  # COL-01
