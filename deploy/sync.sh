@@ -21,6 +21,8 @@ for t in ("embedding_cache", "ocr_cache"):
 dst.commit(); dst.execute("VACUUM"); dst.close()
 PY
 
+# Para o contêiner antes de trocar o índice: trocar o arquivo sob um processo aberto, com -wal/-shm antigos, corrompe o SQLite.
+$SSH_CMD "$VM" "cd $REMOTE/deploy 2>/dev/null && docker compose stop tjpa-backend 2>/dev/null || true"
 $SSH_CMD "$VM" "mkdir -p $REMOTE/data/index $REMOTE/data/models $REMOTE/backend $REMOTE/frontend $REMOTE/deploy"
 RSYNC=(rsync -az --delete -e "$SSH_CMD")
 "${RSYNC[@]}" --exclude '.venv' --exclude '__pycache__' --exclude 'tests' backend/ "$VM:$REMOTE/backend/"
@@ -28,4 +30,5 @@ RSYNC=(rsync -az --delete -e "$SSH_CMD")
 rsync -az -e "$SSH_CMD" deploy/docker-compose.yml "$VM:$REMOTE/deploy/docker-compose.yml"
 rsync -az -e "$SSH_CMD" data/models/ "$VM:$REMOTE/data/models/"
 rsync -az -e "$SSH_CMD" "$SLIM" "$VM:$REMOTE/data/index/knowledge.db"
+$SSH_CMD "$VM" "rm -f $REMOTE/data/index/knowledge.db-wal $REMOTE/data/index/knowledge.db-shm"
 $SSH_CMD "$VM" "chown -R 10001:10001 $REMOTE/data && cd $REMOTE/deploy && ln -sf ../.env .env && docker compose build && docker compose up -d && sleep 8 && curl -fsS http://127.0.0.1:8300/health"
