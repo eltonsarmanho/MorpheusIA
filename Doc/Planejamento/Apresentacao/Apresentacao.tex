@@ -1,0 +1,1197 @@
+% =====================================================================
+%  INTEGRA Sono | Piloto de saúde do sono via WhatsApp (NR-1 + LGPD)
+%  Compilação: pdflatex -> biber -> pdflatex -> pdflatex
+%  (ou: latexmk -pdf Apresentacao.tex)
+% =====================================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+
+% ---------- Tema e fontes ----------
+\usetheme[progressbar=frametitle,numbering=fraction,block=fill,
+          sectionpage=progressbar,titleformat section=regular]{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazilian]{babel}
+\usepackage[sfdefault,lining]{FiraSans}
+\usepackage[scale=0.85]{FiraMono}
+\usepackage{csquotes}
+
+% ---------- Tabelas, ícones, figuras ----------
+\usepackage{booktabs,tabularx,array,multirow,makecell}
+\usepackage{adjustbox}
+\usepackage{fontawesome5}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.misc,
+                shapes.multipart,calc,fit,backgrounds,patterns,shadows.blur}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{pgfgantt}
+\usepackage[most]{tcolorbox}
+
+% ---------- Bibliografia ----------
+\usepackage[backend=biber,style=authoryear-comp,maxcitenames=2,
+            uniquelist=false,uniquename=false,dashed=false,
+            giveninits=true,doi=true,url=true,isbn=false]{biblatex}
+\usepackage{xurl}
+\addbibresource{Apresentacao.bib}
+% Separa citações múltiplas com vírgula em vez de ponto e vírgula
+\renewcommand*{\multicitedelim}{\addcomma\space}
+\renewcommand*{\bibfont}{\tiny}
+\setlength{\bibitemsep}{0.3\baselineskip}
+\setbeamertemplate{bibliography item}{}
+\setbeamerfont{bibliography item}{size=\tiny}
+\setbeamerfont{bibliography entry author}{size=\tiny}
+\setbeamerfont{bibliography entry title}{size=\tiny}
+\setbeamerfont{bibliography entry location}{size=\tiny}
+\setbeamerfont{bibliography entry note}{size=\tiny}
+\setbeamercolor{bibliography entry author}{fg=grafite}
+\setbeamercolor{bibliography entry title}{fg=noite}
+\setbeamercolor{bibliography entry location}{fg=mudo}
+\setbeamercolor{bibliography entry note}{fg=mudo}
+% URL só quando não há DOI
+\AtEveryBibitem{\iffieldundef{doi}{}{\clearfield{url}\clearfield{urldate}}}
+
+% ---------- Paleta ----------
+\definecolor{noite}{HTML}{1D2B4A}     % azul noturno (cor principal)
+\definecolor{lavanda}{HTML}{6C5BA7}   % sono / recuperação
+\definecolor{menta}{HTML}{2A9D8F}     % positivo / saúde
+\definecolor{ambar}{HTML}{E9A23B}     % atenção
+\definecolor{coral}{HTML}{C8553D}     % alerta
+\definecolor{nevoa}{HTML}{F3F4F8}     % fundos claros
+\definecolor{grafite}{HTML}{3A3F4B}   % texto
+\definecolor{mudo}{HTML}{7A8091}      % texto secundário
+\definecolor{wa}{HTML}{075E54}        % cabeçalho WhatsApp
+\definecolor{wabg}{HTML}{ECE5DD}      % fundo do chat
+\definecolor{wauser}{HTML}{DCF8C6}    % balão do usuário
+
+\setbeamercolor{normal text}{fg=grafite,bg=white}
+\setbeamercolor{frametitle}{fg=white,bg=noite}
+\setbeamercolor{progress bar}{fg=ambar,bg=noite!40}
+\setbeamercolor{title separator}{fg=ambar}
+\setbeamercolor{alerted text}{fg=coral}
+\setbeamercolor{example text}{fg=menta}
+\setbeamercolor{block title}{fg=white,bg=noite}
+\setbeamercolor{block body}{fg=grafite,bg=nevoa}
+\setbeamercolor{block title alerted}{fg=white,bg=coral}
+\setbeamercolor{block title example}{fg=white,bg=menta}
+\setbeamercolor{footnote}{fg=mudo}
+\setbeamerfont{footnote}{size=\tiny}
+\setbeamertemplate{itemize item}{\color{lavanda}\small\faCircle[regular]}
+\setbeamertemplate{itemize subitem}{\color{mudo}\tiny\faChevronRight}
+
+% ---------- Macros ----------
+% Linha de fonte no rodapé do slide
+\newcommand{\fonte}[1]{\par\vfill{\tiny\color{mudo}\faBookOpen\ #1\par}}
+% Ilustração externa: insere a imagem se existir; senão desenha um
+% espaço reservado com o nome do arquivo a ser baixado.
+% Uso: \imagem{largura}{altura}{img/arquivo.png}{descrição}
+\newcommand{\imagem}[4]{%
+  \IfFileExists{#3}%
+    {\includegraphics[width=#1,height=#2,keepaspectratio]{#3}}%
+    {\begin{tikzpicture}
+       \node[draw=mudo,dashed,rounded corners=4pt,fill=nevoa,
+             minimum width=#1,minimum height=#2,text width=#1-6mm,
+             align=center,font=\tiny\color{mudo}]
+         {{\Large\faImage}\\[2pt]\texttt{\detokenize{#3}}\\[1pt]\textit{#4}};
+     \end{tikzpicture}}%
+}
+% Cartão de indicador (número grande + legenda)
+\newcommand{\kpi}[4]{% cor, ícone, número, legenda
+  \begin{tcolorbox}[enhanced,colback=white,colframe=#1,boxrule=0pt,
+      leftrule=3pt,arc=2pt,left=6pt,right=4pt,top=4pt,bottom=4pt,
+      height=3.35cm,valign=top]
+    {\color{#1}\large #2}\par\smallskip
+    {\color{#1}\LARGE\bfseries #3}\par\smallskip
+    {\scriptsize\raggedright #4\par}
+  \end{tcolorbox}}
+% Marco da linha do tempo: x, cor, ícone, data, descrição, above/below
+\newcommand{\marco}[6]{%
+  \node[circle,fill=#2,draw=white,line width=1.2pt,minimum size=5mm,
+        inner sep=0pt,font=\tiny\color{white}] (m) at (#1,0) {#3};
+  \node[text width=3.2cm,align=center,font=\scriptsize,execute at begin node={\hyphenpenalty=10000},#6=3mm of m]
+    {\textbf{\color{#2}#4}\\ #5};}
+\newcommand{\nao}{\textcolor{coral}{\faTimesCircle}}
+\newcommand{\tagc}[2]{\tikz[baseline=(t.base)]\node[fill=#1,text=white,
+  rounded corners=2pt,inner sep=2pt,font=\tiny\bfseries](t){#2};}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\renewcommand{\arraystretch}{1.25}
+
+% ---------- Estilos TikZ ----------
+\tikzset{
+  caixa/.style={draw=#1,fill=#1!8,rounded corners=3pt,line width=0.7pt,
+     align=center,font=\scriptsize,inner sep=4pt},
+  caixa/.default=noite,
+  seta/.style={-{Stealth[length=2.2mm]},line width=0.8pt,color=#1},
+  seta/.default=grafite,
+  grupo/.style={draw=#1,dashed,rounded corners=6pt,inner sep=7pt,
+     line width=0.6pt},
+  rot/.style={font=\tiny\bfseries\color{#1},fill=white,inner sep=1.5pt},
+  etapa/.style={circle,fill=#1,text=white,minimum size=17mm,
+     font=\scriptsize\bfseries,align=center,inner sep=1pt},
+  passo/.style={rounded corners=8pt,fill=#1,text=white,minimum width=2.1cm,
+     minimum height=7mm,font=\scriptsize\bfseries},
+  ev/.style={caixa=#1,text width=3.0cm,minimum height=1.55cm},
+  pas/.style={caixa=#1,text width=2.35cm,minimum height=2.0cm},
+  cx/.style={caixa=#1,text width=2.3cm,minimum height=0.85cm},
+  db/.style={cylinder,shape border rotate=90,aspect=0.18,draw=#1,fill=#1!10,
+     minimum width=2.5cm,minimum height=0.95cm,align=center,font=\tiny},
+  cab/.style={caixa=#1,text width=2.1cm,minimum height=0.8cm},
+  msg/.style={-{Stealth[length=2mm]},line width=0.7pt,color=#1},
+  msg/.default=grafite,
+  ent/.style={rectangle split,rectangle split parts=2,draw=#1,
+     rectangle split part fill={#1,white},rounded corners=2pt,
+     font=\tiny,text width=2.9cm,align=left,inner sep=3pt},
+  st/.style={caixa=#1,text width=2.0cm,minimum height=1.75cm},
+  dbn/.style={cylinder,shape border rotate=90,aspect=0.2,draw=#1,fill=#1!10,
+     text width=2.0cm,minimum height=1.1cm,align=center,font=\scriptsize},
+  st2/.style={caixa=#1,text width=2.3cm,minimum height=1.7cm},
+}
+
+% ---------- Metadados ----------
+\title{INTEGRA Sono}
+\subtitle{Piloto de saúde do sono no trabalho via WhatsApp com painel de
+  gestão alinhado a NR-1}
+\author{Programa INTEGRA \textperiodcentered\ Equipe MorpheusIA}
+\institute{Proposta técnica para discussão}
+\date{Outubro de 2026}
+\titlegraphic{\begin{tikzpicture}[remember picture,overlay]\node[anchor=south east,inner sep=0pt] at ([xshift=-0.9cm,yshift=0.8cm]current page.south east){\imagem{5.2cm}{3.4cm}{img/capa_trabalhador_amanhecer.png}{Pessoa acordando descansada ao amanhecer (Foto: Miriam Alonso, Pexels)}};\end{tikzpicture}}
+
+\begin{document}
+
+% =====================================================================
+\maketitle
+
+% ---------------------------------------------------------------------
+\begin{frame}{Roteiro}
+\begin{columns}[T]
+\column{0.5\textwidth}
+\begin{enumerate}
+  \item[\color{lavanda}\faBed] Por que falar de sono no trabalho
+  \item[\color{lavanda}\faBalanceScale] O que a NR-1 passou a exigir
+  \item[\color{lavanda}\faSeedling] Do INTEGRA App ao piloto Sono
+  \item[\color{lavanda}\faWhatsapp] O canal de conversa no WhatsApp
+\end{enumerate}
+\column{0.5\textwidth}
+\begin{enumerate}
+  \item[\color{lavanda}\faChartBar] Painel de gestão e alertas preventivos
+  \item[\color{lavanda}\faProjectDiagram] Arquitetura e engenharia de dados
+  \item[\color{lavanda}\faUserShield] Tratamento de dados e LGPD
+  \item[\color{lavanda}\faFlask] Evidências, mercado e desenho do piloto
+\end{enumerate}
+\end{columns}
+\vfill
+\begin{tcolorbox}[colback=nevoa,colframe=nevoa,arc=3pt,left=6pt]
+\small\faInfoCircle\ O INTEGRA App foi pensado para cinco eixos de saúde.
+Este piloto cobre \textbf{apenas Sono \& Recuperação}. Os demais eixos
+ficam para depois, quando o piloto tiver mostrado o que funciona.
+\end{tcolorbox}
+\end{frame}
+
+% =====================================================================
+\section{Por que falar de sono no trabalho}
+
+\begin{frame}{Dormir mal custa caro, e a conta chega ao trabalho}
+\begin{columns}[T,onlytextwidth]
+\column{0.24\textwidth}
+\kpi{coral}{\faDollarSign}{US\$ 411 bi}{perda anual estimada nos EUA
+  com sono insuficiente, equivalente a 2,28\,\% do PIB \parencite{hafner2016}}
+\column{0.24\textwidth}
+\kpi{ambar}{\faHardHat}{1,62$\times$}{risco relativo de acidente de
+  trabalho entre pessoas com problemas de sono, que respondem por cerca de 13\,\% dos acidentes \parencite{uehli2014}}
+\column{0.24\textwidth}
+\kpi{lavanda}{\faBusinessTime}{7,8 dias}{de desempenho perdidos por ano
+  por trabalhador com insônia, o que equivale a US\$ 2.280 por pessoa \parencite{kessler2011}}
+\column{0.24\textwidth}
+\kpi{menta}{\faClock}{$\geq$\,7 h}{de sono por noite é a recomendação
+  para adultos \parencite{watson2015,hirshkowitz2015}}
+\end{columns}
+\bigskip
+\small
+Esses números não querem dizer que cada pessoa que dorme mal vai render
+menos ou se acidentar. Eles mostram uma associação consistente, observada
+em muitos estudos, entre sono insuficiente e perdas que a empresa sente:
+erros, faltas, presença sem rendimento e acidentes.
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Como o sono ruim chega ao trabalho (e o trabalho chega ao sono)}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[node distance=4mm and 9mm]
+  % Coluna 1: organização do trabalho
+  \node[caixa=noite,text width=3.4cm] (o1) {Turnos noturnos e rodízio};
+  \node[caixa=noite,text width=3.4cm,below=of o1] (o2) {Jornadas longas e horas extras};
+  \node[caixa=noite,text width=3.4cm,below=of o2] (o3) {Sobrecarga e pressão por metas};
+  \node[caixa=noite,text width=3.4cm,below=of o3] (o4) {Demandas fora do horário (mensagens, telas)};
+  \node[grupo=noite,fit=(o1)(o4),label={[rot=noite]above:Organização do trabalho}] (g1) {};
+  % Coluna 2: sono
+  \node[caixa=lavanda,text width=3.0cm,right=14mm of o1] (s1) {Duração};
+  \node[caixa=lavanda,text width=3.0cm,below=of s1] (s2) {Qualidade e continuidade};
+  \node[caixa=lavanda,text width=3.0cm,below=of s2] (s3) {Regularidade de horários};
+  \node[caixa=lavanda,text width=3.0cm,below=of s3] (s4) {Sonolência diurna};
+  \node[grupo=lavanda,fit=(s1)(s4),label={[rot=lavanda]above:Saúde do sono}] (g2) {};
+  % Coluna 3: desfechos
+  \node[caixa=coral,text width=3.3cm,right=14mm of s1] (d1) {Atenção, memória e erros};
+  \node[caixa=coral,text width=3.3cm,below=of d1] (d2) {Acidentes e quase-acidentes};
+  \node[caixa=coral,text width=3.3cm,below=of d2] (d3) {Absenteísmo e presenteísmo};
+  \node[caixa=coral,text width=3.3cm,below=of d3] (d4) {Saúde mental e afastamentos};
+  \node[grupo=coral,fit=(d1)(d4),label={[rot=coral]above:Desfechos ocupacionais}] (g3) {};
+  % Setas
+  \draw[seta=noite] (g1.east) -- (g2.west);
+  \draw[seta=lavanda] (g2.east) -- (g3.east -| g3.west);
+  \draw[seta=mudo,dashed] (g3.south) to[bend left=18]
+     node[below,font=\tiny\color{mudo},text width=6cm,align=center]
+     {a relação é bidirecional: estresse e adoecimento também pioram o sono}
+     (g1.south);
+\end{tikzpicture}
+\end{adjustbox}
+\fonte{\textcite{linton2015,kecklund2016,uehli2014}. Associações, não
+  relações determinísticas.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{E no Brasil?}
+\begin{columns}[T,onlytextwidth]
+\column{0.58\textwidth}
+\small
+\begin{itemize}
+  \item Em São Paulo, a queixa de acordar durante a noite passou de
+    15,8\,\% para 36,5\,\% dos adultos entre 1987 e 2007 \parencite{santossilva2010}.
+  \item Num inquérito nacional com 2.635 adultos, 65,5\,\% foram
+    classificados como maus dormidores pelo PSQI \parencite{drager2022}.
+  \item Afastamentos por transtornos mentais no INSS: 472 mil em 2024 (alta
+    de 68\,\%) e 546 mil em 2025 \parencite{barros2025_infomoney,prates2026_dgabc}.
+    O sono não é a causa desses números, mas costuma piorar junto com eles.
+  \item Trabalho em turnos é rotina em saúde, indústria, logística,
+    segurança e serviços. É justamente nesses setores que sono curto e
+    acidentes andam juntos \parencite{kecklund2016}.
+\end{itemize}
+\column{0.38\textwidth}
+\centering
+\imagem{\linewidth}{4.4cm}{img/trabalhadora_turno_noturno_brasil.jpg}{Profissional de saúde em turno noturno (Foto: Mikhail Nilov, Pexels)}
+\end{columns}
+\end{frame}
+
+% =====================================================================
+\section{O que a NR-1 passou a exigir}
+
+\begin{frame}{A linha do tempo da NR-1}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}
+  \draw[line width=3pt,color=noite!25,line cap=round] (0,0) -- (15.2,0);
+  \marco{0.6}{noite}{\faFile*}{2020}{Nova NR-1 cria o GRO e o PGR}{above}
+  \marco{3.6}{lavanda}{\faBrain}{ago. 2024}{Portaria MTE 1.419 inclui fatores de risco psicossociais no GRO}{below}
+  \marco{6.6}{menta}{\faAward}{2024}{Lei 14.831 cria o certificado Empresa Promotora da Saúde Mental}{above}
+  \marco{9.6}{ambar}{\faChalkboardTeacher}{mai. 2025}{Primeiro ano com caráter educativo e orientativo}{below}
+  \marco{12.6}{coral}{\faGavel}{26 mai. 2026}{Exigência plena e fiscalização dos riscos psicossociais}{above}
+  \marco{14.9}{noite}{\faMapMarker*}{out. 2026}{Proposta do piloto INTEGRA Sono}{below}
+\end{tikzpicture}
+\end{adjustbox}
+\vfill
+\small Hoje a empresa já precisa \textbf{identificar, avaliar, controlar e
+registrar} os riscos psicossociais no Programa de Gerenciamento de Riscos,
+como faz com ruído ou produtos químicos.
+\fonte{\textcite{mte_nr1_2025,mte_portaria1419_2024,mte_portaria765_2025,lei14831_2024,mte_guia_psicossociais_2025}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Onde o sono entra no gerenciamento de riscos}
+\begin{columns}[c,onlytextwidth]
+\column{0.47\textwidth}
+\centering
+\begin{tikzpicture}
+  \foreach \a/\cor/\t [count=\i] in {90/noite/Identificar\\perigos,
+      18/lavanda/Avaliar\\riscos, -54/menta/Controlar\\(plano\\de ação),
+      -126/ambar/Acompanhar, 162/coral/Registrar\\(inventário)}
+    \node[etapa=\cor] (e\i) at (\a:2.15cm) {\t};
+  \foreach \i/\j in {1/2,2/3,3/4,4/5,5/1}
+    \draw[seta=mudo] (e\i) to[bend left=14] (e\j);
+  \node[font=\small\bfseries,color=noite,align=center] at (0,0) {GRO\\PGR};
+\end{tikzpicture}
+\column{0.5\textwidth}
+\small
+A NR-1 olha para a \textbf{organização do trabalho}: jornada, turnos,
+metas, conflitos, falta de suporte. O objetivo não é diagnosticar pessoas.
+
+\medskip
+O sono funciona bem como \textbf{sinal de acompanhamento}. Ele reage rápido
+a mudanças de escala, sobrecarga e horas extras, e pode ser medido sem
+exames, em poucos segundos, pelo próprio trabalhador.
+
+\medskip
+\begin{block}{O que o piloto entrega ao PGR}
+\scriptsize Indicadores agregados por setor e turno, histórico das
+medidas adotadas e evidência de que elas foram acompanhadas.
+\end{block}
+\end{columns}
+\fonte{\textcite{mte_nr1_2025,mte_guia_psicossociais_2025}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Fatores psicossociais que afetam o sono: o que observar e o que fazer}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}>{\bfseries}p{3.1cm} L L@{}}
+\toprule
+Fator de risco (Guia MTE) & Sinal que o piloto acompanha & Exemplos de medida de controle \\
+\midrule
+Sobrecarga & Queda de recuperação em semanas de pico e relatos de \enquote{cabeça que não desliga} & Teto de horas extras, revisão de metas, redistribuição de demanda \\
+Baixo controle e autonomia & Sonolência maior em quem não escolhe escala ou turno & Participação na montagem de escalas e rodízio no sentido horário \\
+Falta de suporte & Piora coletiva sem mudança de escala & Escuta da equipe e apoio da liderança \\
+Baixas recompensas & Piora associada a ciclos de avaliação e metas & Revisão de critérios e reconhecimento \\
+Trabalho remoto ou isolado & Atividade de trabalho perto da hora de dormir & Política de desconexão e envio programado de mensagens \\
+\bottomrule
+\end{tabularx}
+\fonte{Fatores do guia do MTE \parencite{mte_guia_psicossociais_2025}, que traz 13 exemplos e não cita o sono
+  diretamente. O vínculo com o sono vem de \textcite{linton2015}: alta demanda, baixo controle e
+  pouco apoio predizem distúrbios de sono futuros.}
+\end{frame}
+
+% =====================================================================
+\section{Do INTEGRA App ao piloto Sono}
+
+\begin{frame}{A lógica do INTEGRA, aplicada ao sono}
+\begin{columns}[c,onlytextwidth]
+\column{0.52\textwidth}
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tikzpicture}[passo/.append style={minimum width=1.9cm}]
+  % Elipse: eixo x 3.8cm, eixo y 2.3cm; dá espaço aos dois nós da base
+  \foreach \t/\cor [count=\i] in {Perceber/noite,Entender/noite!80!lavanda,
+      Escolher/lavanda,Experimentar/lavanda!70!menta,Registrar/menta,
+      Acompanhar/menta!70!ambar,Ajustar/ambar}
+    \node[passo=\cor] (p\i) at ({3.8*cos(90-(\i-1)*360/7)},{2.3*sin(90-(\i-1)*360/7)}) {\t};
+  % Setas como arcos elípticos no vão entre nós vizinhos, sentido horário
+  \foreach \i in {0,...,6}
+    \draw[seta=mudo] ({3.8*cos(90-\i*360/7-17)},{2.3*sin(90-\i*360/7-17)})
+      arc[start angle={90-\i*360/7-17},end angle={90-(\i+1)*360/7+17},
+          x radius=3.8cm,y radius=2.3cm];
+  \node[align=center,font=\scriptsize,text width=2.4cm] at (0,0)
+    {{\color{lavanda}\Large\faMoon}\\ \textbf{Sono \&\\Recuperação}};
+\end{tikzpicture}
+\end{adjustbox}
+\column{0.46\textwidth}
+\small
+O INTEGRA transforma conhecimento em pequenas ações que a pessoa
+consegue repetir. No piloto, cada passo vira algo concreto:
+\begin{itemize}\scriptsize
+  \item \textbf{Perceber}: check-in matinal de 10 segundos.
+  \item \textbf{Experimentar}: um experimento de 7 dias escolhido pela
+    pessoa (ex.: cafeína só até as 16h).
+  \item \textbf{Acompanhar}: tendências pessoais, nunca um \enquote{score}
+    de saúde.
+  \item \textbf{Ajustar}: manter, adaptar ou abandonar a estratégia, sem
+    culpa.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Quatro regras de design que não negociamos}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{block}{\faStethoscope\ Monitorar não é diagnosticar}
+\scriptsize O robô nunca diz \enquote{você tem insônia}. Ele diz
+\enquote{você registrou três manhãs com recuperação abaixo do habitual}
+e indica quando vale procurar um profissional.
+\end{block}
+\begin{block}{\faHourglassHalf\ 20 a 40 segundos por dia}
+\scriptsize As respostas são dadas por botões. Se a coleta cansar, a adesão cai na
+segunda semana e os dados perdem valor.
+\end{block}
+\column{0.49\textwidth}
+\begin{block}{\faUsers\ Sem ranking e sem culpa}
+\scriptsize Nada de \enquote{quem dorme melhor}. Interromper um
+experimento não quebra a sequência: experimentos servem para descobrir o
+que cabe na rotina.
+\end{block}
+\begin{block}{\faQuestionCircle\ \enquote{Por que estou recebendo isso?}}
+\scriptsize Toda mensagem explica sua origem: um lembrete que a pessoa
+configurou ou um experimento que ela escolheu. Ninguém recebe
+sugestão sem saber de onde ela veio.
+\end{block}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Por que WhatsApp e não um aplicativo próprio}
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\textcolor{menta}{\faThumbsUp}\ \textbf{A favor}
+\begin{itemize}\footnotesize
+  \item Já está no celular de quase todo trabalhador, por isso não exige
+    download nem senha nova.
+  \item Alcança quem não fica no computador: operação, campo, turno
+    noturno, prestadores de serviço.
+  \item Botões reduzem a coleta a um toque, no momento em que a pessoa
+    vive a experiência, com menos viés de memória \parencite{shiffman2008}.
+  \item A conversa é o formato natural para um tom acolhedor.
+\end{itemize}
+\column{0.5\textwidth}
+\textcolor{coral}{\faExclamationTriangle}\ \textbf{Cuidados}
+\begin{itemize}\footnotesize
+  \item As mensagens passam pela infraestrutura da Meta, o que exige
+    minimização de conteúdo e cláusulas de operador
+    \parencite{lgpd2018}.
+  \item Fora da janela de 24 horas, só podem ser enviados modelos
+    aprovados, a quem deu opt-in
+    \parencite{meta_servicewindow,meta_optin}.
+  \item A política da Meta restringe pedir informação de saúde onde a lei
+    exige sistemas reforçados, o que torna necessário um parecer jurídico \parencite{whatsapp_policy}.
+  \item O número é pessoal e mistura vida e trabalho, por isso a própria
+    pessoa escolhe os horários de envio.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% =====================================================================
+\section{O canal de conversa no WhatsApp}
+
+\begin{frame}{Uma conversa de dez segundos}
+\begin{columns}[c,onlytextwidth]
+\column{0.4\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.84,transform shape,
+  bot/.style={fill=white,rounded corners=4pt,text width=3.0cm,inner sep=4pt,
+              font=\tiny,align=left,blur shadow={shadow blur steps=4,shadow xshift=0.3pt,shadow yshift=-0.3pt}},
+  usr/.style={fill=wauser,rounded corners=4pt,inner sep=4pt,font=\tiny,
+              align=right,blur shadow={shadow blur steps=4,shadow xshift=0.3pt,shadow yshift=-0.3pt}},
+  btn/.style={draw=wa!50,fill=white,rounded corners=3pt,font=\tiny\color{wa},
+              minimum width=0.95cm,inner sep=2pt}]
+  % Aparelho
+  \fill[rounded corners=14pt,black!85] (-0.25,-0.3) rectangle (4.45,7.85);
+  \fill[wabg] (0,0) rectangle (4.2,7.0);
+  \fill[wa] (0,7.0) rectangle (4.2,7.6);
+  \node[anchor=west,font=\tiny\bfseries\color{white}] at (0.15,7.3)
+     {\faArrowLeft\quad\faMoon\ INTEGRA Sono};
+  \node[anchor=east,font=\tiny\color{white}] at (4.05,7.3) {\faEllipsisV};
+  \coordinate (R) at (4.05,0);
+  % Mensagens
+  \node[bot,anchor=north west] (m1) at (0.15,6.85)
+    {Bom dia, Ana! \faSun[regular]\\ Como foi sua recuperação esta noite?};
+  \node[btn,below=1mm of m1.south west,anchor=north west] (b1) {Boa};
+  \node[btn,right=1mm of b1] (b2) {Razoável};
+  \node[btn,right=1mm of b2] (b3) {Difícil};
+  \node[usr,anchor=north east] (m2) at ([yshift=-2mm]R |- b1.south)
+    {Razoável \textcolor{wa}{\faCheckDouble}};
+  \node[bot,anchor=north west] (m3) at ([yshift=-2mm]0.15,0 |- m2.south)
+    {Obrigado! De 0 a 10, quanta sonolência você sente agora?};
+  \node[usr,anchor=north east] (m4) at ([yshift=-2mm]R |- m3.south)
+    {6 \textcolor{wa}{\faCheckDouble}};
+  \node[bot,anchor=north west] (m5) at ([yshift=-2mm]0.15,0 |- m4.south)
+    {Registrado \textcolor{menta}{\faCheck}\\[2pt]
+     Foi a 3ª manhã da semana com recuperação abaixo do seu habitual.
+     Quer uma estratégia de 2 min para hoje à noite?};
+  \node[btn,below=1mm of m5.south west,anchor=north west,minimum width=1.4cm] (b4) {Quero};
+  \node[btn,right=1mm of b4,minimum width=1.4cm] {Agora não};
+  \node[font=\tiny\color{mudo},anchor=south] at (2.1,0.05)
+    {\faQuestionCircle\ Por que recebo isso?};
+\end{tikzpicture}
+\column{0.56\textwidth}
+\small
+\begin{itemize}
+  \item São duas perguntas com botão e uma devolutiva. A pessoa termina
+    em menos de dez segundos.
+  \item A devolutiva compara a pessoa \textbf{com ela mesma}, não com
+    colegas nem com uma norma.
+  \item O convite para a estratégia é opcional. \enquote{Agora não} é uma
+    resposta válida e não gera cobrança.
+  \item Linguagem de observação (\enquote{você registrou}), nunca de
+    julgamento (\enquote{seu sono está ruim}).
+\end{itemize}
+\fonte{Mensagens de saúde personalizadas e com frequência ajustável
+  funcionam melhor \parencite{head2013}.}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{A jornada ao longo do dia, da semana e do mês}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}
+  \fill[noite!6,rounded corners=4pt] (-0.3,-0.9) rectangle (15.6,1.25);
+  \node[font=\scriptsize\bfseries,color=noite,anchor=west] at (-0.2,1.0) {Diário};
+  \node[ev=ambar] (d1) at (1.6,0) {\faSun\ \textbf{07h}\\Check-in de recuperação\\(10 s)};
+  \node[ev=menta] (d2) at (5.5,0) {\faCoffee\ \textbf{15h30}\\Lembrete do experimento\\(se ativado)};
+  \node[ev=lavanda] (d3) at (9.4,0) {\faMoon\ \textbf{21h45}\\Modo desaceleração:\\1 estratégia de 2 min};
+  \node[ev=noite] (d4) at (13.3,0) {\faToggleOff\ \textbf{Depois}\\\enquote{Agora deixe o celular\\descansar também.}};
+  \foreach \a/\b in {d1/d2,d2/d3,d3/d4} \draw[seta=mudo] (\a) -- (\b);
+  \fill[lavanda!6,rounded corners=4pt] (-0.3,-3.4) rectangle (15.6,-1.2);
+  \node[font=\scriptsize\bfseries,color=lavanda,anchor=west] at (-0.2,-1.45) {Semanal e mensal};
+  \node[ev=lavanda] (s1) at (1.6,-2.5) {\faFlask\ \textbf{Semana 1}\\Escolha do experimento de 7 dias};
+  \node[ev=lavanda] (s2) at (5.5,-2.5) {\faCheckSquare\ \textbf{Dia 7}\\\enquote{Funcionou na\\minha rotina?}};
+  \node[ev=menta] (s3) at (9.4,-2.5) {\faChalkboardTeacher\ \textbf{Mensal}\\Palestra INTEGRA Edu\\+ quiz de 3 perguntas};
+  \node[ev=coral] (s4) at (13.3,-2.5) {\faClipboardList\ \textbf{Semanas 0, 6, 12}\\Questionários breves\\(ISI, Epworth e PSQI)};
+  \foreach \a/\b in {s1/s2,s2/s3,s3/s4} \draw[seta=mudo] (\a) -- (\b);
+\end{tikzpicture}
+\end{adjustbox}
+\vfill
+\small Todos os horários são escolhidos pelo participante na adesão e podem
+ser alterados a qualquer momento com uma mensagem.
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{O que medimos e com que instrumentos}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}l L c c L@{}}
+\toprule
+\textbf{Instrumento} & \textbf{O que mede} & \textbf{Itens} & \textbf{Frequência} & \textbf{Leitura no piloto} \\
+\midrule
+Diário de sono (consenso), versão curta & Qualidade percebida, recuperação, horários & 2 a 4 & Diária & Tendência individual e base dos agregados \\
+Índice de Gravidade de Insônia (ISI) & Gravidade dos sintomas de insônia & 7 & Sem.\ 0, 6, 12 & $\geq$\,15 indica insônia clínica moderada, e o estudo brasileiro usou $\geq$\,8 \\
+Escala de Sonolência de Epworth & Sonolência diurna em situações do dia a dia & 8 & Sem.\ 0, 6, 12 & $>$\,10 indica sonolência excessiva \\
+Índice de Qualidade do Sono de Pittsburgh (PSQI) & Qualidade do sono no último mês & 19 & Sem.\ 0 e 12 & $>$\,5 indica má qualidade \\
+\bottomrule
+\end{tabularx}
+\medskip
+
+\small Usamos versões validadas no Brasil quando existem. Nenhum escore é
+devolvido como diagnóstico: valores acima do corte geram apenas um
+convite para conversar com um profissional de saúde.
+\fonte{Diário: \textcite{carney2012}. ISI: \textcite{bastien2001,castro2011}.
+  Epworth: \textcite{johns1991,bertolazi2009}. PSQI: \textcite{buysse1989,bertolazi2011}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Como o robô conversa: regras primeiro, linguagem depois}
+\begin{columns}[T,onlytextwidth]
+\column{0.53\textwidth}
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tikzpicture}[node distance=5mm and 6mm]
+  \node[caixa=noite,text width=2.4cm] (in) {Mensagem recebida};
+  \node[diamond,draw=coral,fill=coral!10,aspect=2,inner sep=1pt,
+        font=\tiny,align=center,below=of in] (risco) {Sinal de\\crise?};
+  \node[caixa=coral,text width=2.6cm,right=8mm of risco] (crise)
+     {Protocolo de segurança\\CVV 188 \textperiodcentered\ SAMU 192\\+ equipe de saúde};
+  \node[caixa=lavanda,text width=2.4cm,below=of risco] (fsm)
+     {Máquina de estados\\(check-in, experimento, questionário)};
+  \node[caixa=menta,text width=2.6cm,right=8mm of fsm] (llm)
+     {LLM com base curada\\(dúvidas abertas)};
+  \node[caixa=noite,text width=2.4cm,below=of fsm] (out) {Resposta revisada\\por filtros de saída};
+  \draw[seta] (in) -- (risco);
+  \draw[seta=coral] (risco) -- node[rot=coral,above]{sim} (crise);
+  \draw[seta] (risco) -- node[rot=grafite,right]{não} (fsm);
+  \draw[seta=menta] (fsm) -- node[rot=menta,above]{texto livre} (llm);
+  \draw[seta] (fsm) -- (out);
+  \draw[seta=menta] (llm) |- (out);
+\end{tikzpicture}
+\end{adjustbox}
+\column{0.44\textwidth}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}L L@{}}
+\toprule
+\textcolor{menta}{\faCheck} \textbf{O robô faz} & \textcolor{coral}{\faTimes} \textbf{O robô não faz} \\
+\midrule
+Coleta por botões, com fluxo fixo & Diagnóstico ou prescrição \\
+Explica com a base \enquote{O que sabemos / O que não podemos concluir / Quando procurar ajuda} & Recomenda remédio para dormir \\
+Encaminha para profissional quando há critério & Responde a temas fora do sono \\
+Registra a origem de cada sugestão & Repassa a conversa ao gestor \\
+\bottomrule
+\end{tabularx}
+\end{columns}
+\fonte{Agentes conversacionais em saúde têm resultados promissores, mas
+  heterogêneos e com riscos de segurança quando geram texto livre sem
+  controle \parencite{laranjo2018,abdalrazaq2020}.}
+\end{frame}
+
+% =====================================================================
+\section{Painel de gestão e alertas preventivos}
+
+\begin{frame}{Quem vê o quê}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\bfseries}p{3.6cm} C C C C@{}}
+\toprule
+Perfil & Próprios registros & Indicadores agregados (setor, turno) & Dados individuais identificados & Trilhas de auditoria \\
+\midrule
+Colaborador (no WhatsApp) & \textcolor{menta}{\faCheckCircle} & \nao & só os seus & \nao \\
+Gestor / RH & \nao & \textcolor{menta}{\faCheckCircle}\ grupos com $n \geq 10$ & \textcolor{coral}{\faTimesCircle} & \nao \\
+Equipe de saúde ocupacional (SESMT, médico do trabalho) & \nao & \textcolor{menta}{\faCheckCircle} & \textcolor{ambar}{\faExclamationCircle}\ só com consentimento e sob sigilo & \nao \\
+Encarregado de dados (DPO) & \nao & \textcolor{menta}{\faCheckCircle} & \textcolor{coral}{\faTimesCircle} & \textcolor{menta}{\faCheckCircle} \\
+Administrador técnico & \nao & \nao & \textcolor{coral}{\faTimesCircle}\ (dados cifrados) & \textcolor{menta}{\faCheckCircle} \\
+\bottomrule
+\end{tabularx}
+\bigskip
+
+\small A gestão precisa decidir sobre \textbf{escalas, metas e jornadas},
+não sobre a noite de uma pessoa específica. Por isso o gestor enxerga
+grupos. O acompanhamento individual fica com quem tem dever de sigilo
+profissional.
+\fonte{\textcite{lgpd2018}, arts.\ 6º, 11 e 46.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{O painel do gestor}
+\centering
+\begin{adjustbox}{max width=\textwidth,max totalheight=0.8\textheight}
+\begin{tikzpicture}[
+  tile/.style={fill=white,draw=noite!15,rounded corners=3pt,minimum width=3.0cm,
+               minimum height=1.35cm,anchor=north west}]
+  % moldura
+  \fill[nevoa,rounded corners=5pt] (0,0) rectangle (15.4,-8.3);
+  \fill[noite,rounded corners=5pt] (0,0) rectangle (1.3,-8.3);
+  \fill[noite] (0.6,0) rectangle (1.3,-8.3);
+  \foreach \ic/\y in {\faMoon/-0.6,\faChartLine/-1.6,\faBell/-2.5,
+                      \faClipboardList/-3.4,\faUserShield/-4.3,\faCog/-7.6}
+    \node[text=white,font=\small] at (0.65,\y) {\ic};
+  \node[anchor=west,font=\small\bfseries,color=noite] at (1.6,-0.45)
+     {Visão geral \textperiodcentered\ Unidade Norte \textperiodcentered\ últimas 4 semanas};
+  \node[anchor=east,font=\tiny,color=mudo] at (15.2,-0.45)
+     {\faLock\ dados agregados \textperiodcentered\ grupos com $n\geq10$};
+  % KPIs
+  \foreach \x/\cor/\v/\l in {1.6/menta/72\%/Adesão (participantes ativos),
+      5.05/lavanda/{4,6}/{Check-ins por pessoa por semana},
+      8.5/ambar/31\%/Manhãs com recuperação baixa,
+      11.95/coral/2/Alertas organizacionais abertos}
+  { \node[tile] (t) at (\x,-0.9) {};
+    \node[anchor=north west,font=\Large\bfseries,color=\cor] at ([shift={(0.15,-0.1)}]t.north west) {\v};
+    \node[anchor=south west,font=\tiny,color=grafite,text width=2.8cm] at ([shift={(0.15,0.08)}]t.south west) {\l}; }
+  % Gráfico de barras por turno
+  \fill[white,rounded corners=3pt] (1.6,-2.5) rectangle (8.2,-8.0);
+  \node[anchor=north west,font=\scriptsize\bfseries] at (1.7,-2.55)
+     {Recuperação baixa por turno (\% das manhãs)};
+  \begin{axis}[at={(2.3cm,-7.55cm)},anchor=south west,width=6.6cm,height=4.4cm,
+     ybar,bar width=7pt,ymin=0,ymax=60,enlarge x limits=0.22,
+     symbolic x coords={Manhã,Tarde,Noite,Rodízio},xtick=data,
+     tick label style={font=\tiny},ylabel={\%},ylabel style={font=\tiny},
+     area legend,
+     legend style={font=\tiny,at={(0.5,1.03)},anchor=south,draw=none,
+                   legend columns=2,fill=none,/tikz/every even column/.append style={column sep=6pt}},
+     axis line style={draw=mudo!50},ymajorgrids,grid style={mudo!20},
+     nodes near coords,nodes near coords style={font=\tiny}]
+    \addplot[fill=lavanda!50,draw=none] coordinates {(Manhã,22) (Tarde,25) (Noite,41) (Rodízio,36)};
+    \addplot[fill=lavanda,draw=none] coordinates {(Manhã,20) (Tarde,24) (Noite,52) (Rodízio,38)};
+    \legend{mês anterior,mês atual}
+  \end{axis}
+  % Mapa de calor setor x semana
+  \fill[white,rounded corners=3pt] (8.5,-2.5) rectangle (15.15,-8.0);
+  \node[anchor=north west,font=\scriptsize\bfseries] at (8.6,-2.55)
+     {Sonolência média (0 a 10) por setor e semana};
+  \def\vals{{{3.1,3.4,3.2,3.6},{4.0,4.6,5.3,5.9},{2.8,2.9,-1,-1},{3.5,3.3,3.4,3.1},{4.4,4.9,5.1,5.0}}}
+  \foreach \s/\nome [count=\r from 0] in {a/Expedição,b/Manutenção,c/Laboratório,d/Administrativo,e/Portaria}
+  { \node[anchor=east,font=\tiny] at (10.75,-3.45-\r*0.8) {\nome};
+    \foreach \w in {0,...,3}{
+      \pgfmathsetmacro{\v}{\vals[\r][\w]}
+      \ifdim\v pt<0pt
+        \fill[pattern=north east lines,pattern color=mudo!60] (10.85+\w*1.0,-3.1-\r*0.8) rectangle ++(0.92,-0.7);
+        \node[font=\tiny,color=mudo] at (11.31+\w*1.0,-3.45-\r*0.8) {$n<10$};
+      \else
+        \pgfmathtruncatemacro{\pct}{min(100,max(0,(\v-2.5)*30))}
+        \fill[ambar!\pct!menta!35] (10.85+\w*1.0,-3.1-\r*0.8) rectangle ++(0.92,-0.7);
+        \node[font=\tiny] at (11.31+\w*1.0,-3.45-\r*0.8) {\v};
+      \fi }}
+  \foreach \w in {1,...,4}
+    \node[font=\tiny,color=mudo] at (10.31+\w*1.0,-7.25) {S\w};
+  \node[font=\tiny,color=coral,anchor=west] at (10.85,-7.7) {\faBell\ Manutenção: alta por 3 semanas seguidas};
+\end{tikzpicture}
+\end{adjustbox}
+\fonte{Dados ilustrativos. Células com menos de 10 participantes são
+  suprimidas para impedir a identificação de pessoas.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Alertas preventivos em três níveis}
+\scriptsize\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}l L l L@{}}
+\toprule
+\textbf{Nível} & \textbf{Gatilho (exemplos)} & \textbf{Quem recebe} & \textbf{Ação esperada} \\
+\midrule
+\tagc{menta}{1 Pessoal} & 3 manhãs na semana com recuperação abaixo da média pessoal & Só o colaborador & Mensagem educativa e oferta de estratégia \\
+\tagc{ambar}{2 Cuidado} & ISI $\geq$\,15, Epworth $>$\,10 ou sonolência alta em função de risco (direção, máquinas) & Colaborador e, se ele consentir, a equipe de saúde & Convite para avaliação e orientação de segurança na tarefa \\
+\tagc{coral}{3 Organização} & Setor ou turno com piora persistente por 2 semanas ou mais, $n\geq10$ & Gestor e SESMT & Investigar causas (escala, horas extras, picos) e registrar medida no PGR \\
+\tagc{noite}{Crise} & Menção a autolesão ou ideação suicida & Protocolo imediato & CVV 188, SAMU 192 e acionamento da equipe de saúde \\
+\bottomrule
+\end{tabularx}
+\smallskip
+
+\footnotesize O gestor recebe alertas sobre \textbf{grupos}, que pedem decisões
+sobre o trabalho. Alertas sobre pessoas seguem pelo caminho do cuidado,
+com consentimento, e nunca viram critério de avaliação de desempenho.
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Do alerta à decisão estratégica}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[node distance=7mm,
+  ]
+  \node[pas=lavanda] (a) {\faWaveSquare\\[2pt]\textbf{Sinal}\\Indicador agregado sai da faixa usual};
+  \node[pas=lavanda,right=of a] (b) {\faFilter\\[2pt]\textbf{Validação}\\$n\geq10$ e persistência de 2 semanas};
+  \node[pas=coral,right=of b] (c) {\faBell\\[2pt]\textbf{Alerta}\\Gestor e SESMT recebem no painel};
+  \node[pas=ambar,right=of c] (d) {\faSearch\\[2pt]\textbf{Análise}\\Escalas, horas extras, metas, eventos};
+  \node[pas=menta,right=of d] (e) {\faTools\\[2pt]\textbf{Medida}\\Registrada no plano de ação do PGR};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[seta] (\x) -- (\y);
+  \draw[seta=menta,dashed] (e.south) -- ++(0,-0.6) -| node[pos=0.25,below,font=\scriptsize\color{menta}]
+     {\faRedo\ Acompanhar: o indicador melhorou nas semanas seguintes?} (a.south);
+\end{tikzpicture}
+\end{adjustbox}
+\vfill
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\begin{exampleblock}{Exemplo}
+\scriptsize Sonolência na Manutenção sobe por três semanas. A análise mostra
+plantões extras após uma parada programada. A medida é limitar plantões
+consecutivos e acompanhar as quatro semanas seguintes.
+\end{exampleblock}
+\column{0.46\textwidth}
+\small O valor para a gestão está no ciclo fechado de sinal, decisão e
+verificação. É esse ciclo que a fiscalização da NR-1 vai querer ver
+documentado.
+\end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Arquitetura e engenharia de dados}
+
+\begin{frame}{Arquitetura em camadas}
+\centering
+\begin{adjustbox}{max width=\textwidth,max totalheight=0.86\textheight}
+\begin{tikzpicture}[
+  ap/.style={caixa=lavanda,text width=2.05cm,minimum height=1.05cm}]
+  % Faixas
+  \foreach \y/\h/\cor/\nome in {0.75/1.5/menta/Canal,-0.95/0.9/noite/Borda,
+      -2.25/1.7/lavanda/Aplicação,-4.35/1.7/coral/Dados}
+  { \fill[\cor!6,rounded corners=4pt] (-2.9,\y) rectangle (14.0,\y-\h);
+    \node[rotate=90,font=\scriptsize\bfseries,color=\cor] at (-2.6,\y-\h/2) {\nome}; }
+  % Canal
+  \node[font=\scriptsize,align=center] (col) at (-1.3,0) {{\color{noite}\Large\faUser}\\Colaborador};
+  \node[caixa=menta,text width=1.9cm] (wa) at (1.0,0) {\faWhatsapp\ WhatsApp};
+  \node[caixa=menta,text width=2.2cm] (meta) at (3.75,0) {Meta Cloud API\\(operador)};
+  \node[caixa=ambar,text width=2.2cm] (front) at (10.0,0) {\faChartBar\ Painel Admin\\(React)};
+  \node[font=\scriptsize,align=center] (ger) at (12.7,0) {{\color{ambar}\Large\faUserTie}\\Gestor, SESMT, DPO};
+  % Borda
+  \node[caixa=noite,minimum width=15.2cm,minimum height=0.6cm,font=\scriptsize] (ngx) at (5.6,-1.4)
+    {\faUserShield\ \textbf{Nginx}\quad TLS 1.3 \textperiodcentered\ validação de assinatura do webhook
+     \textperiodcentered\ limite de requisições \textperiodcentered\ proxy do login OIDC com MFA};
+  % Aplicação
+  \node[ap] (gw)  at (-0.6,-3.1) {Gateway\\WhatsApp};
+  \node[ap] (fsm) at (1.95,-3.1) {Motor\\conversacional};
+  \node[ap] (llm) at (4.5,-3.1) {Serviço de linguagem\\(LLM + filtros)};
+  \node[ap] (sch) at (7.05,-3.1) {Agendador de lembretes};
+  \node[ap] (rul) at (9.6,-3.1) {Indicadores e alertas};
+  \node[ap] (api) at (12.15,-3.1) {API Admin\\(RBAC)};
+  % Dados
+  \node[dbn=coral]   (id)   at (-0.6,-5.2) {Cofre de identidade (cifrado)};
+  \node[dbn=lavanda] (sono) at (2.7,-5.2) {Dados de sono (pseudônimo)};
+  \node[dbn=noite]   (fila) at (6.0,-5.2) {Redis\\(fila e agenda)};
+  \node[dbn=menta]   (agg)  at (9.3,-5.2) {Analítico\\(agregados)};
+  \node[dbn=grafite] (aud)  at (12.15,-5.2) {Auditoria\\(só inclusão)};
+  % Ligações
+  \draw[seta] (col) -- (wa);
+  \draw[seta] (wa) -- (meta);
+  \draw[seta] (ger) -- (front);
+  \draw[seta=menta] (meta) -- node[rot=menta,right]{HTTPS} (meta |- ngx.north);
+  \draw[seta=ambar] (front) -- (front |- ngx.north);
+  \draw[seta=menta] (gw |- ngx.south) -- (gw);
+  \draw[seta=ambar] (api |- ngx.south) -- (api);
+  \draw[seta,<->] (gw) -- (fsm);
+  \draw[seta,<->] (fsm) -- (llm);
+  \draw[seta] (sch.north) to[bend right=14] (gw.north);
+  \draw[seta] (api) -- (rul);
+  \draw[seta] (gw) -- (id);
+  \draw[seta] (fsm) -- (sono);
+  \draw[seta] (sch) -- (fila);
+  \draw[seta] (rul) -- (agg);
+  \draw[seta] (sono.south) to[out=-25,in=-155] node[rot=menta,below]{ETL agregado} (agg.south);
+  \draw[seta] (api) -- (aud);
+\end{tikzpicture}
+\end{adjustbox}
+\fonte{A arquitetura proposta.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{O caminho de uma resposta, passo a passo}
+\centering
+\begin{adjustbox}{max width=\textwidth,max totalheight=0.82\textheight}
+\begin{tikzpicture}[
+  vida/.style={draw=mudo!60,dashed},
+  lb/.style={font=\tiny,fill=white,inner sep=1pt}]
+  \foreach \x/\cor/\t [count=\i] in {0/menta/Colaborador\\(WhatsApp),
+      3.2/menta/Meta\\Cloud API, 6.4/noite/Nginx +\\Gateway,
+      9.6/lavanda/Motor\\conversacional, 12.8/coral/PostgreSQL}
+  { \node[cab=\cor] (h\i) at (\x,0) {\t};
+    \draw[vida] (h\i.south) -- (\x,-6.4); }
+  \draw[msg] (0,-1.0) -- node[lb,above]{toca \enquote{Razoável}} (3.2,-1.0);
+  \draw[msg] (3.2,-1.5) -- node[lb,above]{POST /webhook (assinado)} (6.4,-1.5);
+  \draw[msg=coral] (6.4,-2.0) -- node[lb,above,pos=0.7]{troca telefone por pseudônimo (cofre)} (12.8,-2.0);
+  \draw[msg] (6.4,-2.5) -- node[lb,above]{evento validado, já sem telefone} (9.6,-2.5);
+  \draw[msg=coral] (12.8,-3.0) -- node[lb,above]{grava check-in} (9.6,-3.0);
+  \draw[msg] (9.6,-3.5) to[out=-20,in=20,looseness=6] node[lb,right]{próximo estado} (9.6,-4.0);
+  \draw[msg] (9.6,-4.6) -- node[lb,above]{texto da próxima pergunta} (6.4,-4.6);
+  \draw[msg] (6.4,-5.1) -- node[lb,above]{POST /messages} (3.2,-5.1);
+  \draw[msg=menta] (3.2,-5.6) -- node[lb,above]{\enquote{De 0 a 10...}} (0,-5.6);
+  \node[font=\tiny,color=mudo,anchor=west,text width=3.2cm] at (13.1,-4.3)
+     {Resposta ao webhook em \textless\,1 s,\\ com processamento assíncrono na fila};
+\end{tikzpicture}
+\end{adjustbox}
+\fonte{Fluxo segundo a documentação da WhatsApp Business Platform \parencite{meta_servicewindow}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Modelo de dados: identidade separada dos dados de saúde}
+\centering
+\begin{adjustbox}{max width=\textwidth,max totalheight=0.84\textheight}
+\begin{tikzpicture}[
+  rel/.style={line width=0.7pt,color=mudo}]
+  \node[ent=coral] (pes) at (0,0)
+    {\textcolor{white}{\textbf{identidade.pessoa}}
+     \nodepart{two}\textbf{id\_pessoa} (PK)\\telefone\_cifrado\\nome\_cifrado\\matricula\_hash};
+  \node[ent=coral,below=6mm of pes] (vin) {\textcolor{white}{\textbf{identidade.vinculo}}
+     \nodepart{two}id\_pessoa (FK)\\\textbf{pseudo\_id}\\chave em cofre (KMS)};
+  \node[ent=lavanda] (par) at (4.1,0)
+    {\textcolor{white}{\textbf{sono.participante}}
+     \nodepart{two}\textbf{pseudo\_id} (PK)\\setor\_id, turno, unidade\_id\\faixa\_etaria\\status};
+  \node[ent=lavanda,below=6mm of par] (con) {\textcolor{white}{\textbf{sono.consentimento}}
+     \nodepart{two}pseudo\_id (FK)\\versao\_termo, finalidades\\aceite\_em, revogado\_em};
+  \node[ent=lavanda] (chk) at (8.2,0)
+    {\textcolor{white}{\textbf{sono.checkin\_diario}}
+     \nodepart{two}pseudo\_id (FK), data\\qualidade (1 a 5)\\recuperacao (1 a 3)\\sonolencia (0 a 10)};
+  \node[ent=lavanda,below=6mm of chk] (que) {\textcolor{white}{\textbf{sono.questionario}}
+     \nodepart{two}pseudo\_id (FK), data\\instrumento (ISI, ESS)\\escore\_total};
+  \node[ent=lavanda,below=6mm of que] (exp) {\textcolor{white}{\textbf{sono.experimento}}
+     \nodepart{two}pseudo\_id (FK)\\tipo, inicio, fim\\dias\_realizados};
+  \node[ent=menta] (agg) at (12.3,0)
+    {\textcolor{white}{\textbf{analitico.indicador\_semana}}
+     \nodepart{two}setor\_id, turno, semana\\n\_participantes\\media\_sonolencia\\pct\_recuperacao\_baixa\\suprimido (n<10)};
+  \node[ent=menta,below=6mm of agg] (ale) {\textcolor{white}{\textbf{analitico.alerta}}
+     \nodepart{two}nivel, escopo, gatilho\\papel\_destino, status\\medida\_pgr};
+  \node[ent=noite,below=6mm of ale] (aud) {\textcolor{white}{\textbf{auditoria.acesso}}
+     \nodepart{two}usuario, papel, recurso\\acao, timestamp, ip};
+  \draw[rel] (pes) -- (vin);
+  \draw[rel,dashed,color=coral] (vin.east) -- node[rot=coral,above,sloped]{ligação restrita} (par.west);
+  \draw[rel] (par) -- (con);
+  \draw[rel] (par.east) -- (chk.west);
+  \draw[rel] (par.east) -- (que.west);
+  \draw[rel] (par.east) -- (exp.west);
+  \draw[rel,-{Stealth}] (chk.east) -- node[rot=menta,above]{ETL} (agg.west);
+\end{tikzpicture}
+\end{adjustbox}
+\fonte{Esquemas separados com papéis de banco distintos. Quem acessa
+  \texttt{sono} e \texttt{analitico} não tem permissão sobre \texttt{identidade}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Pipeline de dados: da mensagem ao indicador}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[node distance=5mm,
+  ]
+  \node[st=menta] (c) {\faInbox\\[2pt]\textbf{Coleta}\\botões e listas do WhatsApp};
+  \node[st=noite,right=of c] (v) {\faCheckDouble\\[2pt]\textbf{Validação}\\faixas, duplicidade, horário};
+  \node[st=coral,right=of v] (p) {\faUserSecret\\[2pt]\textbf{Pseudonimização}\\telefone vira pseudo\_id};
+  \node[st=lavanda,right=of p] (a) {\faDatabase\\[2pt]\textbf{Armazenamento}\\cifrado em repouso};
+  \node[st=menta,right=of a] (g) {\faLayerGroup\\[2pt]\textbf{Agregação}\\semanal por setor e turno};
+  \node[st=ambar,right=of g] (s) {\faEyeSlash\\[2pt]\textbf{Supressão}\\grupos com $n<10$ não aparecem};
+  \foreach \x/\y in {c/v,v/p,p/a,a/g,g/s} \draw[seta] (\x) -- (\y);
+  \node[caixa=noite,below=9mm of g,text width=2.3cm] (pn) {\faChartBar\ Painel};
+  \node[caixa=coral,below=9mm of p,text width=4.6cm] (ret)
+    {\faTrash*\ Retenção: dados individuais apagados ou anonimizados ao fim
+     do piloto, no prazo definido no RIPD};
+  \draw[seta] (s.south) |- (pn.east);
+  \draw[seta=coral,dashed] (a.south) |- (ret.east);
+\end{tikzpicture}
+\end{adjustbox}
+\vfill
+\small
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}\textbf{Qualidade}\par\scriptsize Respostas fora de
+faixa são rejeitadas no ato, e o robô pede a resposta de novo.
+\column{0.32\textwidth}\textbf{Reprodutibilidade}\par\scriptsize Agregações
+versionadas em SQL, com testes automatizados.
+\column{0.32\textwidth}\textbf{Pesquisa}\par\scriptsize Exportação apenas de
+bases anonimizadas, com aprovação ética quando houver publicação.
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Stack tecnológica proposta}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}l l L@{}}
+\toprule
+\textbf{Camada} & \textbf{Tecnologia} & \textbf{Por quê} \\
+\midrule
+Canal & WhatsApp Business Platform (Cloud API) & API oficial, mensagens interativas, modelos aprovados \\
+Borda & Nginx + Let's Encrypt (já em produção) & TLS, limite de requisições, proxy reverso \\
+Backend & Python 3.12, FastAPI, SQLModel & Base atual do projeto, que já tem tipagem e testes \\
+Filas e agenda & Redis + worker (ex.: Celery ou ARQ) & Lembretes nos horários escolhidos e reenvio automático em caso de falha \\
+Linguagem & LLM via API (provedor nacional, ex.: Maritaca Sabiá) & Português nativo, com uso restrito a texto livre e sem dado identificável no prompt \\
+Banco & PostgreSQL 16 + pgcrypto, Row-Level Security & Esquemas separados, cifragem de colunas, políticas por papel \\
+Painel & React + Vite, biblioteca de gráficos (ex.: Recharts) & SPA leve servida pelo Nginx \\
+Identidade & OIDC (ex.: Keycloak) com MFA & Perfis por papel, sessão curta, trilha de acesso \\
+Infraestrutura & Docker Compose na VM e backup cifrado diário & Reaproveita o deploy atual e permite migrar para nuvem gerenciada se o uso crescer \\
+\bottomrule
+\end{tabularx}
+\fonte{Escolhas a validar no início do piloto. Nenhuma delas é dependência
+  rígida da arquitetura.}
+\end{frame}
+
+% =====================================================================
+\section{Tratamento de dados e LGPD}
+
+\begin{frame}{Dado de sono é dado pessoal sensível}
+\begin{columns}[T,onlytextwidth]
+\column{0.42\textwidth}
+\small
+A LGPD classifica como sensível todo dado \enquote{referente à saúde}
+(art.\ 5º, II). Respostas sobre sono, sonolência e insônia entram nessa
+categoria. Isso muda a base legal, exige mais segurança e proíbe uso
+discriminatório (art.\ 6º, IX).
+
+\medskip
+Na relação de trabalho existe assimetria de poder. Um \enquote{aceito}
+dado por medo de represália não é consentimento livre. Por isso a
+participação é voluntária e quem recusa não sofre nenhuma consequência.
+\column{0.55\textwidth}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}L L@{}}
+\toprule
+\textbf{Finalidade} & \textbf{Base legal (a validar com o jurídico)} \\
+\midrule
+Check-ins e devolutivas ao próprio colaborador & Consentimento específico e destacado (art.\ 11, I) \\
+Encaminhamento à equipe de saúde & Consentimento e tutela da saúde por profissional de saúde (art.\ 11, II, f) \\
+Indicadores agregados para o PGR & Dados anonimizados (art.\ 12) e cumprimento de obrigação legal da NR-1 (art.\ 11, II, a) \\
+Logs de acesso e segurança & Obrigação legal e exercício regular de direitos (art.\ 11, II, a e d) \\
+\bottomrule
+\end{tabularx}
+\end{columns}
+\fonte{\textcite{lgpd2018}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Privacidade desde a concepção}
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\begin{block}{\faCompress\ Minimizar}
+\scriptsize
+\begin{itemize}
+  \item Só perguntas sobre sono
+  \item Faixa etária em vez de data de nascimento
+  \item Mensagens sem nome de doença ou escore
+\end{itemize}
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{\faLock\ Proteger}
+\scriptsize
+\begin{itemize}
+  \item TLS em trânsito e AES-256 em repouso
+  \item Pseudonimização na entrada
+  \item RBAC, MFA e menor privilégio
+  \item Auditoria imutável de acessos
+\end{itemize}
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{\faBalanceScale\ Governar}
+\scriptsize
+\begin{itemize}
+  \item RIPD antes do início (art.\ 38), porque dado sensível em escala é tratamento de alto risco
+  \item Encarregado nomeado (art.\ 41)
+  \item Contratos de operador com Meta e provedores
+  \item Incidente comunicado à ANPD em 3 dias úteis
+\end{itemize}
+\end{block}
+\end{columns}
+\vfill
+\begin{tcolorbox}[colback=menta!8,colframe=menta,boxrule=0.6pt,arc=3pt,left=6pt]
+\small\faWhatsapp\ \textbf{Direitos do titular dentro da conversa}:
+\texttt{MEUS DADOS} envia o que foi registrado, \texttt{PAUSAR} suspende
+os lembretes e \texttt{SAIR} revoga o consentimento e dispara a exclusão
+(art.\ 18).
+\end{tcolorbox}
+\fonte{\textcite{lgpd2018,anpd_res15_2024,anpd_ripd,anpd_res2_2022,anpd_guia_seguranca_2021}.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Adesão e consentimento no WhatsApp}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{tikzpicture}[node distance=6mm,
+  ]
+  \node[st2=noite] (a) {\faBullhorn\\\textbf{Convite}\\QR code ou link na palestra, sem cadastro em massa};
+  \node[st2=lavanda,right=of a] (b) {\faFileContract\\\textbf{Termo curto}\\em 3 telas, com link para a versão completa};
+  \node[st2=lavanda,right=of b] (c) {\faListUl\\\textbf{Escolhas}\\finalidades separadas, cada uma com seu \enquote{sim}};
+  \node[st2=menta,right=of c] (d) {\faClock\\\textbf{Preferências}\\horários e tipos de lembrete};
+  \node[st2=menta,right=of d] (e) {\faPlay\\\textbf{Início}\\primeiro check-in no dia seguinte};
+  \foreach \x/\y in {a/b,b/c,c/d,d/e} \draw[seta] (\x) -- (\y);
+  \node[caixa=coral,below=8mm of c,text width=7.6cm] (r)
+   {\faUndo\ A qualquer momento, \texttt{SAIR} revoga tudo, sem exigir justificativa
+    e sem avisar o gestor};
+  \draw[seta=coral,dashed] (r.north -| b.south) -- (b.south);
+  \draw[seta=coral,dashed] (r.east) -| (e.south);
+\end{tikzpicture}
+\end{adjustbox}
+\vfill
+\small
+O consentimento para \textbf{encaminhamento à equipe de saúde} é pedido à
+parte, só quando surge a situação. Assim a pessoa decide com o contexto na
+mão, e não no primeiro dia.
+\end{frame}
+
+% =====================================================================
+\section{Evidências, mercado e desenho do piloto}
+
+\begin{frame}{O que a evidência diz sobre intervenções digitais de sono}
+\begin{columns}[T,onlytextwidth]
+\column{0.6\textwidth}
+\footnotesize
+\begin{itemize}
+  \item A terapia cognitivo-comportamental para insônia em formato digital
+    (dCBT-I) reduz o ISI em 5 pontos em média, segundo meta-análise de 33
+    ensaios, e o efeito persiste após um ano \parencite{soh2020,zachariae2016}.
+  \item Num ensaio com 1.711 pessoas, a dCBT-I também melhorou saúde
+    funcional e bem-estar \parencite{espie2019}.
+  \item Em trabalhadores de turno, 55\,\% das intervenções no local de
+    trabalho aumentaram a duração do sono \parencite{robbins2021,redeker2019}.
+  \item Mudar a organização do trabalho, sem falar de sono, rendeu 8 min a
+    mais de sono por dia em ensaio controlado \parencite{olson2015}.
+  \item Mensagens personalizadas por app reduziram o ISI de 9,2 para 6,8
+    em 4 semanas em 116 trabalhadores \parencite{shimamoto2022}, e um
+    chatbot de TCC-I melhorou o PSQI \parencite{chiu2025}.
+\end{itemize}
+\column{0.36\textwidth}
+\begin{alertblock}{O que isso \textbf{não} autoriza}
+\scriptsize O piloto não é um tratamento de insônia. Ele usa educação e
+higiene do sono, e quem precisa é encaminhado para avaliação clínica e
+para a TCC-I, recomendada pela diretriz brasileira \parencite{drager2023}.
+Essa distinção precisa ficar clara na comunicação.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Quem já faz algo parecido}
+\scriptsize\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}l L L L@{}}
+\toprule
+\textbf{Solução} & \textbf{Força principal} & \textbf{O que importamos} & \textbf{Onde o INTEGRA difere} \\
+\midrule
+Sleepio (Big Health) & dCBT-I testada em ensaios clínicos, com versão prescrita liberada pela FDA & Jornada estruturada e diário de sono & O INTEGRA não é tratamento e foca prevenção e gestão do trabalho \\
+Calm / Headspace & Conteúdo curto de sono e relaxamento, com planos para empresas & Microintervenções de 2 minutos & Canal sem app, com dados que alimentam o PGR \\
+WHOOP & Recuperação diária calculada com dados de wearable & Ideia de \enquote{prontidão} do dia & Autorrelato validado, sem dispositivo \\
+Bearable & Diário de sintomas e correlações pessoais & Check-in rápido, tendência individual & Correlação comunicada como padrão, não causa \\
+Wysa & Agente conversacional de TCC com designação \textit{Breakthrough} da FDA & Protocolo de crise e roteiros clínicos & Escopo restrito ao sono \\
+\bottomrule
+\end{tabularx}
+\smallskip
+
+\footnotesize Até onde levantamos, nenhuma dessas soluções conecta o que o
+trabalhador relata ao inventário de riscos psicossociais exigido no
+Brasil. É nesse ponto que o INTEGRA Sono se posiciona.
+\fonte{\textcite{fda_k233577,aasm_sleepiorx_2024,wysa_fda_2022}, além dos sites
+  institucionais dos produtos, consultados em out.\ 2026.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Desenho do piloto}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\small
+\begin{description}[Duração]\setlength{\itemsep}{2pt}
+  \item[Local] 1 unidade, com pelo menos dois turnos
+  \item[Público] 150 a 300 colaboradores e prestadores, adesão voluntária
+  \item[Duração] 12 semanas de operação
+  \item[Desenho] Antes e depois, com medidas nas semanas 0, 6 e 12
+  \item[Ética] Protocolo submetido ao CEP, se houver intenção de publicar
+\end{description}
+\column{0.5\textwidth}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}L r@{}}
+\toprule
+\textbf{Indicador} & \textbf{Meta} \\
+\midrule
+Adesão entre convidados & $\geq$\,40\,\% \\
+Participantes ativos na semana 8 & $\geq$\,60\,\% \\
+Check-ins por pessoa por semana & $\geq$\,4 \\
+Experimentos de 7 dias concluídos & $\geq$\,1 por pessoa \\
+Variação média no ISI (sem.\ 0 $\to$ 12) & redução \\
+Alertas de nível 3 com medida registrada & 100\,\% \\
+Aceitabilidade (\enquote{recomendaria a um colega}) & $\geq$\,70\,\% \\
+\bottomrule
+\end{tabularx}
+\end{columns}
+\fonte{Metas iniciais para discussão. Sem grupo controle, o piloto
+  avalia viabilidade e aceitação, não eficácia.}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Cronograma}
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\begin{ganttchart}[
+    hgrid,vgrid={*{3}{draw=none},dotted},
+    x unit=0.52cm,y unit chart=0.52cm,y unit title=0.55cm,
+    title label font=\tiny\bfseries,
+    bar label font=\scriptsize,group label font=\scriptsize\bfseries,
+    milestone label font=\scriptsize\itshape\color{coral},
+    bar/.append style={fill=lavanda!70,draw=none,rounded corners=1pt},
+    group/.append style={fill=noite,draw=none},
+    milestone/.append style={fill=coral,draw=none},
+    bar height=0.55,group peaks height=0.15,group height=0.25]{1}{24}
+  \gantttitle{Mês 1}{4}\gantttitle{Mês 2}{4}\gantttitle{Mês 3}{4}
+  \gantttitle{Mês 4}{4}\gantttitle{Mês 5}{4}\gantttitle{Mês 6}{4}\\
+  \ganttgroup{Governança}{1}{6}\\
+  \ganttbar{RIPD, termos, contratos de operador}{1}{4}\\
+  \ganttbar{Comitê (RH, SESMT, DPO, CIPA)}{2}{6}\\
+  \ganttgroup{Construção}{3}{11}\\
+  \ganttbar{Fluxos de conversa e modelos Meta}{3}{7}\\
+  \ganttbar{Backend, banco e agregações}{4}{10}\\
+  \ganttbar{Painel e alertas}{6}{11}\\
+  \ganttbar{Teste com 15 voluntários}{10}{11}\\
+  \ganttmilestone{Go/no-go}{11}\\
+  \ganttgroup{Operação}{12}{23}\\
+  \ganttbar{Palestra de lançamento e adesão}{12}{12}\\
+  \ganttbar{12 semanas de piloto}{12}{23}\\
+  \ganttbar{Avaliação e relatório}{22}{24}
+  \ganttlink{elem6}{elem7}
+\end{ganttchart}
+\end{adjustbox}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Riscos e como os tratamos}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}L L L@{}}
+\toprule
+\textbf{Risco} & \textbf{Por que importa} & \textbf{Mitigação} \\
+\midrule
+Medo de vigilância pela chefia & Baixa adesão e respostas \enquote{maquiadas} & Gestor só vê grupos, a comunicação é clara e a CIPA participa do comitê \\
+Fadiga de mensagens & Abandono depois da 2ª semana & Horários escolhidos pela pessoa e no máximo 3 mensagens por dia, duas delas opcionais \\
+Reidentificação em grupos pequenos & Exposição de dado sensível & Supressão de grupos com $n<10$ e bloqueio de cruzamentos livres de filtros \\
+Conselho clínico indevido gerado pelo LLM & Dano ao participante, risco reputacional & Coleta por regras, com LLM restrito à base curada e a filtros de saída \\
+Política da Meta sobre dados de saúde & Bloqueio da conta ou do canal & Parecer jurídico prévio, perguntas sem termos clínicos e, como plano B, formulário web próprio acionado pelo WhatsApp \\
+Atribuição ao app de efeitos multifatoriais & Conclusões erradas sobre absenteísmo & Avaliação apresentada como estudo de viabilidade, com desfechos tratados como multifatoriais \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+% ---------------------------------------------------------------------
+\begin{frame}{Para seguir em frente}
+\begin{columns}[T,onlytextwidth]
+\column{0.58\textwidth}
+\small
+\textbf{Decisões que dependem da empresa parceira}
+\begin{enumerate}\setlength{\itemsep}{0pt}\footnotesize
+  \item Unidade e turnos que participarão do piloto
+  \item Composição do comitê com RH, SESMT, encarregado de dados e CIPA
+  \item Quem da equipe de saúde recebe os encaminhamentos
+  \item Aprovação do RIPD e dos termos de consentimento
+  \item Conta WhatsApp Business verificada em nome da empresa
+\end{enumerate}
+\begin{tcolorbox}[colback=noite,colframe=noite,coltext=white,arc=3pt,left=6pt]
+\footnotesize Em seis meses, a empresa sai com um indicador de sono por setor e
+turno, decisões registradas no PGR e dados para decidir se o INTEGRA
+deve crescer para outros eixos.
+\end{tcolorbox}
+\column{0.38\textwidth}
+\centering
+\imagem{\linewidth}{4.6cm}{img/equipe_reuniao_bem_estar.jpg}{Equipe em reunião sobre bem-estar no trabalho (Foto: Ivan S, Pexels)}
+\end{columns}
+\end{frame}
+
+% =====================================================================
+\begin{frame}[allowframebreaks]{Referências}
+\tiny
+\printbibliography[heading=none]
+\end{frame}
+
+\end{document}
