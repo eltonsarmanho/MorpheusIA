@@ -11,7 +11,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 
-from app.application.answering.grounding import ModelAnswer, parse_model_output, verify_grounding
+from app.application.answering.grounding import ModelAnswer, parse_model_output, repair_citations, verify_grounding
 from app.application.answering.intent import IntentResult, classify_intent, detect_profile
 from app.application.answering.prompts import SYSTEM_PROMPT, build_user_prompt, describe_source, evidence_label
 from app.application.retrieval.hybrid import HybridRetriever, RetrievalResult
@@ -147,6 +147,8 @@ class Orchestrator:
             return self._handoff(st, "pedido do usuário", TEAM_GENERAL, intent.intent, trace)
         if intent.intent is Intent.SAUDACAO:
             return Turn(BotReply(ResponseKind.GREETING, self._greeting(), intent=intent.intent, trace=trace), st)
+        if intent.intent is Intent.FORA_DE_ESCOPO and st.process_number and not st.last_domain:
+            st.last_domain = KnowledgeDomain.PROCESSUAL.value  # há um processo em foco na conversa: a pergunta é sobre ele
         if intent.intent is Intent.FORA_DE_ESCOPO and st.last_domain:
             # continuação de uma conversa em andamento: mantém o domínio; a suficiência da evidência continua sendo verificada
             intent = IntentResult(_DOMAIN_INTENT[KnowledgeDomain(st.last_domain)], 0.5, ("continuacao_da_conversa",))
@@ -220,7 +222,7 @@ class Orchestrator:
     def _retrieve(self, text: str, domain: KnowledgeDomain, st: ConversationState, process_override: str | None = None) -> tuple[RetrievalResult, int]:
         pn = process_override or st.process_number
         if domain is KnowledgeDomain.PROCESSUAL and pn and pn not in text:
-            text = f"{text} (processo {pn})"  # o contexto da conversa entra na busca: os trechos de cabeçalho trazem o número
+            text = f"{text} {pn}"  # o contexto da conversa entra na busca: os trechos de cabeçalho trazem o número
         result = self.retriever.retrieve(text, domain, process_number=pn)
         if result.sufficient or result.abstain_reason == "processo_ausente_do_acervo":
             return result, 1
@@ -271,7 +273,19 @@ class Orchestrator:
         if not answer.sufficient:
             return self._abstention(st, domain, intent, self._abstain_text(domain), "modelo_declarou_insuficiencia", trace, labels)
 
-        report = verify_grounding(answer, evidences, label_map, question)
+        answer, report = repair_citations(answer, label_map, question)
+        if not report.ok:
+            # uma nova tentativa guiada: o modelo recebe os fatos sem lastro e deve corrigir as citações ou retirar esses fatos
+            trace["grounding_first_try"] = report.problems
+            feedback = (prompt + "\n\nA resposta anterior trouxe fatos sem lastro nos trechos citados: " + "; ".join(report.problems) +
+                        ". Refaça: use somente fatos presentes nas EVIDÊNCIAS, cite o trecho exato de cada fato e não acrescente artigos, datas ou "
+                        "valores que não estejam nelas. Responda SOMENTE com o JSON.")
+            try:
+                retry = parse_model_output(self.llm.generate(system=SYSTEM_PROMPT, user=feedback))
+            except Exception:  # noqa: BLE001
+                retry = None
+            if retry is not None and retry.parse_ok and retry.sufficient and not retry.handoff:
+                answer, report = repair_citations(retry, label_map, question)
         trace["grounding"] = {"ok": report.ok, "problems": report.problems, "checked": report.checked}
         if not report.ok:
             return self._abstention(st, domain, intent, self._abstain_text(domain, grounded=False), "fundamentacao_nao_verificada", trace, labels)

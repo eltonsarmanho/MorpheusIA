@@ -72,6 +72,22 @@ def content_query(query: str) -> str:
 _DATE_BR = re.compile(r"(?<!\d)(\d{1,2})/(\d{1,2})/(\d{4})(?!\d)")
 
 
+# Tipo documental citado na pergunta -> trecho do campo doc_type (minúsculo) usado no filtro
+_DOC_TYPE_HINTS = (
+    ("sentenca", "senten"), ("acordao", "acórd"), ("decisao", "decis"), ("despacho", "despacho"), ("denuncia", "denún"),
+    ("peticao inicial", "petição inicial"), ("contestacao", "contest"), ("certidao", "certid"), ("apelacao", "apela"),
+    ("mandado", "mandado"), ("audiencia", "audiência"), ("ementa", "ementa"), ("voto", "voto"),
+)
+
+
+def find_doc_type(query: str) -> str | None:
+    q = fold(query)
+    for word, like in _DOC_TYPE_HINTS:
+        if re.search(rf"\b{word}", q):
+            return like
+    return None
+
+
 def find_query_date(query: str) -> str | None:
     m = _DATE_BR.search(query)
     return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}" if m else None
@@ -157,6 +173,24 @@ class HybridRetriever:
             )
             for c in ordered if c in loaded
         ]
+        doc_type = find_doc_type(query) if domain is KnowledgeDomain.PROCESSUAL and process_number else None
+        if doc_type:
+            # recuperação ciente de metadados: a pergunta cita um tipo de documento ("na sentença"), então os melhores trechos
+            # desse tipo no processo entram primeiro, sem descartar os demais
+            active_date = stages.get("date_filter") or None  # respeita o filtro de data quando ele se aplicou
+            t_lex = self.store.search_lexical(query, domain, self.candidates, process_number, active_date, doc_type)
+            t_vec = self.store.search_vector(qvec, domain, self.candidates, process_number, active_date, doc_type)
+            t_fused = reciprocal_rank_fusion([[c for c, _ in t_lex], [c for c, _ in t_vec]], self.rrf_k)
+            # os 2 melhores da fusão + o 1º lexical e o 1º vetorial do tipo: o cabeçalho do documento (forte no BM25,
+            # fraco no vetor) costuma trazer o dispositivo, a tipificação ou o resultado
+            t_ids = list(dict.fromkeys(sorted(t_fused, key=lambda c: -t_fused[c])[:2] + [c for c, _ in t_lex[:1]] + [c for c, _ in t_vec[:1]]))
+            typed = {e.chunk_id: e for e in self.store.load_evidences(t_ids, domain)}
+            lex_rank.update({c: lex_rank.get(c) or i for i, (c, _) in enumerate(t_lex, 1)})
+            first = [replace(typed[c], score=max(fused.get(c, 0.0), t_fused[c]) + 1.0, lexical_rank=lex_rank.get(c), vector_rank=vec_rank.get(c),
+                             lexical_score=dict(t_lex).get(c), vector_score=dict(t_vec).get(c)) for c in t_ids if c in typed]
+            have = {e.chunk_id for e in first}
+            evidences = first + [e for e in evidences if e.chunk_id not in have]
+            stages["doc_type_boost"] = f"{doc_type}:{len(first)}"
         stages["fused"] = len(evidences)
         top_vec = max([e.vector_score or 0.0 for e in evidences] or [0.0])
         stages["top_vector_score"] = round(top_vec, 3)

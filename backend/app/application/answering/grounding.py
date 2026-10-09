@@ -138,3 +138,26 @@ def verify_grounding(answer: ModelAnswer, evidences: list[Evidence], labels: dic
         if not re.search(rf"(?<![\d]){n}(?![\d])", re.sub(r"[.\s]", "", context)) and n not in context:
             problems.append(f"numero_sem_lastro:{n}")
     return GroundingReport(not problems, problems, checked)
+
+
+def repair_citations(answer: ModelAnswer, labels: dict[str, Evidence], question: str) -> tuple[ModelAnswer, GroundingReport]:
+    """Reparo de citação: se um fato reprovado está em outro trecho que o modelo recebeu (mas não citou), esse trecho entra nas
+    referências. O lastro continua sendo só o contexto recuperado; nada de fora é aceito."""
+    report = verify_grounding(answer, list(labels.values()), labels, question)
+    if report.ok:
+        return answer, report
+    extra: list[str] = []
+    for problem in report.problems:
+        if ":" not in problem or problem.startswith(("referencias_inexistentes", "resposta_sem_referencia")):
+            continue
+        fact = problem.split(":", 1)[1].replace("R$ ", "").strip()
+        token = fact.split(" ")[0]
+        for label, ev in labels.items():
+            hay = _norm_dates(ev.text) + " " + " ".join(v for v in ev.citation.values() if v)
+            if label not in answer.references and label not in extra and token and token in hay:
+                extra.append(label)
+                break
+    if not extra:
+        return answer, report
+    repaired = ModelAnswer(answer.text, [r for r in answer.references if r in labels] + extra, answer.sufficient, answer.handoff, answer.parse_ok)
+    return repaired, verify_grounding(repaired, list(labels.values()), labels, question)

@@ -91,8 +91,14 @@ def query_terms(text: str) -> list[str]:
 
 
 def fts_query(text: str) -> str:
-    terms = list(dict.fromkeys(query_terms(text)))
-    return " OR ".join(f'"{t}"' for t in terms[:24])
+    """Termos exatos e, para palavras longas, o radical com prefixo ("imputado" -> "imput"*), que alcança "imputando", "imputação"."""
+    terms = list(dict.fromkeys(query_terms(text)))[:20]
+    parts: list[str] = []
+    for t in terms:
+        parts.append(f'"{t}"')
+        if len(t) >= 7 and not t.isdigit():
+            parts.append(f'"{t[: len(t) - 3]}"*')
+    return " OR ".join(dict.fromkeys(parts))
 
 
 class _Rows(list):
@@ -120,6 +126,7 @@ class SqliteKnowledgeStore:
         self._domains: np.ndarray | None = None
         self._proc: np.ndarray | None = None
         self._dates: np.ndarray | None = None
+        self._types: np.ndarray | None = None
         self._dirty = True
 
     # ------------------------------------------------------------------ util
@@ -502,7 +509,8 @@ class SqliteKnowledgeStore:
 
     # ----------------------------------------------------------------- busca
     def search_lexical(
-        self, query: str, domain: KnowledgeDomain, limit: int, process_number: str | None = None, doc_date: str | None = None
+        self, query: str, domain: KnowledgeDomain, limit: int, process_number: str | None = None, doc_date: str | None = None,
+        doc_type_like: str | None = None,
     ) -> list[tuple[int, float]]:
         q = fts_query(query)
         if not q:
@@ -517,6 +525,8 @@ class SqliteKnowledgeStore:
             sql += " AND d.process_number=?"; params.append(process_number)
         if doc_date:
             sql += " AND d.doc_date=?"; params.append(doc_date)
+        if doc_type_like:
+            sql += " AND lower(d.doc_type) LIKE ?"; params.append(f"%{doc_type_like}%")
         sql += " ORDER BY s LIMIT ?"
         params.append(limit)
         try:
@@ -528,12 +538,12 @@ class SqliteKnowledgeStore:
     def _reload_vectors(self) -> None:
         with self._lock:
             rows = self._conn.execute(
-                "SELECT e.chunk_id, e.vec, c.domain, COALESCE(d.process_number,'') pn, COALESCE(d.doc_date,'') dd FROM embeddings e "
+                "SELECT e.chunk_id, e.vec, c.domain, COALESCE(d.process_number,'') pn, COALESCE(d.doc_date,'') dd, lower(COALESCE(d.doc_type,'')) dt FROM embeddings e "
                 "JOIN chunks c ON c.chunk_id=e.chunk_id JOIN documents d ON d.doc_id=c.doc_id "
                 f"WHERE {_ELIGIBLE}"
             ).fetchall()
         if not rows:
-            self._matrix, self._ids, self._domains, self._proc, self._dates = None, None, None, None, None
+            self._matrix, self._ids, self._domains, self._proc, self._dates, self._types = None, None, None, None, None, None
         else:
             self._matrix = np.vstack([np.frombuffer(r["vec"], dtype=np.float32) for r in rows])
             norms = np.linalg.norm(self._matrix, axis=1, keepdims=True)
@@ -542,10 +552,12 @@ class SqliteKnowledgeStore:
             self._domains = np.array([r["domain"] for r in rows])
             self._proc = np.array([r["pn"] for r in rows])
             self._dates = np.array([r["dd"] for r in rows])
+            self._types = np.array([r["dt"] for r in rows])
         self._dirty = False
 
     def search_vector(
-        self, vector: np.ndarray, domain: KnowledgeDomain, limit: int, process_number: str | None = None, doc_date: str | None = None
+        self, vector: np.ndarray, domain: KnowledgeDomain, limit: int, process_number: str | None = None, doc_date: str | None = None,
+        doc_type_like: str | None = None,
     ) -> list[tuple[int, float]]:
         if self._dirty:
             self._reload_vectors()
@@ -556,6 +568,8 @@ class SqliteKnowledgeStore:
             mask &= self._proc == process_number
         if doc_date:
             mask &= self._dates == doc_date
+        if doc_type_like:
+            mask &= np.char.find(self._types, doc_type_like) >= 0
         idx = np.flatnonzero(mask)
         if idx.size == 0:
             return []

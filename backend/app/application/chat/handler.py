@@ -239,7 +239,7 @@ class ChatwootEventHandler:
                 return HandleResult("processed", "processo_fora_do_acervo")
             action, k = flow.Action(flow.Kind.SELECT_PROCESS, numbers[0]), flow.Kind.SELECT_PROCESS
         if k is flow.Kind.SELECT_PROCESS:
-            st.process_number = action.arg
+            st.process_number, st.last_domain = action.arg, "processual"
             self.ops.save(st)
             docs = len(self.orch.store.list_documents(process_number=action.arg, limit=5000))  # type: ignore[attr-defined]
             info = self.orch.store.process_info(action.arg)  # type: ignore[attr-defined]

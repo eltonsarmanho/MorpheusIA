@@ -244,4 +244,4 @@ def test_pergunta_de_continuacao_leva_o_numero_do_processo_da_conversa_para_a_bu
     st = ConversationState("s")
     st.process_number = P1
     orc.respond("Quando é a audiência de conciliação?", st)
-    assert queries[0].endswith(f"(processo {P1})") and "Quando é a audiência" in llm.prompts[0][1]  # o prompt do LLM mantém a pergunta original
+    assert queries[0].endswith(f" {P1}") and "Quando é a audiência" in llm.prompts[0][1]  # o prompt do LLM mantém a pergunta original
