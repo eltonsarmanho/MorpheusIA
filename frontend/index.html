@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assistente TJPA - piloto</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Assistente de atendimento <span>piloto do hackathon TJPA</span></h1>
+    <p class="notice">Console de teste e curadoria. Não é um canal oficial do TJPA. Respostas processuais usam documentos do acervo de demonstração, não consulta em tempo real ao PJe.</p>
+    <p class="bar"><label>Token de acesso <input id="token" type="password" autocomplete="off" placeholder="fornecido pela equipe do piloto"></label></p>
+    <nav role="tablist">
+      <button role="tab" id="tab-chat" aria-selected="true">Conversa</button>
+      <button role="tab" id="tab-cur" aria-selected="false">Curadoria</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="panel-chat">
+      <ol id="log" aria-live="polite"></ol>
+      <form id="chat-form">
+        <label class="sr" for="msg">Mensagem</label>
+        <textarea id="msg" rows="2" maxlength="1000" placeholder="Pergunte sobre um processo do acervo, o Balcão Virtual ou um termo jurídico" required></textarea>
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="hint">Exemplos: "Qual o valor da causa do processo 6080680-32.2025.8.03.0001?" · "Qual o horário do Balcão Virtual?" · "quero falar com um atendente"</p>
+    </section>
+
+    <section id="panel-cur" hidden>
+      <div class="bar">
+        <label>Domínio
+          <select id="f-domain"><option value="">todos</option><option>processual</option><option>institucional</option><option>juridico</option></select>
+        </label>
+        <label>Estado
+          <select id="f-state"><option value="">todos</option><option>pending_review</option><option>approved</option><option>rejected</option><option>needs_review</option><option>stale</option></select>
+        </label>
+        <label>Processo <input id="f-process" placeholder="0000000-00.0000.8.03.0000"></label>
+        <button id="load" type="button">Carregar</button>
+      </div>
+      <p id="stats" class="hint"></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Documento</th><th>Tipo</th><th>Estado</th><th>Motivo / origem</th><th>Ações</th></tr></thead>
+          <tbody id="docs"></tbody>
+        </table>
+      </div>
+      <p id="cur-msg" class="hint" role="status"></p>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
