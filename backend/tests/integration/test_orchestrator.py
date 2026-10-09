@@ -228,3 +228,20 @@ def test_modelo_que_sugere_encaminhamento_nao_transfere_sozinho(world, embedder)
     t = ask(build(world, embedder, FakeLLM(out("exige humano", refs=(), ok=True, handoff=True))), f"Quando é a audiência do processo {P1}?")
     assert t.reply.kind is K.ABSTAIN and t.reply.abstain_reason == "modelo_sugeriu_encaminhamento" and t.state.offer_pending
     assert "encaminhe a conversa" in t.reply.text
+
+
+def test_pergunta_de_continuacao_leva_o_numero_do_processo_da_conversa_para_a_busca(world, embedder):
+    """Falha real no WhatsApp: sem o número na frase, o trecho com o artigo da sentença não era recuperado."""
+    queries = []
+
+    class Spy(HybridRetriever):
+        def retrieve(self, query, domain, **kw):
+            queries.append(query)
+            return super().retrieve(query, domain, **kw)
+
+    llm = FakeLLM(out("A audiência é em 20/07/2026 [E1]."))
+    orc = Orchestrator(Spy(world, embedder, policy=AbstentionPolicy(top_k=4, min_vector_score=0.0)), world, llm, OrchestratorConfig())
+    st = ConversationState("s")
+    st.process_number = P1
+    orc.respond("Quando é a audiência de conciliação?", st)
+    assert queries[0].endswith(f"(processo {P1})") and "Quando é a audiência" in llm.prompts[0][1]  # o prompt do LLM mantém a pergunta original

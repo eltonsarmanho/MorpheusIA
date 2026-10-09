@@ -219,6 +219,8 @@ class Orchestrator:
     # -------------------------------------------------------------- recuperação
     def _retrieve(self, text: str, domain: KnowledgeDomain, st: ConversationState, process_override: str | None = None) -> tuple[RetrievalResult, int]:
         pn = process_override or st.process_number
+        if domain is KnowledgeDomain.PROCESSUAL and pn and pn not in text:
+            text = f"{text} (processo {pn})"  # o contexto da conversa entra na busca: os trechos de cabeçalho trazem o número
         result = self.retriever.retrieve(text, domain, process_number=pn)
         if result.sufficient or result.abstain_reason == "processo_ausente_do_acervo":
             return result, 1
