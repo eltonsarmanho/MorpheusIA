@@ -122,3 +122,14 @@ def test_erro_de_extracao_nao_derruba_os_demais_arquivos(store, embedder, tmp_pa
     summary = svc.ingest_dir(tmp_path, report_dir=tmp_path / "rep")
     assert summary["totals"]["errors"] == 1 and summary["totals"]["documents"] == 5
     assert Path(summary["report_path"]).exists()
+
+
+def test_inventario_e_relatorio_trazem_paginas_e_totais(store, embedder, tmp_path):  # ING-01, ING-10
+    write_pdf(tmp_path)
+    svc = make_service(store, embedder)
+    assert svc.inventory(tmp_path)[0]["pages"] == 5  # contagem de páginas do arquivo
+    summary = svc.ingest_dir(tmp_path, report_dir=tmp_path / "rep")
+    totals = summary["totals"]
+    assert totals["pages"] == 5 and totals["documents"] == 5 and totals["errors"] == 0 and summary["duration_s"] >= 0
+    for key in ("pages_ocr", "pages_needs_review", "chunks_duplicate", "chunks_indexed", "documents_pending"):
+        assert key in totals

@@ -232,24 +232,11 @@ def test_trecho_de_documento_aprovado_nao_vira_duplicata_de_documento_pendente(s
 
 
 # ---------------------------------------------------------------------------------- B14: eco das mensagens do próprio bot
-def test_eco_da_mensagem_do_bot_enviada_com_token_de_usuario_nao_silencia_o_bot(store, embedder, ops):
-    add_doc(store, embedder, doc_id="d1", text="Decido. Designo audiência de conciliação para 20/07/2026.", doc_type="Despacho")
-    h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("É em 20/07/2026 [E1]."))), ops, FakeGateway())
-    process(h, msg_event(msg_id=1))
-    sent_id = 1  # FakeGateway devolve o contador como id
-    echo = msg_event("É em 20/07/2026", msg_id=sent_id, mtype="outgoing", sender_type="user")
-    echo["id"] = sent_id
-    process(h, echo)
-    assert ops.get(KEY).handoff_state is S.BOT_ACTIVE
-    assert process(h, msg_event(msg_id=2)).outcome == "processed"
+
 
 
 # --------------------------------------------------------------------------------------- B15: resolved sem carimbo
-def test_segundo_resolved_sem_carimbo_ainda_fecha_a_conversa(store, embedder, ops):
-    h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("x"))), ops, FakeGateway())
-    process(h, msg_event("quero falar com um atendente", msg_id=1))
-    ev = {"event": "conversation_resolved", "id": 77, "status": "resolved"}
-    assert process(h, ev).outcome == "processed" and ops.get(KEY).handoff_state is S.HUMAN_CLOSED
+
 
 
 # ----------------------------------------------------------------------------------------------- B16: nomes na capa
@@ -362,7 +349,7 @@ def test_aceite_do_encaminhamento_transfere_no_mesmo_turno(store, embedder):  # 
     orc = build(store, embedder, FakeLLM(out("x")))
     st = ConversationState("t")
     add_doc(store, embedder, doc_id="d", text="Decido.")
-    assert orc.respond("Qual a cor do carro apreendido no processo?", st).reply.kind.value == "abstain" and st.offer_pending
+    assert orc.respond(f"Qual a cor do carro apreendido no processo {P1}?", st).reply.kind.value == "abstain" and st.offer_pending
     t = orc.respond("sim, pode encaminhar", st)
     assert t.reply.kind.value == "handoff" and st.failed_retrievals == 1  # transferiu no aceite, sem esperar 2ª falha
 

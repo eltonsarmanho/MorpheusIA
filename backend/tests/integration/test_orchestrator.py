@@ -65,14 +65,14 @@ def test_processo_inexistente_no_acervo_abstem_sem_chamar_o_llm(world, embedder)
 
 
 def test_pergunta_sem_evidencia_abstem_e_oferece_encaminhamento(world, embedder):  # RAG-04
-    t = ask(build(world, embedder, FakeLLM(out("x"))), "Qual a cor do carro apreendido no processo?")
+    t = ask(build(world, embedder, FakeLLM(out("x"))), f"Qual a cor do carro apreendido no processo {P1}?")
     assert t.reply.kind is K.ABSTAIN and "encaminhamento" in t.reply.text and t.state.offer_pending
 
 
 def test_aceite_do_encaminhamento_gera_handoff_para_a_equipe_do_dominio(world, embedder):  # ORQ-04
     orc = build(world, embedder, FakeLLM(out("x")))
     st = ConversationState("t")
-    orc.respond("Qual a cor do carro apreendido no processo?", st)
+    orc.respond(f"Qual a cor do carro apreendido no processo {P1}?", st)
     t = orc.respond("sim", st)
     assert t.reply.kind is K.HANDOFF and t.handoff_team in set(TEAM_BY_DOMAIN.values()) and "humano" in t.labels
 
@@ -80,8 +80,8 @@ def test_aceite_do_encaminhamento_gera_handoff_para_a_equipe_do_dominio(world, e
 def test_segunda_abstencao_seguida_encaminha_sozinho(world, embedder):  # ORQ-04
     orc = build(world, embedder, FakeLLM(out("x")))
     st = ConversationState("t")
-    assert orc.respond("Qual a cor do carro apreendido no processo?", st).reply.kind is K.ABSTAIN
-    assert orc.respond("E qual o modelo do veículo apreendido?", st).reply.kind is K.HANDOFF
+    assert orc.respond(f"Qual a cor do carro apreendido no processo {P1}?", st).reply.kind is K.ABSTAIN
+    assert orc.respond(f"E qual o modelo do veículo apreendido no processo {P1}?", st).reply.kind is K.HANDOFF
 
 
 def test_pedido_de_atendente_encaminha_para_atendimento_geral(world, embedder):
@@ -200,14 +200,14 @@ def test_pergunta_generica_sem_numero_pede_esclarecimento_antes_de_recuperar(wor
     assert llm.prompts == []
 
 
-def test_processo_assumido_sem_numero_e_dito_ao_usuario_e_lembrado(world, embedder):
+def test_processo_deduzido_por_termos_exclusivos_e_dito_ao_usuario(world, embedder):
     llm = FakeLLM(out("A decisão determina a comprovação da hipossuficiência [E1]."))
     add_doc(world, embedder, doc_id="solo", text="Decisão: determino a comprovação da hipossuficiência financeira da parte autora para fins de gratuidade.",
             process_number="1111111-11.2026.8.03.0001", pje_doc_id="3000001")
     st = ConversationState("s")
     t = build(world, embedder, llm).respond("Qual decisão determina a comprovação da hipossuficiência financeira da parte autora?", st)
     assert t.reply.kind is K.ANSWER and "Considerei o processo 1111111-11.2026.8.03.0001" in t.reply.text
-    assert st.process_number == "1111111-11.2026.8.03.0001"
+    assert st.process_number is None  # deduzido só para esta resposta; a conversa não o fixa
 
 
 def test_pergunta_com_numero_ou_com_estado_do_processo_nao_pede_esclarecimento(world, embedder):
