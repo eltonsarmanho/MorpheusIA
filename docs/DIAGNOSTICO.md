@@ -35,7 +35,7 @@ Decisão: o projeto anterior foi removido (autorizado pelo usuário) e o novo ba
 | 10 PDFs, 518 MB, 7.893 páginas, todos exportações do PJe (iText 5.5.13), nenhum criptografado | CONFIRMADO | `pdfinfo` |
 | Nenhuma duplicata exata entre os arquivos | CONFIRMADO | SHA-256 distintos |
 | Todos têm camada de texto, mas **362 páginas (4,6%) são imagem** e só trazem o rodapé como texto; precisam de OCR | CONFIRMADO | corpo menor que 30 caracteres depois de remover o rodapé |
-| O rodapé do PJe ("Assinado eletronicamente por … Num. N - Pág. P") dá o id do documento e a página dentro dele | CONFIRMADO | 99,9% das páginas |
+| O rodapé do PJe ("Assinado eletronicamente por … Num. N - Pág. P") dá o id do documento e a página dentro dele | CONFIRMADO | 99,6% das páginas (7.858 de 7.893) |
 | A capa traz classe, órgão, valor, assuntos, partes, sigilo e a tabela de documentos (id, data, nome, tipo) | CONFIRMADO | parser aplicado aos 10 arquivos |
 | O processo `6070124-68.2025.8.03.0001` tem 5.869 páginas e contém PDFs de outro tribunal (TRF1) aninhados, com rodapés duplos | CONFIRMADO | rodapés `pje1g.trf1.jus.br` dentro de `pje.tjap.jus.br` |
 | **Os PDFs são do Tribunal de Justiça do Amapá (TJAP), não do TJPA**: capa "Tribunal de Justiça do Estado do Amapá", código `8.03` no número CNJ, URLs `pje.tjap.jus.br` | CONFIRMADO | capas e rodapés |
