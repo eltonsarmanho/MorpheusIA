@@ -1,0 +1,7 @@
+docs/processos
+data
+backend/.venv
+.git
+**/__pycache__
+.env
+AcessoVM.txt

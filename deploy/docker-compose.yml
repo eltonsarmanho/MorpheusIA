@@ -1,0 +1,28 @@
+# Backend do piloto TJPA na VM srv1633081. Convive com Chatwoot e dashboard sem alterá-los:
+# entra na rede do Chatwoot só para falar com ele internamente e publica apenas em 127.0.0.1.
+services:
+  tjpa-backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    container_name: tjpa_backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+      SOURCES_FILE: /app/config/sources.yaml
+    volumes:
+      - ./data:/data
+    ports:
+      - "127.0.0.1:8300:8300"
+    networks: [chatwoot_net]
+    mem_limit: 700m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8300/health',timeout=5)"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+networks:
+  chatwoot_net:
+    external: true
+    name: chatwoot_chatwoot_net
