@@ -122,6 +122,10 @@ Itens que a rodada 3 deixou em aberto (detalhes com arquivo e linha em `.specs/f
 
 Depois da rodada 3 corrigi, **sem nova verificação independente**: o separador de milhar em número de artigo e as unidades "semanas" na verificação numérica; a retomada da automação passou a ignorar o responsável humano antigo (B13); e adicionei testes para os mutantes N105, Q01b, Q02e, Q03, Q05, Q05d, Q04b e Q08b/c (suíte: 267 testes). Seguem abertos: T16 (console no navegador), o coletor não preencher `valid_from`/`valid_until` (COL-02 só guarda a data de publicação e o indicador de vigência) e o gate Build com o índice real depois dessas correções. Como o processo permite no máximo 3 rodadas, a decisão sobre aceitar o FAIL fica com o responsável. Pela regra do processo, o veredito FAIL impede declarar a feature concluída.
 
+## 6.1 Fluxo guiado, protocolo e /encerrar (2026-10-09, após o pedido do usuário)
+
+Mudanças fora das três rodadas de verificação independente (**sem nova verificação**). Testes: 295 passando, incluindo `test_rich_flow.py`. Teste real no Chatwoot 4.11.1 (inbox de API temporária, já removida): abertura de protocolo com data e hora, menu em lista com 5 opções, lista de processos, seleção, resposta da capa com botões, transferência informando o protocolo, nota privada `/encerrar` do atendente gerando a mensagem de encerramento com o mesmo protocolo e conversa **Resolvida**, e ticket gravado como `closed` por `atendente`. **Pendente:** ver os botões e listas renderizados no WhatsApp real.
+
 ## 7. Critérios de promoção (checkpoint-promotion adaptado)
 
 Esta é uma promoção de aplicação, não de um modelo ajustado; as etapas de dados de treino e de deriva de capacidades não se aplicam. Critérios usados:

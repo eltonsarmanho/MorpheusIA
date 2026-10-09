@@ -93,6 +93,19 @@ curl -X POST https://<host>/atendimento/api/admin/conversations/1/<conversa>/res
   -d '{"actor":"nome.sobrenome","reason":"atendimento concluído"}'
 ```
 
+## 6.1 Fluxo guiado no WhatsApp, protocolo (TKT) e encerramento
+
+Ativo por padrão (`CHAT_RICH_FLOW=true`; com `false` o bot responde só texto, sem botões nem protocolo).
+
+- **Protocolo:** a primeira mensagem de um atendimento abre um ticket `TKT-XXXXXXXX` (8 hex), com data e hora gravadas em `operational.db` (tabela `tickets`, UTC; exibido no horário de Belém) e anunciado ao cliente. Uma nota privada com o protocolo vai para a equipe. Consulta: `GET /api/admin/tickets` ou a aba "Integração e tickets" do console.
+- **Menus:** o Chatwoot envia `input_select` ao WhatsApp Cloud: até 3 opções viram botões; de 4 a 10, lista. Menu principal (lista): 📄 Consultar processo, 🏛️ Balcão Virtual, ⚖️ Termos jurídicos, 🙋 Falar com atendente, ✅ Encerrar atendimento. Depois de escolher um processo: 📋 Dados da capa, 🗓️ Cronologia, 🔎 Outra pergunta. Depois de cada resposta: 📋 Menu principal, 🙋 Atendente, ✅ Encerrar. Texto livre só em "Outra pergunta/dúvida/termo" e quando o usuário simplesmente escreve. O clique chega como o título da opção; o reconhecimento ignora emoji e pontuação.
+- **Quem encerra:** o atendimento só termina (1) pelo usuário, na opção ✅ Encerrar (ou escrevendo "encerrar"); (2) pelo atendente, com a nota privada `/encerrar`; ou (3) quando alguém marca a conversa como Resolvida no Chatwoot. Nos três casos o ticket é fechado, o cliente recebe a mensagem de encerramento com o protocolo e a conversa fica **Resolvida** no Chatwoot. O bot nunca encerra por conta própria.
+- **Novo contato:** depois de um encerramento, a próxima mensagem abre um novo protocolo e devolve a conversa à automação (estado `automation_resumed`, auditado com ator "sistema").
+
+## 6.2 Endpoint para o painel do Chatwoot
+
+O endpoint é `POST /webhooks/chatwoot?token=<segredo>`. Hoje o Agent Bot já o usa pela rede interna. Para cadastrá-lo no painel (Configurações > Integrações > Webhooks), pegue a URL pública pronta em `GET /api/admin/integration` ou na aba "Integração e tickets" do console (eventos: `message_created`, `conversation_resolved`, `conversation_opened`). Webhook e Bot juntos não duplicam respostas, porque cada evento é identificado e processado uma só vez.
+
 ## 7. Implantação na VM
 
 A VM `srv1633081` mantém Chatwoot e dashboard; o backend entra como um contêiner a mais (`tjpa_backend`, 700 MB, porta `127.0.0.1:8300`, rede do Chatwoot) e é publicado pelo nginx em `/atendimento/`. A ingestão roda na máquina de desenvolvimento; `data/index/knowledge.db` e `data/models/` seguem para `/opt/tjpa/data`. Os procedimentos usados e o resultado estão em `docs/AVALIACAO.md` (seção Implantação).
