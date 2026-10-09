@@ -162,6 +162,19 @@ def create_app(container: Container | None = None, settings: Settings | None = N
             raise HTTPException(409, str(exc)) from exc
         return {"state": st.handoff_state.value}
 
+    @router.post("/conversations/{account_id}/{conversation_id}/retry-handoff")
+    def retry_handoff(account_id: int, conversation_id: int, body: ResumeIn) -> dict:
+        c = get_container()
+        if c.handler is None:
+            raise HTTPException(503, "integração com o Chatwoot não configurada")
+        from app.domain.handoff import InvalidTransition
+
+        try:
+            res = c.handler.retry_handoff(account_id, conversation_id, body.actor, body.reason)
+        except InvalidTransition as exc:
+            raise HTTPException(409, str(exc)) from exc
+        return {"outcome": res.outcome, "detail": res.detail}
+
     @router.post("/collect")
     def collect(body: CollectIn) -> dict:
         from app.application.collection.service import CollectionError

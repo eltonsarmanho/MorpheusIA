@@ -6,6 +6,7 @@ Os índices contêm apenas trechos elegíveis e, ainda assim, toda leitura reapl
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sqlite3
@@ -57,6 +58,7 @@ CREATE INDEX IF NOT EXISTS ix_chunks_doc ON chunks(doc_id);
 CREATE INDEX IF NOT EXISTS ix_chunks_hash ON chunks(content_hash);
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(text, ctx, tokenize='unicode61 remove_diacritics 2');
 CREATE TABLE IF NOT EXISTS embeddings (chunk_id INTEGER PRIMARY KEY, vec BLOB NOT NULL);
+CREATE TABLE IF NOT EXISTS embedding_cache (key TEXT PRIMARY KEY, vec BLOB NOT NULL);
 CREATE TABLE IF NOT EXISTS curation_decisions (
   id INTEGER PRIMARY KEY AUTOINCREMENT, doc_id TEXT, content_hash TEXT, decision TEXT, reviewer TEXT, reason TEXT,
   access_class TEXT, decided_at TEXT
@@ -69,7 +71,9 @@ CREATE TABLE IF NOT EXISTS ingestion_runs (id INTEGER PRIMARY KEY AUTOINCREMENT,
 _ELIGIBLE = "d.review_state = 'approved' AND d.access_class = 'public' AND d.active = 1"
 _STOP = frozenset(
     "a o as os um uma de do da dos das em no na nos nas por para com sem sobre entre e ou que qual quais como quando onde "
-    "se ao aos à às é são foi ser ter tem há me meu minha seu sua isso este esta esse essa qual quem pode posso quero".split()
+    "se ao aos à às é são foi ser ter tem há me meu minha seu sua isso este esta esse essa qual quem pode posso quero "
+    "liste listar mostre mostrar informe informar diga dizer explique explicar resuma resumir apresente favor gostaria poderia preciso saber "
+    "fale falar conte contar traga trazer qual quais quanto quanta quantos quantas".split()
 )
 
 
@@ -115,6 +119,7 @@ class SqliteKnowledgeStore:
         self._ids: np.ndarray | None = None
         self._domains: np.ndarray | None = None
         self._proc: np.ndarray | None = None
+        self._dates: np.ndarray | None = None
         self._dirty = True
 
     # ------------------------------------------------------------------ util
@@ -179,6 +184,10 @@ class SqliteKnowledgeStore:
                 "INSERT INTO pages VALUES(:process_key,:pdf_page,:pje_doc_id,:pje_page,:method,:chars,:ocr_conf,:status)", pages
             )
 
+    def confirm_process_sha(self, process_key: str, sha256: str) -> None:
+        with self._lock, self._conn:
+            self._conn.execute("UPDATE processes SET sha256=? WHERE process_key=?", (sha256, process_key))
+
     def lookup_decision(self, doc_id: str, content_hash: str) -> dict[str, Any] | None:
         row = self._exec(
             "SELECT * FROM curation_decisions WHERE doc_id=? AND content_hash=? ORDER BY id DESC LIMIT 1",
@@ -233,6 +242,29 @@ class SqliteKnowledgeStore:
                 (c.doc_id, c.domain.value, c.seq, c.page, c.pje_page, c.text, c.context, c.content_hash),
             )
 
+    def warm_embedding_cache(self, model_name: str) -> int:
+        """Copia os vetores já indexados para o cache por conteúdo, para que reprocessar não os recalcule."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT c.ctx, c.text, e.vec FROM embeddings e JOIN chunks c ON c.chunk_id=e.chunk_id"
+            ).fetchall()
+        n = 0
+        with self._lock, self._conn:
+            for r in rows:
+                t = f"{r['ctx']}\n{r['text']}" if r["ctx"] else r["text"]
+                key = hashlib.sha1(f"{model_name}\x00{t}".encode()).hexdigest()
+                cur = self._conn.execute("INSERT OR IGNORE INTO embedding_cache VALUES(?,?)", (key, r["vec"]))
+                n += cur.rowcount
+        return n
+
+    def _cache_get(self, key: str) -> np.ndarray | None:
+        r = self._exec("SELECT vec FROM embedding_cache WHERE key=?", (key,)).fetchone()
+        return np.frombuffer(r["vec"], dtype=np.float32) if r else None
+
+    def _cache_put(self, key: str, vec: np.ndarray) -> None:
+        with self._lock, self._conn:
+            self._conn.execute("INSERT OR REPLACE INTO embedding_cache VALUES(?,?)", (key, vec.astype(np.float32).tobytes()))
+
     # ----------------------------------------------------------- indexação
     def _drop_index(self, doc_id: str) -> None:
         ids = [r["chunk_id"] for r in self._conn.execute("SELECT chunk_id FROM chunks WHERE doc_id=?", (doc_id,))]
@@ -272,7 +304,15 @@ class SqliteKnowledgeStore:
         for i in range(0, len(rows), batch_size):
             batch = rows[i : i + batch_size]
             texts = [f"{r['ctx']}\n{r['text']}" if r["ctx"] else r["text"] for r in batch]
-            vectors = embedder.embed_documents(texts)
+            keys = [hashlib.sha1(f"{embedder.name}\x00{t}".encode()).hexdigest() for t in texts]
+            cached = {k: v for k in keys if (v := self._cache_get(k)) is not None}
+            todo = [i for i, k in enumerate(keys) if k not in cached]
+            if todo:  # só calcula vetores de conteúdo novo; reprocessar o mesmo texto reaproveita o cache
+                fresh = embedder.embed_documents([texts[i] for i in todo])
+                for i, v in zip(todo, fresh):
+                    cached[keys[i]] = v.astype(np.float32)
+                    self._cache_put(keys[i], cached[keys[i]])
+            vectors = [cached[k] for k in keys]
             with self._lock, self._conn:
                 for r, v in zip(batch, vectors):
                     self._conn.execute("INSERT INTO chunks_fts(rowid,text,ctx) VALUES(?,?,?)", (r["chunk_id"], r["text"], r["ctx"] or ""))
@@ -286,17 +326,29 @@ class SqliteKnowledgeStore:
         return total
 
     def mark_duplicates(self, process_key: str) -> int:
-        """Marca trechos repetidos (mesmo hash) dentro do processo; mantém o primeiro (ING-08)."""
+        """Marca trechos repetidos (mesmo hash) dentro do processo (ING-08).
+
+        O trecho "original" é sempre o primeiro de um documento aprovado; trecho de documento retido nunca
+        serve de original para um aprovado (senão o aprovado ficaria sem índice).
+        """
         with self._lock, self._conn:
             rows = self._conn.execute(
-                "SELECT c.chunk_id, c.content_hash FROM chunks c JOIN documents d ON d.doc_id=c.doc_id "
+                "SELECT c.chunk_id, c.content_hash, (d.review_state='approved') ok FROM chunks c JOIN documents d ON d.doc_id=c.doc_id "
                 "WHERE d.process_key=? ORDER BY c.chunk_id",
                 (process_key,),
             ).fetchall()
-            seen: dict[str, int] = {}
+            seen_ok: dict[str, int] = {}
+            for r in rows:
+                if r["ok"]:
+                    seen_ok.setdefault(r["content_hash"], r["chunk_id"])
+            seen_other: dict[str, int] = {}
             dups = 0
             for r in rows:
-                first = seen.setdefault(r["content_hash"], r["chunk_id"])
+                h = r["content_hash"]
+                if r["ok"]:
+                    first = seen_ok[h]
+                else:
+                    first = seen_ok.get(h) or seen_other.setdefault(h, r["chunk_id"])
                 if first != r["chunk_id"]:
                     self._conn.execute("UPDATE chunks SET duplicate_of=? WHERE chunk_id=?", (first, r["chunk_id"]))
                     dups += 1
@@ -399,6 +451,13 @@ class SqliteKnowledgeStore:
         ).fetchall()
         return [dict(r) for r in rows]
 
+    def approved_process_numbers(self) -> list[str]:
+        """Processos que têm ao menos um documento elegível (candidatos legítimos a esclarecimento)."""
+        rows = self._exec(
+            f"SELECT DISTINCT d.process_number FROM documents d WHERE d.process_number IS NOT NULL AND {_ELIGIBLE} ORDER BY d.process_number"
+        ).fetchall()
+        return [r["process_number"] for r in rows]
+
     def latest_document(self, process_number: str, type_like: str) -> DocumentRecord | None:
         """Documento mais recente por DATA DO DOCUMENTO (tabela da capa), nunca por data de indexação."""
         r = self._exec(
@@ -421,7 +480,7 @@ class SqliteKnowledgeStore:
 
     # ----------------------------------------------------------------- busca
     def search_lexical(
-        self, query: str, domain: KnowledgeDomain, limit: int, process_number: str | None = None
+        self, query: str, domain: KnowledgeDomain, limit: int, process_number: str | None = None, doc_date: str | None = None
     ) -> list[tuple[int, float]]:
         q = fts_query(query)
         if not q:
@@ -434,6 +493,8 @@ class SqliteKnowledgeStore:
         params: list[Any] = [q, domain.value]
         if process_number:
             sql += " AND d.process_number=?"; params.append(process_number)
+        if doc_date:
+            sql += " AND d.doc_date=?"; params.append(doc_date)
         sql += " ORDER BY s LIMIT ?"
         params.append(limit)
         try:
@@ -445,12 +506,12 @@ class SqliteKnowledgeStore:
     def _reload_vectors(self) -> None:
         with self._lock:
             rows = self._conn.execute(
-                "SELECT e.chunk_id, e.vec, c.domain, COALESCE(d.process_number,'') pn FROM embeddings e "
+                "SELECT e.chunk_id, e.vec, c.domain, COALESCE(d.process_number,'') pn, COALESCE(d.doc_date,'') dd FROM embeddings e "
                 "JOIN chunks c ON c.chunk_id=e.chunk_id JOIN documents d ON d.doc_id=c.doc_id "
                 f"WHERE {_ELIGIBLE}"
             ).fetchall()
         if not rows:
-            self._matrix, self._ids, self._domains, self._proc = None, None, None, None
+            self._matrix, self._ids, self._domains, self._proc, self._dates = None, None, None, None, None
         else:
             self._matrix = np.vstack([np.frombuffer(r["vec"], dtype=np.float32) for r in rows])
             norms = np.linalg.norm(self._matrix, axis=1, keepdims=True)
@@ -458,10 +519,11 @@ class SqliteKnowledgeStore:
             self._ids = np.array([r["chunk_id"] for r in rows], dtype=np.int64)
             self._domains = np.array([r["domain"] for r in rows])
             self._proc = np.array([r["pn"] for r in rows])
+            self._dates = np.array([r["dd"] for r in rows])
         self._dirty = False
 
     def search_vector(
-        self, vector: np.ndarray, domain: KnowledgeDomain, limit: int, process_number: str | None = None
+        self, vector: np.ndarray, domain: KnowledgeDomain, limit: int, process_number: str | None = None, doc_date: str | None = None
     ) -> list[tuple[int, float]]:
         if self._dirty:
             self._reload_vectors()
@@ -470,6 +532,8 @@ class SqliteKnowledgeStore:
         mask = self._domains == domain.value
         if process_number:
             mask &= self._proc == process_number
+        if doc_date:
+            mask &= self._dates == doc_date
         idx = np.flatnonzero(mask)
         if idx.size == 0:
             return []

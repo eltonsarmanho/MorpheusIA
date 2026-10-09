@@ -26,6 +26,7 @@ from app.domain.models import (
 )
 from app.domain.policies import find_process_numbers
 from app.domain.ports import KnowledgeStore, LlmGenerator
+from app.infrastructure.sqlite.knowledge_store import query_terms
 from app.infrastructure.sqlite.operational_store import ConversationState
 
 log = logging.getLogger(__name__)
@@ -48,7 +49,21 @@ LABEL_BY_INTENT = {
     Intent.DUVIDA_JURIDICA: "duvida_institucional",
 }
 
-_AFFIRMATIVE = re.compile(r"^\s*(sim|s|pode|quero|por favor|ok|claro|aceito|pode sim|sim,? (pode|quero)|encaminh\w+)[\s!.]*$", re.I)
+GENERIC_PROCESS_TERMS = frozenset(
+    "processo processos autos decisao decisoes despacho sentenca certidao peticao audiencia movimentacao movimentacoes documento documentos "
+    "valor causa reu autor autora parte partes juiz juiza vara data datas ultima ultimo recente mais cronologia andamento situacao "
+    "foi quando quem onde qual quais existe existem acervo demonstracao tem ter deve mandado intimacao citacao acordao voto recurso".split()
+)
+_YES = frozenset("sim s pode quero claro aceito ok okay certo encaminhe encaminhar encaminha por favor gostaria".split())
+_NO = frozenset("nao não n nunca jamais".split())
+
+
+def _is_affirmative(text: str) -> bool:
+    """Resposta curta de aceite ao oferecimento de encaminhamento ("sim", "pode encaminhar", "quero sim")."""
+    words = re.findall(r"[a-zà-ÿ]+", text.lower())
+    return 0 < len(words) <= 6 and any(w in _YES for w in words) and not any(w in _NO for w in words) and "?" not in text
+
+
 _LIST_PROCESSES = re.compile(r"(?i)\b(quais|que|lista|listar|liste|mostre|quantos)\b.{0,30}\b(processos|autos)\b|\bacervo\b")
 _RECENT = re.compile(r"(?i)\b(mais recente|ultim[ao]|ultima|recentemente)\b")
 _DOC_TYPES = (
@@ -101,6 +116,17 @@ class Orchestrator:
 
     # ------------------------------------------------------------------ API
     def respond(self, message: str, st: ConversationState) -> Turn:
+        """Entrada única: qualquer falha inesperada vira abstenção técnica, nunca silêncio para o usuário."""
+        try:
+            return self._respond(message, st)
+        except QuestionError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            log.exception("falha inesperada no orquestrador")
+            trace = {"error": type(exc).__name__}
+            return self._abstention(st, None, None, self._technical_text(), "falha_interna", trace, ["ia_orquestrador", "ia_falha"], technical=True)
+
+    def _respond(self, message: str, st: ConversationState) -> Turn:
         text = (message or "").strip()
         if not text:
             raise QuestionError("pergunta vazia")
@@ -108,7 +134,7 @@ class Orchestrator:
             raise QuestionError(f"pergunta excede {self.cfg.max_question_chars} caracteres")
 
         st.profile = detect_profile(text, st.profile)
-        if st.offer_pending and _AFFIRMATIVE.match(text):
+        if st.offer_pending and _is_affirmative(text):
             return self._handoff(st, "usuário aceitou o encaminhamento oferecido", self._team_for(st.last_domain), None)
         st.offer_pending = False
 
@@ -148,7 +174,15 @@ class Orchestrator:
             if isinstance(recent, RetrievalResult):
                 return self._generate(text, recent, st, domain, intent.intent, trace, labels)
 
-        result, attempts = self._retrieve(text, domain, st)
+        if domain is KnowledgeDomain.PROCESSUAL and not st.process_number and self._lacks_process_identity(text):
+            return self._clarify(st, domain, intent.intent, self.store.approved_process_numbers()[:6], trace, labels)  # type: ignore[attr-defined]  # ORQ-03
+
+        try:
+            result, attempts = self._retrieve(text, domain, st)
+        except Exception as exc:  # noqa: BLE001 - falha do mecanismo de recuperação vira abstenção técnica
+            log.exception("falha na recuperação")
+            trace["retrieval_error"] = type(exc).__name__
+            return self._abstention(st, domain, intent.intent, self._technical_text(), "falha_na_recuperacao", trace, labels + ["ia_falha"], technical=True)
         trace.update(attempts=attempts, **{f"retrieval_{k}": v for k, v in result.stages.items()})
         trace["abstain_reason"] = result.abstain_reason
 
@@ -161,14 +195,21 @@ class Orchestrator:
         if not result.sufficient:
             return self._abstention(st, domain, intent.intent, self._abstain_text(domain), result.abstain_reason or "insuficiente", trace, labels)
 
-        if domain is KnowledgeDomain.PROCESSUAL and not st.process_number:
-            procs = list(dict.fromkeys(e.citation.get("processo") for e in result.evidences[:3] if e.citation.get("processo")))
-            if len(procs) >= 2:
-                return self._clarify(st, domain, intent.intent, procs, trace, labels)
-            if len(procs) == 1 and all(e.citation.get("processo") == procs[0] for e in result.evidences):
-                st.process_number = procs[0]
+        inferred: str | None = None
+        if domain is KnowledgeDomain.PROCESSUAL and not st.process_number and result.evidences:
+            inferred = result.evidences[0].citation.get("processo") or None  # processo do trecho mais bem classificado
+            if inferred:
+                st.process_number = inferred
+                trace["process_inferred"] = inferred
 
-        return self._generate(text, result, st, domain, intent.intent, trace, labels)
+        return self._generate(text, result, st, domain, intent.intent, trace, labels, inferred_process=inferred)
+
+    @staticmethod
+    def _lacks_process_identity(text: str) -> bool:
+        """Pergunta sobre "o" processo sem número e sem conteúdo que o identifique (nomes, assuntos, objetos)."""
+        specific = {t for t in query_terms(text) if t not in GENERIC_PROCESS_TERMS and not t.isdigit()}
+        has_names = bool(re.search(r"(?<![.!?]\s)(?<!^)\b[A-ZÀ-Ý][a-zà-ÿ]{2,}", text))  # nome próprio fora do início de frase
+        return len(specific) < 2 and not has_names
 
     # -------------------------------------------------------------- recuperação
     def _retrieve(self, text: str, domain: KnowledgeDomain, st: ConversationState) -> tuple[RetrievalResult, int]:
@@ -194,7 +235,7 @@ class Orchestrator:
 
     # ----------------------------------------------------------------- geração
     def _generate(self, question: str, result: RetrievalResult, st: ConversationState, domain: KnowledgeDomain, intent: Intent,
-                  trace: dict, labels: list[str]) -> Turn:
+                  trace: dict, labels: list[str], inferred_process: str | None = None) -> Turn:
         if self.llm is None:
             return self._abstention(st, domain, intent, self._abstain_text(domain), "llm_indisponivel", trace, labels)
         evidences = result.evidences
@@ -215,9 +256,10 @@ class Orchestrator:
                 break
         assert answer is not None
         if not answer.parse_ok:
-            return self._abstention(st, domain, intent, self._technical_text(), "saida_do_modelo_invalida", trace, labels + ["ia_falha"], technical=True)
-        if answer.handoff:
-            return self._handoff(st, "o modelo indicou necessidade de atuação humana", self._team_for(domain.value), intent, trace, labels)
+            # sem JSON não há resposta verificável; abstém com o texto padrão (não é falha técnica do usuário)
+            return self._abstention(st, domain, intent, self._abstain_text(domain, grounded=False), "saida_do_modelo_invalida", trace, labels + ["ia_falha"])
+        if answer.handoff:  # o modelo sugere; quem decide a transferência é o usuário (aceite) ou a regra de falhas seguidas
+            return self._abstention(st, domain, intent, self._suggest_handoff_text(), "modelo_sugeriu_encaminhamento", trace, labels)
         if not answer.sufficient:
             return self._abstention(st, domain, intent, self._abstain_text(domain), "modelo_declarou_insuficiencia", trace, labels)
 
@@ -227,6 +269,10 @@ class Orchestrator:
             return self._abstention(st, domain, intent, self._abstain_text(domain, grounded=False), "fundamentacao_nao_verificada", trace, labels)
 
         text, citations = self._render(answer, label_map)
+        if trace.get("recency_criterion"):
+            text += f"\n\nCritério de \"mais recente\": {trace['recency_criterion']} (não a data de indexação)."
+        if inferred_process:
+            text = f"Considerei o processo {inferred_process}, o que mais corresponde à sua pergunta; se for outro, informe o número.\n\n{text}"
         if domain is KnowledgeDomain.PROCESSUAL:
             text += f"\n\n{DISCLAIMER_PROCESSUAL}"
         st.failed_retrievals = 0
@@ -310,6 +356,11 @@ class Orchestrator:
         why = "Não encontrei" if grounded else "Não consegui confirmar com segurança"
         return (f"{why} {where} informação suficiente para responder a essa pergunta. Prefiro não arriscar uma resposta sem fundamento. "
                 "Você pode reformular a pergunta ou, se preferir, posso encaminhar você a um atendente humano. Deseja o encaminhamento?")
+
+    @staticmethod
+    def _suggest_handoff_text() -> str:
+        return ("Esta demanda parece exigir a atuação de uma pessoa, e não consigo atendê-la com segurança por aqui. "
+                "Deseja que eu encaminhe a conversa para um atendente humano?")
 
     @staticmethod
     def _technical_text() -> str:

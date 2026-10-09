@@ -1,0 +1,13 @@
+# Conjunto de validação separado: escrito DEPOIS do ajuste do recuperador (limiares, filtro de data, reforço da capa) e
+# nunca usado para ajustar nada. Cada "gold" é um trecho literal do texto extraído dos PDFs (verificado com grep em 2026-10-09).
+questions:
+  - {id: H01, cat: conteudo, q: "Quais crimes o Ministério Público imputou ao denunciado no processo 6052705-98.2026.8.03.0001?", gold_any: ["147 (Ameaça)", "Violação de Domicílio"], expect: answer, process: "6052705-98.2026.8.03.0001"}
+  - {id: H02, cat: multi_trecho, q: "Quais bens foram danificados ou subtraídos no processo 6052705-98.2026.8.03.0001?", gold_all: ["duas câmeras de monitoramento", "cadeira de praia"], expect: answer, process: "6052705-98.2026.8.03.0001"}
+  - {id: H03, cat: direta, q: "Qual companhia aérea é a ré no processo 6066029-58.2026.8.03.0001?", gold_any: ["LATAM AIRLINES BRASIL"], expect: answer, process: "6066029-58.2026.8.03.0001"}
+  - {id: H04, cat: conteudo, q: "Que evento os autores iam frequentar no processo 6066029-58.2026.8.03.0001?", gold_any: ["Congresso Nacional de Compras da Segurança Pública"], expect: answer, process: "6066029-58.2026.8.03.0001"}
+  - {id: H05, cat: conteudo, q: "A que horas o voo LA3861 partiu, segundo o processo 6066029-58.2026.8.03.0001?", gold_any: ["18h10"], expect: answer, must_contain: ["18h10"], process: "6066029-58.2026.8.03.0001"}
+  - {id: H06, cat: direta, q: "Qual a classe e o órgão julgador do processo 6074243-72.2025.8.03.0001?", gold_all: ["AÇÃO PENAL", "2ª Vara Criminal de Macapá"], expect: answer, process: "6074243-72.2025.8.03.0001"}
+  - {id: H07, cat: conteudo, q: "Em qual inquérito policial se baseia a denúncia do processo 6052705-98.2026.8.03.0001?", gold_any: ["5148/2026"], expect: answer, must_contain: ["5148/2026"], process: "6052705-98.2026.8.03.0001"}
+  - {id: H08, cat: direta, q: "Quais assuntos constam na capa do processo 6054822-33.2024.8.03.0001?", gold_any: ["Cancelamento de vôo"], expect: answer, process: "6054822-33.2024.8.03.0001"}
+  - {id: H09, cat: sem_resposta, q: "Qual o valor da indenização por danos morais fixado na sentença do processo 6052705-98.2026.8.03.0001?", expect: abstain}
+  - {id: H10, cat: sem_resposta, q: "Qual a data da audiência de instrução do processo 6066029-58.2026.8.03.0001?", expect: abstain}

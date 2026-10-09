@@ -6,7 +6,10 @@ import hashlib
 import re
 import unicodedata
 
+# 900 caracteres: medido em 28 perguntas com ouro literal, trechos de 900 recuperaram 24 delas contra 20 com 520
+# (hipótese inicial de que o vetor ignorava a cauda além de 128 tokens não se confirmou na recuperação híbrida).
 MAX_CHUNK_CHARS = 900
+MIN_CHUNK_ALNUM = 6  # despachos curtos ("Defiro.", "Cite-se a ré.") precisam virar trecho
 OVERLAP_CHARS = 100
 
 _HYPHEN_BREAK = re.compile(r"(\w)-\n\s*([a-zà-ÿ])")
@@ -14,9 +17,27 @@ _SPACES = re.compile(r"[ \t ]+")
 _BLANKS = re.compile(r"\n{3,}")
 
 
+_CP1252_SPECIALS = "\u20ac\u201a\u0192\u201e\u2026\u2020\u2021\u02c6\u2030\u0160\u2039\u0152\u017d\u2018\u2019\u201c\u201d\u2022\u2013\u2014\u02dc\u2122\u0161\u203a\u0153\u017e\u0178"
+_MOJIBAKE = re.compile(rf"([ÃÂ])([\u0080-\u00bf{_CP1252_SPECIALS}])")
+
+
+def _repair_pair(m: re.Match[str]) -> str:
+    lead, cont = m.group(1), m.group(2)
+    try:
+        byte2 = cont.encode("cp1252")[0] if ord(cont) > 0xFF or 0x80 <= ord(cont) <= 0x9F else ord(cont)
+        return bytes([0xC3 if lead == "Ã" else 0xC2, byte2]).decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError, IndexError):
+        return m.group(0)
+
+
+def fix_mojibake(text: str) -> str:
+    """Repara UTF-8 lido como Latin-1/CP1252 ("HonorÃ¡rios" -> "Honorários"), par a par, sem tocar em texto correto."""
+    return _MOJIBAKE.sub(_repair_pair, text) if _MOJIBAKE.search(text) else text
+
+
 def normalize_text(text: str) -> str:
     """Une hifenização de fim de linha e compacta espaços, preservando parágrafos."""
-    t = unicodedata.normalize("NFC", text.replace("\r", ""))
+    t = unicodedata.normalize("NFC", fix_mojibake(text.replace("\r", "")))
     t = t.replace("­", "")
     t = _HYPHEN_BREAK.sub(r"\1\2", t)
     lines = [_SPACES.sub(" ", ln).strip() for ln in t.split("\n")]
@@ -63,4 +84,4 @@ def chunk_text(text: str, max_chars: int = MAX_CHUNK_CHARS, overlap: int = OVERL
             cur = f"{cur}\n{piece}".strip()
     if cur:
         chunks.append(cur)
-    return [c for c in chunks if len(re.sub(r"\W", "", c)) >= 20]
+    return [c for c in chunks if len(re.sub(r"\W", "", c)) >= MIN_CHUNK_ALNUM]

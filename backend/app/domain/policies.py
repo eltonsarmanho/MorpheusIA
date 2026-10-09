@@ -96,8 +96,8 @@ class AbstentionPolicy:
     """Critérios verificáveis de abstenção (RAG-04)."""
 
     min_fused_score: float = 0.0
-    min_lexical_hits: int = 1
     min_evidences: int = 1
     min_term_coverage: float = 0.34
+    min_vector_score: float = 0.45  # calibrado em evals: ruído fora do acervo fica abaixo; perguntas respondíveis ficam acima de 0,59
     max_context_chars: int = 7000
     top_k: int = 6

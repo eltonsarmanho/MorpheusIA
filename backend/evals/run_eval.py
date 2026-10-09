@@ -23,11 +23,11 @@ from app.domain.models import KnowledgeDomain, ResponseKind
 from app.infrastructure.sqlite.knowledge_store import fold
 from app.infrastructure.sqlite.operational_store import ConversationState
 
-QUESTIONS = Path(__file__).with_name("questions.yaml")
+SETS = {"dev": "questions.yaml", "heldout": "heldout.yaml", "heldout2": "heldout2.yaml"}
 
 
-def load_questions() -> list[dict]:
-    return yaml.safe_load(QUESTIONS.read_text(encoding="utf-8"))["questions"]
+def load_questions(which: str = "dev") -> list[dict]:
+    return yaml.safe_load(Path(__file__).with_name(SETS[which]).read_text(encoding="utf-8"))["questions"]
 
 
 def _contains(haystack: str, needle: str) -> bool:
@@ -148,13 +148,14 @@ def main() -> int:
     p.add_argument("--k", type=int, default=6)
     p.add_argument("--judge", action="store_true")
     p.add_argument("--only", nargs="*")
+    p.add_argument("--set", choices=list(SETS), default="dev")
     args = p.parse_args()
     s = get_settings()
     c = build_container(s, gateway=None, llm=None if args.mode == "retrieval" else None)
-    qs = [q for q in load_questions() if not args.only or q["id"] in args.only]
+    qs = [q for q in load_questions(args.set) if not args.only or q["id"] in args.only]
     out = retrieval_eval(c, qs, args.k) if args.mode == "retrieval" else e2e_eval(c, qs, args.judge)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
-    path = s.data_dir / "reports" / f"eval-{args.mode}-{stamp}.json"
+    path = s.data_dir / "reports" / f"eval-{args.set}-{args.mode}-{stamp}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     summary = out if args.mode == "retrieval" else out["summary"]

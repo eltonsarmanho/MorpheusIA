@@ -39,24 +39,57 @@ class RetrievalResult:
 
 
 _COVER_TERMS = frozenset(
-    "valor causa assunto assuntos classe vara orgao julgador partes parte autor autora reu requerente requerido advogado advogados "
-    "distribuicao distribuido distribuida segredo gratuita gratuidade cronologia documentos movimentacoes andamento tribunal".split()
+    "valor causa assunto assuntos classe vara orgao julgador partes distribuicao distribuido distribuida segredo gratuidade "
+    "cronologia documentos movimentacoes andamento autor autora autores re reu reus requerente requerido advogado advogados".split()
+)
+_TIMELINE_TERMS = frozenset("cronologia documentos movimentacoes andamento".split())
+# Se a pergunta já aponta um tipo de documento, a recuperação normal é mais precisa que a ficha da capa.
+_DOC_TYPE_TERMS = frozenset(
+    "decisao decisoes despacho despachos sentenca acordao voto ementa peticao certidao mandado intimacao contestacao replica recurso "
+    "apelacao audiencia denuncia procuracao".split()
 )
 
 
-def asks_about_cover(query: str) -> bool:
-    """A pergunta é sobre dados da capa do processo (classe, vara, valor, partes, cronologia)?"""
-    return len(_COVER_TERMS & set(query_terms(query))) >= 1
+def cover_boost_size(query: str) -> int:
+    """Quantos trechos da capa trazer: 0 (não é pergunta de capa), 1 (ficha) ou 3 (ficha + cronologia)."""
+    terms = set(re.findall(r"[a-z0-9]+", fold(query)))  # sem filtro de tamanho: "ré" vira "re"
+    if not (_COVER_TERMS & terms) or (_DOC_TYPE_TERMS & terms):
+        return 0
+    return 3 if _TIMELINE_TERMS & terms else 1
+
+
+_PREAMBLE = re.compile(r"(?i)^\s*(sou|eu sou|meu nome|ol[aá]|oi|bom dia|boa tarde|boa noite|prezad[oa]s?)\b")
+_OAB = re.compile(r"(?i)\boab\s*/?\s*[a-z]{0,2}\s*[\d.\-]+")
+
+
+def content_query(query: str) -> str:
+    """Remove apresentação pessoal e número de OAB, que não precisam existir nas evidências para a resposta ser suficiente."""
+    parts = [p for p in re.split(r"(?<=[.!?])\s+", _OAB.sub(" ", query)) if p.strip()]
+    kept = [p for p in parts if not _PREAMBLE.match(p)]
+    return " ".join(kept or parts)
+
+
+_DATE_BR = re.compile(r"(?<!\d)(\d{1,2})/(\d{1,2})/(\d{4})(?!\d)")
+
+
+def find_query_date(query: str) -> str | None:
+    m = _DATE_BR.search(query)
+    return f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}" if m else None
+
+
+def _stem(term: str) -> str:
+    t = term[:-1] if term.endswith("s") and len(term) > 3 else term
+    return t if len(t) <= 5 else t[: len(t) - 2]
 
 
 def term_coverage(query: str, evidences: Sequence[Evidence]) -> float:
     """Fração dos termos da pergunta que aparece em algum trecho recuperado (critério de suficiência)."""
-    terms = set(query_terms(query))
+    terms = set(query_terms(content_query(query)))
     terms = {t for t in terms if not t.isdigit()} or terms
     if not terms:
         return 0.0
     haystack = fold(" ".join(e.text + " " + (e.citation.get("titulo") or "") for e in evidences))
-    found = sum(1 for t in terms if re.search(rf"\b{re.escape(t)}", haystack))
+    found = sum(1 for t in terms if re.search(rf"\b{re.escape(_stem(t))}", haystack))
     return found / len(terms)
 
 
@@ -83,6 +116,8 @@ class HybridRetriever:
 
     def retrieve(self, query: str, domain: KnowledgeDomain, *, process_number: str | None = None) -> RetrievalResult:
         stages: dict[str, object] = {"domain": domain.value}
+        if domain is not KnowledgeDomain.PROCESSUAL:
+            process_number = None  # número de processo só filtra o acervo processual
         numbers = find_process_numbers(query)
         unknown: list[str] = []
         if domain is KnowledgeDomain.PROCESSUAL and numbers:
@@ -95,9 +130,16 @@ class HybridRetriever:
                 # RAG-04: número citado e ausente do acervo — não responder com outro processo
                 return RetrievalResult([], None, unknown, 0.0, "processo_ausente_do_acervo", stages)
 
-        lex = self.store.search_lexical(query, domain, self.candidates, process_number)
         qvec = self.embedder.embed_query(query)
-        vec = self.store.search_vector(qvec, domain, self.candidates, process_number)
+        doc_date = find_query_date(query) if domain is KnowledgeDomain.PROCESSUAL else None
+        lex = vec = []
+        if doc_date:  # filtro por data do documento; se nenhum documento tem essa data, volta à busca sem filtro
+            lex = self.store.search_lexical(query, domain, self.candidates, process_number, doc_date)
+            vec = self.store.search_vector(qvec, domain, self.candidates, process_number, doc_date)
+            stages["date_filter"] = doc_date if (lex or vec) else None
+        if not (lex or vec):
+            lex = self.store.search_lexical(query, domain, self.candidates, process_number)
+            vec = self.store.search_vector(qvec, domain, self.candidates, process_number)
         stages.update(lexical_hits=len(lex), vector_hits=len(vec))
         if not lex and not vec:
             return RetrievalResult([], process_number, unknown, 0.0, "sem_resultados", stages)
@@ -116,10 +158,13 @@ class HybridRetriever:
             for c in ordered if c in loaded
         ]
         stages["fused"] = len(evidences)
-        if domain is KnowledgeDomain.PROCESSUAL and process_number and asks_about_cover(query):
+        top_vec = max([e.vector_score or 0.0 for e in evidences] or [0.0])
+        stages["top_vector_score"] = round(top_vec, 3)
+        boost = cover_boost_size(query) if domain is KnowledgeDomain.PROCESSUAL and process_number else 0
+        if boost:
             cover_fn = getattr(self.store, "evidences_for_doc", None)
             if cover_fn:  # regra transparente: perguntas sobre a capa trazem a ficha do processo primeiro
-                covers = [replace(e, score=1.0) for e in cover_fn(f"proc-{process_number}:capa", 2)]
+                covers = [replace(e, score=1.0) for e in cover_fn(f"proc-{process_number}:capa", boost)]
                 have = {e.chunk_id for e in covers}
                 evidences = covers + [e for e in evidences if e.chunk_id not in have]
                 stages["cover_boost"] = len(covers)
@@ -132,14 +177,16 @@ class HybridRetriever:
                 stages["reranked"] = False
         evidences = evidences[: self.policy.top_k]
         coverage = term_coverage(query, evidences)
-        reason = self._abstention(evidences, coverage)
+        reason = self._abstention(evidences, coverage, top_vec)
         stages["coverage"] = round(coverage, 3)
         return RetrievalResult(evidences, process_number, unknown, coverage, reason, stages)
 
-    def _abstention(self, evidences: list[Evidence], coverage: float) -> str | None:
+    def _abstention(self, evidences: list[Evidence], coverage: float, top_vec: float = 1.0) -> str | None:
         p = self.policy
         if len(evidences) < p.min_evidences:
             return "evidencias_insuficientes"
+        if top_vec < p.min_vector_score:
+            return "baixa_similaridade_semantica"
         if not any(e.lexical_rank is not None for e in evidences):
             return "sem_correspondencia_lexical"
         if coverage < p.min_term_coverage:

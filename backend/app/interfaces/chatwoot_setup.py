@@ -4,7 +4,7 @@ Sem --apply apenas mostra o plano (dry-run). Nunca remove nem renomeia recursos 
 já presentes (comparação sem diferenciar maiúsculas; o Chatwoot grava nomes de equipes em minúsculas).
 
   python -m app.interfaces.chatwoot_setup                      # plano
-  python -m app.interfaces.chatwoot_setup --apply --webhook-url https://host/atendimento/webhooks/chatwoot
+  python -m app.interfaces.chatwoot_setup --apply --webhook-url http://tjpa_backend:8300/webhooks/chatwoot
 """
 
 from __future__ import annotations
@@ -66,6 +66,9 @@ def apply(c: ChatwootClient, webhook_url: str | None, inbox_id: int | None) -> d
             result["agent_bot"] = {"id": bot["id"], "created": True}
         else:
             result["agent_bot"] = {"id": bot["id"], "created": False}
+            if bot.get("outgoing_url") != webhook_url:
+                c.update_agent_bot(bot["id"], webhook_url)
+                result["agent_bot"]["url_updated"] = True
         if inbox_id:
             c.set_inbox_agent_bot(inbox_id, bot["id"])
             result["inbox_bound"] = inbox_id

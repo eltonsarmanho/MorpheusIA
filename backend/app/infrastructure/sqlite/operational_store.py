@@ -102,6 +102,10 @@ class OperationalStore:
             except sqlite3.IntegrityError:
                 return False
 
+    def has_event(self, event_key: str) -> bool:
+        with self._lock:
+            return self._conn.execute("SELECT 1 FROM processed_events WHERE event_key=?", (event_key,)).fetchone() is not None
+
     def release_event(self, event_key: str) -> None:
         """Libera o evento quando o processamento falhou antes de responder, permitindo a reentrega."""
         with self._lock, self._conn:

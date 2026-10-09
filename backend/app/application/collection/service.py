@@ -98,6 +98,10 @@ class CollectionService:
         if page.validity_flag == "revogado":
             state, reason = ReviewState.NEEDS_REVIEW, "a página indica norma revogada; validar vigência"
         decision = self.store.lookup_decision(doc_id, c_hash)
+        previous = self.store.get_document(doc_id)
+        if previous is not None and previous.review_state is ReviewState.STALE:
+            decision = None  # COL-05: informação desatualizada só volta com nova revisão humana, mesmo com conteúdo idêntico
+            reason = "recoletado depois de ficar desatualizado; exige nova revisão humana"
         if decision and decision["decision"] in (ReviewState.APPROVED.value, ReviewState.REJECTED.value):
             # recoleta com conteúdo idêntico renova a validade da decisão humana anterior
             state = ReviewState(decision["decision"])
@@ -121,7 +125,7 @@ class CollectionService:
         parts = split_articles(page.text) if domain is KnowledgeDomain.JURIDICO else [("", page.text)]
         for label, text in parts:
             ctx = f"{ctx_base} | {label}" if label else ctx_base
-            for piece in chunk_text(text, 900):
+            for piece in chunk_text(text):
                 chunks.append(ChunkRecord(doc_id, domain, seq, None, piece, ctx, content_hash(piece)))
                 seq += 1
         return doc, chunks

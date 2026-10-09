@@ -25,6 +25,8 @@ def build_ingestion(settings: Settings, store: SqliteKnowledgeStore, embedder: E
     cfg = IngestionConfig(
         corpus_authorized=settings.corpus_authorized,
         authorization_basis=settings.corpus_authorization_basis,
+        max_chunk_chars=settings.chunk_max_chars,
+        chunk_overlap=settings.chunk_overlap_chars,
     )
     return IngestionService(store, PopplerTextExtractor(), TesseractOcr(), embedder, cfg, page_counter=pdf_page_count)
 
@@ -90,7 +92,9 @@ def build_container(
     store = store or build_store(settings)
     ops = ops or OperationalStore(settings.resolved_operational_db())
     embedder = embedder or build_embedder(settings)
-    policy = AbstentionPolicy(min_term_coverage=settings.min_term_coverage, top_k=settings.retrieval_top_k)
+    policy = AbstentionPolicy(
+        min_term_coverage=settings.min_term_coverage, min_vector_score=settings.min_vector_score, top_k=settings.retrieval_top_k
+    )
     retriever = HybridRetriever(
         store, embedder, reranker=build_reranker(settings), policy=policy,
         candidates=settings.retrieval_candidates, rrf_k=settings.rrf_k,
@@ -100,6 +104,7 @@ def build_container(
     gateway = gateway if gateway is not None else build_gateway(settings)
     handler = ChatwootEventHandler(
         orchestrator, ops, gateway, max_handoff_attempts=settings.handoff_max_attempts, max_question_chars=settings.max_question_chars,
+        default_account_id=settings.chatwoot_account_id,
     ) if gateway is not None else None
     return Container(settings, store, ops, embedder, retriever, orchestrator, handler, gateway, llm)  # type: ignore[arg-type]
 

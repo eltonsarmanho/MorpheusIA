@@ -51,11 +51,16 @@ class Settings(BaseSettings):
     max_question_chars: int = 1000
     console_public: bool = False  # true libera /api/chat sem token (use só com limite de custo)
 
+    # Ingestão
+    chunk_max_chars: int = 900
+    chunk_overlap_chars: int = 100
+
     # Parâmetros de recuperação
     retrieval_top_k: int = 6
     retrieval_candidates: int = 40
     rrf_k: int = 60
     min_term_coverage: float = 0.34
+    min_vector_score: float = 0.45
     stale_after_days: int = 180
 
     def resolved_knowledge_db(self) -> Path:

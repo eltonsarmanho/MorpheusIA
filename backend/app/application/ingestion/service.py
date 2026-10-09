@@ -21,7 +21,7 @@ from app.application.ingestion.pje_parser import (
     parse_cover,
     segment_documents,
 )
-from app.application.ingestion.text_processing import chunk_text, content_hash, normalize_text
+from app.application.ingestion.text_processing import MAX_CHUNK_CHARS, OVERLAP_CHARS, chunk_text, content_hash, normalize_text
 from app.domain.models import (
     DESCONHECIDO,
     AccessClass,
@@ -47,7 +47,8 @@ class IngestionConfig:
     ocr_min_body_chars: int = 30
     ocr_min_confidence: float = 60.0
     ocr_workers: int = 8
-    max_chunk_chars: int = 900
+    max_chunk_chars: int = MAX_CHUNK_CHARS
+    chunk_overlap: int = OVERLAP_CHARS
     garbled_ratio: float = 0.02
 
 
@@ -166,6 +167,7 @@ class IngestionService:
             report.chunks_indexed = self.store.index_pending(
                 self.embedder, process_key=process_key, progress=lambda a, b: say(f"{path.name}: vetores {a}/{b}") if a % 2048 < 64 else None
             )
+            self.store.confirm_process_sha(process_key, sha)  # só agora o arquivo conta como processado (falha antes => reprocessa)
         except Exception as exc:  # noqa: BLE001 - registrar e seguir com os demais arquivos
             log.exception("falha ao ingerir %s", path.name)
             report.status, report.error = "error", f"{type(exc).__name__}: {exc}"[:300]
@@ -240,8 +242,9 @@ class IngestionService:
         ordered = [s for s in segments if s.pje_doc_id != "capa"] + [s for s in segments if s.pje_doc_id == "capa"]
         for seg in ordered:
             doc_id = f"{process_key}:{seg.pje_doc_id}"
+            safe_name = mask_pii(seg.name)[0]  # o nome do documento também pode trazer dado pessoal
             ctx = " | ".join(
-                x for x in (f"Processo {number}", seg.doc_type if seg.doc_type != DESCONHECIDO else "", seg.name,
+                x for x in (f"Processo {number}", seg.doc_type if seg.doc_type != DESCONHECIDO else "", safe_name,
                             seg.doc_date if seg.doc_date != DESCONHECIDO else "") if x
             )
             page_texts: list[tuple[int, int | None, str]] = []
@@ -288,11 +291,11 @@ class IngestionService:
                 "pages_needs_review": review_pages, "classe": cover.process_class, "orgao_julgador": cover.court_unit,
                 "tribunal_origem": cover.tribunal,
             }
-            if access is AccessClass.RESTRICTED:
-                hidden.add(seg.pje_doc_id)
+            if state is not ReviewState.APPROVED:
+                hidden.add(seg.pje_doc_id)  # a capa não revela o nome de documento retido, seja qual for o motivo
             docs.append(
                 DocumentRecord(
-                    doc_id=doc_id, domain=KnowledgeDomain.PROCESSUAL, title=seg.name, doc_type=seg.doc_type,
+                    doc_id=doc_id, domain=KnowledgeDomain.PROCESSUAL, title=safe_name, doc_type=seg.doc_type,
                     process_key=process_key, process_number=number,
                     pje_doc_id=None if seg.pje_doc_id == "capa" else seg.pje_doc_id, doc_date=seg.doc_date,
                     doc_date_source=seg.doc_date_source, signed_at=_dt(seg.signed_at), published_at=DESCONHECIDO,
@@ -303,7 +306,7 @@ class IngestionService:
             )
             seq = 0
             for pn, jp, t in masked_pages:
-                for piece in chunk_text(t, self.cfg.max_chunk_chars):
+                for piece in chunk_text(t, self.cfg.max_chunk_chars, self.cfg.chunk_overlap):
                     chunks.append(
                         ChunkRecord(doc_id, KnowledgeDomain.PROCESSUAL, seq, pn, piece, ctx, content_hash(piece), pje_page=jp)
                     )
@@ -337,7 +340,7 @@ class IngestionService:
     @staticmethod
     def _process_row(path: Path, key: str, number: str, sha: str, report: FileReport, cover: CoverInfo) -> dict:
         return {
-            "process_key": key, "process_number": number, "source_file": path.name, "sha256": sha,
+            "process_key": key, "process_number": number, "source_file": path.name, "sha256": "",
             "size_bytes": report.size_bytes, "pages": report.pages, "tribunal": cover.tribunal,
             "process_class": cover.process_class, "court_unit": cover.court_unit, "distribution_date": cover.distribution_date,
             "case_value": cover.case_value, "subjects": cover.subjects, "secrecy": cover.secrecy,
@@ -351,6 +354,7 @@ class IngestionService:
         report_dir: Path | None = None,
     ) -> dict:
         t0 = time.time()
+        self.store.warm_embedding_cache(self.embedder.name)
         started = datetime.now(timezone.utc).isoformat(timespec="seconds")
         inv = self.inventory(directory)
         dups = {i["file"]: i["duplicate_of"] for i in inv if i["duplicate_of"]}

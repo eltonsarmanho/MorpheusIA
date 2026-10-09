@@ -1,0 +1,11 @@
+# Segundo conjunto de validação, escrito depois dos ajustes feitos a partir do primeiro (que passou a ser conjunto de desenvolvimento).
+# Gold = trecho literal do texto extraído (verificado com grep em 2026-10-09). Rodado uma vez para reportar o número final.
+questions:
+  - {id: K01, cat: conteudo, q: "Qual o veículo objeto da ação do processo 6010907-60.2026.8.03.0001?", gold_any: ["VW GOL"], expect: answer, process: "6010907-60.2026.8.03.0001"}
+  - {id: K02, cat: conteudo, q: "O que os autores pedem em tutela de urgência no processo 6010907-60.2026.8.03.0001?", gold_any: ["BUSCA E APREENSÃO", "BAIXA DE GRAVAME"], expect: answer, process: "6010907-60.2026.8.03.0001"}
+  - {id: K03, cat: conteudo, q: "Em que período o autor deixou de receber as diferenças remuneratórias no processo 6080680-32.2025.8.03.0001?", gold_any: ["julho de 2021 à julho de 2023", "julho de 2021 e julho de 2023"], expect: answer, process: "6080680-32.2025.8.03.0001"}
+  - {id: K04, cat: conteudo, q: "Qual posto o autor ocupava no processo 6080680-32.2025.8.03.0001?", gold_any: ["Capitão QOPMC", "CAP QOPMC"], expect: answer, process: "6080680-32.2025.8.03.0001"}
+  - {id: K05, cat: conteudo, q: "Qual o nome da vítima do roubo da motocicleta no processo 0000218-64.2023.8.03.0001?", gold_any: ["Mauro Cesar Martins de Freitas"], expect: answer, process: "0000218-64.2023.8.03.0001"}
+  - {id: K06, cat: conteudo, q: "Qual lei fundamentou a inadmissibilidade da ação no processo 0035995-18.2020.8.03.0001?", gold_any: ["Lei nº 9.099/1995"], expect: answer, process: "0035995-18.2020.8.03.0001"}
+  - {id: K07, cat: conteudo, q: "Qual o valor dos danos materiais da sentença recorrida no processo 6054822-33.2024.8.03.0001?", gold_any: ["R$ 310,00"], expect: answer, must_contain: ["310,00"], process: "6054822-33.2024.8.03.0001"}
+  - {id: K08, cat: sem_resposta, q: "Qual o telefone pessoal do advogado dos autores no processo 6010907-60.2026.8.03.0001?", expect: abstain, must_not_contain: ["8406-6014", "9152-8029"]}

@@ -15,9 +15,11 @@ def _fold(text: str) -> str:
 
 
 _HUMAN = re.compile(
-    r"\b(atendente|atendimento humano|falar com (um |uma )?(pessoa|humano|atendente|alguem|servidor)|"
-    r"quero (falar|conversar) com (um |uma )?(pessoa|humano|atendente|alguem)|passar para (um )?humano|"
-    r"transfer(ir|encia)|me (ajude|ajuda) com (um )?atendente|nao quero (falar com )?(robo|bot))\b"
+    r"(^\s*(atendente|humano|atendimento humano)\s*[.!?]*\s*$)|"
+    r"\b(atendimento humano|"
+    r"(falar|conversar|chamar|passar|passa|transferir|transfere|transfira|encaminhar|encaminhe)\b.{0,25}\b(atendente|humano|pessoa|alguem|servidor)|"
+    r"(quero|preciso|gostaria|prefiro)\b.{0,15}\b(um |uma )?(atendente|humano|pessoa)|"
+    r"nao quero (falar com )?(robo|bot))\b"
 )
 _GREETING = re.compile(r"^\s*(oi+|ola+|bom dia|boa tarde|boa noite|e ai|tudo bem\??|menu|inicio|iniciar|ajuda)[\s!.,?]*$")
 

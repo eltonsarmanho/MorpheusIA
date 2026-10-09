@@ -60,8 +60,10 @@ class ChatwootClient:
         )
         return data.get("id")
 
+    # Verificado no Chatwoot 4.11.1 (2026-10-09): o token do Agent Bot só acessa mensagens, atribuições e status;
+    # etiquetas, equipes e leitura da conversa exigem o token de usuário (401 "not authorized for bots").
     def get_labels(self, account_id: int, conversation_id: int) -> list[str]:
-        data = self._request("GET", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/labels")
+        data = self._request("GET", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/labels", admin=True)
         return list(data.get("payload", []))
 
     def add_labels(self, account_id: int, conversation_id: int, labels: Sequence[str]) -> None:
@@ -69,7 +71,7 @@ class ChatwootClient:
         current = self.get_labels(account_id, conversation_id)
         merged = list(dict.fromkeys([*current, *labels]))
         if merged != current:
-            self._request("POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/labels", json={"labels": merged})
+            self._request("POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/labels", admin=True, json={"labels": merged})
 
     def assign_team(self, account_id: int, conversation_id: int, team_name: str) -> bool:
         team_id = self.team_id(team_name)
@@ -111,6 +113,9 @@ class ChatwootClient:
     def create_agent_bot(self, name: str, outgoing_url: str, description: str = "") -> dict:
         return self._request("POST", self._acc("/agent_bots"), admin=True,
                              json={"name": name, "description": description, "outgoing_url": outgoing_url})
+
+    def update_agent_bot(self, agent_bot_id: int, outgoing_url: str) -> dict:
+        return self._request("PATCH", self._acc(f"/agent_bots/{agent_bot_id}"), admin=True, json={"outgoing_url": outgoing_url})
 
     def set_inbox_agent_bot(self, inbox_id: int, agent_bot_id: int) -> None:
         self._request("POST", self._acc(f"/inboxes/{inbox_id}/set_agent_bot"), admin=True, json={"agent_bot": agent_bot_id})
