@@ -1,0 +1,31 @@
+# Lista configurável de fontes autorizadas (COL-01). Só URLs https dos hosts abaixo podem ser coletadas.
+# Cada seed foi verificada manualmente como página estática pública em 2026-10-09.
+# Hosts sem robots.txt acessível (ex.: www.tjpa.jus.br) ficam de fora até que o robots seja alcançável (COL-07).
+settings:
+  user_agent: "Mozilla/5.0 (compatible; piloto-tjpa-coletor/0.1; hackathon TJPA)"
+  timeout_s: 30
+  max_bytes: 8000000
+  stale_after_days: 180
+sources:
+  - id: tjpa-central-servicos
+    domain: institucional
+    issuing_body: "Tribunal de Justiça do Estado do Pará (TJPA)"
+    hosts: [centralservicos.tjpa.jus.br]
+    seeds:
+      - {url: "https://centralservicos.tjpa.jus.br/bv/balcao.php", topic: balcao_virtual}
+      - {url: "https://centralservicos.tjpa.jus.br/bv/agendamento.php", topic: agendamento_balcao_virtual}
+      - {url: "https://centralservicos.tjpa.jus.br/bv/todos.php", topic: contatos_unidades}
+  - id: planalto-legislacao
+    domain: juridico
+    issuing_body: "Presidência da República - Casa Civil (Portal da Legislação)"
+    hosts: [www.planalto.gov.br]
+    seeds:
+      - {url: "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm", topic: cpc, norm: "Lei nº 13.105/2015 (Código de Processo Civil)"}
+      - {url: "https://www.planalto.gov.br/ccivil_03/leis/l9099.htm", topic: juizados_especiais, norm: "Lei nº 9.099/1995 (Juizados Especiais)"}
+      - {url: "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/l11419.htm", topic: processo_eletronico, norm: "Lei nº 11.419/2006 (Informatização do processo judicial)"}
+  - id: cnj-atos
+    domain: juridico
+    issuing_body: "Conselho Nacional de Justiça (CNJ)"
+    hosts: [atos.cnj.jus.br]
+    seeds:
+      - {url: "https://atos.cnj.jus.br/atos/detalhar/3742", topic: balcao_virtual_norma, norm: "Resolução CNJ nº 372/2021 (Balcão Virtual)"}

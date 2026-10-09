@@ -22,3 +22,11 @@ node_modules/
 
 # Credenciais de acesso (nunca versionar)
 Acesso*.txt
+
+# Piloto TJPA: acervo processual e artefatos derivados (dados de processos, nunca versionar)
+docs/processos/
+data/index/
+data/reports/*.json
+.env
+backend/.venv/
+.pytest_cache/
