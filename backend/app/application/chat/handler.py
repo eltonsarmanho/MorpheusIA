@@ -29,6 +29,7 @@ HANDOFF_FAILED_TEXT = ("Não foi possível concluir o encaminhamento automaticam
                        "retomará o atendimento assim que possível.")
 HANDOFF_FAILED_UNFLAGGED_TEXT = ("Não foi possível concluir o encaminhamento automaticamente e também não consegui sinalizar a equipe. "
                                  "Tente novamente mais tarde ou procure outro canal de atendimento.")
+INTERACTIVE_BODY_LIMIT = 900  # limite do WhatsApp é 1024; margem para emojis e quebras
 TECHNICAL_TEXT = "Tive uma dificuldade técnica para processar a sua mensagem. Tente novamente em instantes ou peça para falar com um atendente."
 QUESTION_ERROR_TEXT = "Não consegui ler a sua mensagem. Envie uma pergunta com até {n} caracteres."
 
@@ -409,6 +410,10 @@ class ChatwootEventHandler:
 
     def _send(self, account: int, conv_id: int, text: str, options: list[Option] | None = None, private: bool = False) -> int | None:
         """Envia e registra o id da mensagem para reconhecer o eco do webhook como do próprio bot."""
+        if options and len(text) > INTERACTIVE_BODY_LIMIT:
+            # o WhatsApp rejeita corpo interativo acima de 1024 caracteres: o texto longo vai antes, em mensagem comum
+            self._send(account, conv_id, text)
+            text = "Escolha uma opção 👇"
         if options or private:
             msg_id = self.gw.send_message(account, conv_id, text, options=options, private=private)
         else:
