@@ -1,3 +1,4 @@
+name: tjpa
 # Backend do piloto TJPA na VM srv1633081. Convive com Chatwoot e dashboard sem alterá-los:
 # entra na rede do Chatwoot só para falar com ele internamente e publica apenas em 127.0.0.1.
 services:
@@ -12,11 +13,11 @@ services:
       DATA_DIR: /data
       SOURCES_FILE: /app/config/sources.yaml
     volumes:
-      - ./data:/data
+      - ../data:/data
     ports:
       - "127.0.0.1:8300:8300"
     networks: [chatwoot_net]
-    mem_limit: 700m
+    mem_limit: 900m
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8300/health',timeout=5)"]
       interval: 30s
