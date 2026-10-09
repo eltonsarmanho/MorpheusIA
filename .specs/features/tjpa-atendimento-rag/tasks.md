@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: decisões em `docs/ARQUITETURA.md` (a fase Design foi feita inline; não há `design.md` separado)
-**Status**: In Progress. Este arquivo foi escrito durante a execução, não antes: as tarefas foram feitas em pequenos incrementos validados e depois registradas aqui com seus testes reais.
+**Status**: In Progress (T16 depende de verificação manual no navegador; ver `docs/AVALIACAO.md`). Este arquivo foi escrito durante a execução, não antes: as tarefas foram feitas em pequenos incrementos validados e depois registradas aqui com seus testes reais.
 
 ---
 
@@ -349,7 +349,7 @@ T17 → T18
 **Done when**:
 
 - [x] Etiquetas criadas e segunda execução não cria nada
-- [ ] Agent Bot criado e testado com conversa real (depende da implantação, ver T18)
+- [x] Agent Bot criado e testado com conversa real no Chatwoot 4.11.1 (inbox de teste temporária, removida)
 
 **Tests**: none
 **Gate**: build
@@ -385,7 +385,7 @@ T17 → T18
 **Done when**:
 
 - [x] Recall, MRR e latência medidos
-- [ ] Execução ponta a ponta com a MariTalk registrada em `docs/AVALIACAO.md`
+- [x] Execução ponta a ponta com a MariTalk registrada em `docs/AVALIACAO.md`
 
 **Tests**: integration
 **Gate**: build
@@ -402,8 +402,8 @@ T17 → T18
 
 **Done when**:
 
-- [ ] `/health` responde na VM e o fluxo foi testado por uma conversa real no Chatwoot
-- [ ] Chatwoot e dashboard continuam saudáveis
+- [x] `/health` responde na VM e o fluxo foi testado por uma conversa real no Chatwoot
+- [x] Chatwoot e dashboard continuam saudáveis
 
 **Tests**: none
 **Gate**: build
