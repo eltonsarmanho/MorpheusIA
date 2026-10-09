@@ -1,0 +1,2690 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nyt/global//global/global}
+    \entry{abdalrazaq2020}{article}{}
+      \name{author}{5}{}{%
+        {{hash=c22ec17fde36b3d936a97ef36567a716}{%
+           family={Abd-Alrazaq},
+           familyi={A\bibinithyphendelim A\bibinitperiod},
+           given={Alaa\bibnamedelima Ali},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=a6705eddd29a606421eb69c27530509a}{%
+           family={Rababeh},
+           familyi={R\bibinitperiod},
+           given={Asma},
+           giveni={A\bibinitperiod}}}%
+        {{hash=0ed8448bff6a8d54006730d35e8b8fff}{%
+           family={Alajlani},
+           familyi={A\bibinitperiod},
+           given={Mohannad},
+           giveni={M\bibinitperiod}}}%
+        {{hash=e1f0b95c078c4351b32edb3dc48e5de6}{%
+           family={Bewick},
+           familyi={B\bibinitperiod},
+           given={Bridgette\bibnamedelima M},
+           giveni={B\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=23f470b9ca8844a0ffe9c05ed49f8ac1}{%
+           family={Househ},
+           familyi={H\bibinitperiod},
+           given={Mowafa},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{4bbbaef06dbf5186d6233afacdad728c}
+      \strng{fullhash}{c3ff898a93bb86919d95950b0a0f6651}
+      \strng{bibnamehash}{4bbbaef06dbf5186d6233afacdad728c}
+      \strng{authorbibnamehash}{4bbbaef06dbf5186d6233afacdad728c}
+      \strng{authornamehash}{4bbbaef06dbf5186d6233afacdad728c}
+      \strng{authorfullhash}{c3ff898a93bb86919d95950b0a0f6651}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Medical Internet Research}
+      \field{number}{7}
+      \field{title}{{Effectiveness and Safety of Using Chatbots to Improve Mental Health: Systematic Review and Meta-Analysis}}
+      \field{volume}{22}
+      \field{year}{2020}
+      \field{pages}{e16021}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.2196/16021
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.2196/16021
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.2196/16021
+      \endverb
+    \endentry
+    \entry{aasm_sleepiorx_2024}{online}{}
+      \name{author}{1}{}{%
+        {{hash=de45d263fac73bb46691d419c3d19798}{%
+           family={{American Academy of Sleep Medicine}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{de45d263fac73bb46691d419c3d19798}
+      \strng{fullhash}{de45d263fac73bb46691d419c3d19798}
+      \strng{bibnamehash}{de45d263fac73bb46691d419c3d19798}
+      \strng{authorbibnamehash}{de45d263fac73bb46691d419c3d19798}
+      \strng{authornamehash}{de45d263fac73bb46691d419c3d19798}
+      \strng{authorfullhash}{de45d263fac73bb46691d419c3d19798}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{9}
+      \field{month}{8}
+      \field{title}{FDA clears SleepioRx for chronic insomnia}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://aasm.org/fda-clears-sleepiorx-for-chronic-insomnia/
+      \endverb
+      \verb{url}
+      \verb https://aasm.org/fda-clears-sleepiorx-for-chronic-insomnia/
+      \endverb
+    \endentry
+    \entry{anpd_guia_seguranca_2021}{manual}{}
+      \name{author}{1}{}{%
+        {{hash=743fbe1ad53384ab95d5b927570e4083}{%
+           family={{Autoridade Nacional de Proteção de Dados}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{fullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{bibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorbibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authornamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorfullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \field{extraname}{1}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Guia orientativo: segurança da informação para agentes de tratamento de pequeno porte}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{version}{1.0}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia-vf.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia-vf.pdf
+      \endverb
+    \endentry
+    \entry{anpd_res2_2022}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=743fbe1ad53384ab95d5b927570e4083}{%
+           family={{Autoridade Nacional de Proteção de Dados}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{fullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{bibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorbibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authornamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorfullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \field{extraname}{2}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Resolução CD/ANPD nº 2, de 27 de janeiro de 2022: aprova o Regulamento de aplicação da LGPD para agentes de tratamento de pequeno porte}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022
+      \endverb
+      \verb{url}
+      \verb https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022
+      \endverb
+    \endentry
+    \entry{anpd_ripd}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=743fbe1ad53384ab95d5b927570e4083}{%
+           family={{Autoridade Nacional de Proteção de Dados}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{fullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{bibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorbibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authornamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorfullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \field{extraname}{3}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Publicado em 06/04/2023 e modificado em 23/09/2026}
+      \field{title}{Relatório de Impacto à Proteção de Dados Pessoais (RIPD): perguntas e respostas}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2023}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.gov.br/anpd/pt-br/canais_atendimento/agente-de-tratamento/relatorio-de-impacto-a-protecao-de-dados-pessoais-ripd
+      \endverb
+      \verb{url}
+      \verb https://www.gov.br/anpd/pt-br/canais_atendimento/agente-de-tratamento/relatorio-de-impacto-a-protecao-de-dados-pessoais-ripd
+      \endverb
+    \endentry
+    \entry{anpd_res15_2024}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=743fbe1ad53384ab95d5b927570e4083}{%
+           family={{Autoridade Nacional de Proteção de Dados}},
+           familyi={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{fullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{bibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorbibnamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authornamehash}{743fbe1ad53384ab95d5b927570e4083}
+      \strng{authorfullhash}{743fbe1ad53384ab95d5b927570e4083}
+      \field{extraname}{4}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Diário Oficial da União}
+      \field{title}{Resolução CD/ANPD nº 15, de 24 de abril de 2024: aprova o Regulamento de Comunicação de Incidente de Segurança}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.in.gov.br/en/web/dou/-/resolucao-cd/anpd-n-15-de-24-de-abril-de-2024-556243024
+      \endverb
+      \verb{url}
+      \verb https://www.in.gov.br/en/web/dou/-/resolucao-cd/anpd-n-15-de-24-de-abril-de-2024-556243024
+      \endverb
+    \endentry
+    \entry{barros2025_infomoney}{online}{}
+      \name{author}{1}{}{%
+        {{hash=7af5dadf4892de8c23d32ade7ffdda39}{%
+           family={Barros},
+           familyi={B\bibinitperiod},
+           given={Paulo},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {InfoMoney}%
+      }
+      \strng{namehash}{7af5dadf4892de8c23d32ade7ffdda39}
+      \strng{fullhash}{7af5dadf4892de8c23d32ade7ffdda39}
+      \strng{bibnamehash}{7af5dadf4892de8c23d32ade7ffdda39}
+      \strng{authorbibnamehash}{7af5dadf4892de8c23d32ade7ffdda39}
+      \strng{authornamehash}{7af5dadf4892de8c23d32ade7ffdda39}
+      \strng{authorfullhash}{7af5dadf4892de8c23d32ade7ffdda39}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{10}
+      \field{month}{3}
+      \field{note}{Dados do Ministério da Previdência Social}
+      \field{title}{Afastamentos por saúde mental batem recorde e crescem mais de 400\% desde a pandemia}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2025}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.infomoney.com.br/saude/afastamentos-por-saude-mental-batem-recorde-e-crescem-mais-de-400-desde-a-pandemia/
+      \endverb
+      \verb{url}
+      \verb https://www.infomoney.com.br/saude/afastamentos-por-saude-mental-batem-recorde-e-crescem-mais-de-400-desde-a-pandemia/
+      \endverb
+    \endentry
+    \entry{bastien2001}{article}{}
+      \name{author}{3}{}{%
+        {{hash=a190fb3905a8b9dfecf5f74cae9d8938}{%
+           family={Bastien},
+           familyi={B\bibinitperiod},
+           given={Célyne\bibnamedelima H.},
+           giveni={C\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=8c138f8c301fc68b362c1844870bf522}{%
+           family={Vallières},
+           familyi={V\bibinitperiod},
+           given={Annie},
+           giveni={A\bibinitperiod}}}%
+        {{hash=823aca7d19eb6845185f4cdd09362edf}{%
+           family={Morin},
+           familyi={M\bibinitperiod},
+           given={Charles\bibnamedelima M.},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{602f1fe2aa019be5e38b6c4b15833eee}
+      \strng{fullhash}{cb2742ca507a8b851402ceb361a064f9}
+      \strng{bibnamehash}{cb2742ca507a8b851402ceb361a064f9}
+      \strng{authorbibnamehash}{cb2742ca507a8b851402ceb361a064f9}
+      \strng{authornamehash}{602f1fe2aa019be5e38b6c4b15833eee}
+      \strng{authorfullhash}{cb2742ca507a8b851402ceb361a064f9}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine}
+      \field{number}{4}
+      \field{title}{{Validation of the Insomnia Severity Index as an outcome measure for insomnia research}}
+      \field{volume}{2}
+      \field{year}{2001}
+      \field{pages}{297\bibrangedash 307}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1016/s1389-9457(00)00065-4
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/s1389-9457(00)00065-4
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/s1389-9457(00)00065-4
+      \endverb
+    \endentry
+    \entry{bertolazi2009}{article}{}
+      \name{author}{6}{}{%
+        {{hash=d64f5a697ca2b7a151232c0f90eb2d3b}{%
+           family={Bertolazi},
+           familyi={B\bibinitperiod},
+           given={Alessandra\bibnamedelima Naimaier},
+           giveni={A\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=e00ce6b27ebdb92696d3d6d3bc1562ec}{%
+           family={Fagondes},
+           familyi={F\bibinitperiod},
+           given={Simone\bibnamedelima Chaves},
+           giveni={S\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=e98dda12c641e68f39933d5c06ea15ad}{%
+           family={Hoff},
+           familyi={H\bibinitperiod},
+           given={Leonardo\bibnamedelima Santos},
+           giveni={L\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=b79361c1e6d6996ee031aacaa7af83f8}{%
+           family={Pedro},
+           familyi={P\bibinitperiod},
+           given={Vinícius\bibnamedelima Dallagasperina},
+           giveni={V\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=96cb497e1b7b453284d4394401145cbe}{%
+           family={Menna\bibnamedelima Barreto},
+           familyi={M\bibinitperiod\bibinitdelim B\bibinitperiod},
+           given={Sérgio\bibnamedelima Saldanha},
+           giveni={S\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=5157e34eff152d8fa24378af6565d8e1}{%
+           family={Johns},
+           familyi={J\bibinitperiod},
+           given={Murray\bibnamedelima W},
+           giveni={M\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+      }
+      \strng{namehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{fullhash}{7a80388909833bde730c86e09dc6fc0d}
+      \strng{bibnamehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{authorbibnamehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{authornamehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{authorfullhash}{7a80388909833bde730c86e09dc6fc0d}
+      \field{extraname}{1}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Jornal Brasileiro de Pneumologia}
+      \field{number}{9}
+      \field{title}{{Portuguese-language version of the Epworth sleepiness scale: validation for use in Brazil}}
+      \field{volume}{35}
+      \field{year}{2009}
+      \field{pages}{877\bibrangedash 883}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1590/s1806-37132009000900009
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1590/s1806-37132009000900009
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1590/s1806-37132009000900009
+      \endverb
+    \endentry
+    \entry{bertolazi2011}{article}{}
+      \name{author}{7}{}{%
+        {{hash=d64f5a697ca2b7a151232c0f90eb2d3b}{%
+           family={Bertolazi},
+           familyi={B\bibinitperiod},
+           given={Alessandra\bibnamedelima Naimaier},
+           giveni={A\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=e00ce6b27ebdb92696d3d6d3bc1562ec}{%
+           family={Fagondes},
+           familyi={F\bibinitperiod},
+           given={Simone\bibnamedelima Chaves},
+           giveni={S\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=e98dda12c641e68f39933d5c06ea15ad}{%
+           family={Hoff},
+           familyi={H\bibinitperiod},
+           given={Leonardo\bibnamedelima Santos},
+           giveni={L\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=fc700ff129aa667ec04afff07f48ee72}{%
+           family={Dartora},
+           familyi={D\bibinitperiod},
+           given={Eduardo\bibnamedelima Giacomolli},
+           giveni={E\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=ed978e116c041b309c62a07068e154dd}{%
+           family={Silva\bibnamedelima Miozzo},
+           familyi={S\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={Ilsis\bibnamedelima Cristine},
+           giveni={I\bibinitperiod\bibinitdelim C\bibinitperiod},
+           prefix={da},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=d9e69a1cb0a5c8d2dd5a3226365b559e}{%
+           family={Barba},
+           familyi={B\bibinitperiod},
+           given={Maria\bibnamedelimb Emília\bibnamedelima Ferreira},
+           giveni={M\bibinitperiod\bibinitdelim E\bibinitperiod\bibinitdelim F\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=96cb497e1b7b453284d4394401145cbe}{%
+           family={Menna\bibnamedelima Barreto},
+           familyi={M\bibinitperiod\bibinitdelim B\bibinitperiod},
+           given={Sérgio\bibnamedelima Saldanha},
+           giveni={S\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{fullhash}{a187b5e4e2f215281123edc4480e5a6b}
+      \strng{bibnamehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{authorbibnamehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{authornamehash}{b537791c11b6f8f2fe07b1f66e3d79b3}
+      \strng{authorfullhash}{a187b5e4e2f215281123edc4480e5a6b}
+      \field{extraname}{2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine}
+      \field{number}{1}
+      \field{title}{{Validation of the Brazilian Portuguese version of the Pittsburgh Sleep Quality Index}}
+      \field{volume}{12}
+      \field{year}{2011}
+      \field{pages}{70\bibrangedash 75}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1016/j.sleep.2010.04.020
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.sleep.2010.04.020
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.sleep.2010.04.020
+      \endverb
+    \endentry
+    \entry{lgpd2018}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=aa43becf0d21463be7540bf3b40bf243}{%
+           family={{Brasil}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{fullhash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{bibnamehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{authorbibnamehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{authornamehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{authorfullhash}{aa43becf0d21463be7540bf3b40bf243}
+      \field{extraname}{1}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Lei nº 13.709, de 14 de agosto de 2018: Lei Geral de Proteção de Dados Pessoais (LGPD)}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2018}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm
+      \endverb
+      \verb{url}
+      \verb https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm
+      \endverb
+    \endentry
+    \entry{lei14831_2024}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=aa43becf0d21463be7540bf3b40bf243}{%
+           family={{Brasil}},
+           familyi={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{fullhash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{bibnamehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{authorbibnamehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{authornamehash}{aa43becf0d21463be7540bf3b40bf243}
+      \strng{authorfullhash}{aa43becf0d21463be7540bf3b40bf243}
+      \field{extraname}{2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Lei nº 14.831, de 27 de março de 2024: institui o Certificado Empresa Promotora da Saúde Mental e estabelece os requisitos para a concessão da certificação}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14831.htm
+      \endverb
+      \verb{url}
+      \verb https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14831.htm
+      \endverb
+    \endentry
+    \entry{buysse1989}{article}{}
+      \name{author}{5}{}{%
+        {{hash=39da688011d9037d44b937018973d6ed}{%
+           family={Buysse},
+           familyi={B\bibinitperiod},
+           given={Daniel\bibnamedelima J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=ff0002e1921cd6b6521a26f11e1edfc5}{%
+           family={Reynolds},
+           familyi={R\bibinitperiod},
+           given={Charles\bibnamedelima F.},
+           giveni={C\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=3010cf68803bffc7b4855ea1ecb15ba9}{%
+           family={Monk},
+           familyi={M\bibinitperiod},
+           given={Timothy\bibnamedelima H.},
+           giveni={T\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=d77fa18d2d1ce4d7e1847464442df426}{%
+           family={Berman},
+           familyi={B\bibinitperiod},
+           given={Susan\bibnamedelima R.},
+           giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=476e9d77e3bed5da15d8ac1dfe2c1267}{%
+           family={Kupfer},
+           familyi={K\bibinitperiod},
+           given={David\bibnamedelima J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{1c87ea6537588e95bdb22b0930e76361}
+      \strng{fullhash}{7d88e17231ee420472ef12d642b2cba4}
+      \strng{bibnamehash}{1c87ea6537588e95bdb22b0930e76361}
+      \strng{authorbibnamehash}{1c87ea6537588e95bdb22b0930e76361}
+      \strng{authornamehash}{1c87ea6537588e95bdb22b0930e76361}
+      \strng{authorfullhash}{7d88e17231ee420472ef12d642b2cba4}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Psychiatry Research}
+      \field{number}{2}
+      \field{title}{{The Pittsburgh sleep quality index: A new instrument for psychiatric practice and research}}
+      \field{volume}{28}
+      \field{year}{1989}
+      \field{pages}{193\bibrangedash 213}
+      \range{pages}{21}
+      \verb{doi}
+      \verb 10.1016/0165-1781(89)90047-4
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/0165-1781(89)90047-4
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/0165-1781(89)90047-4
+      \endverb
+    \endentry
+    \entry{carney2012}{article}{}
+      \name{author}{7}{}{%
+        {{hash=7ba85f3335941e5f8bb88ff5b7afcaf8}{%
+           family={Carney},
+           familyi={C\bibinitperiod},
+           given={Colleen\bibnamedelima E.},
+           giveni={C\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=39da688011d9037d44b937018973d6ed}{%
+           family={Buysse},
+           familyi={B\bibinitperiod},
+           given={Daniel\bibnamedelima J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=76bbe0dc51583e9065d07ef11878d16a}{%
+           family={Ancoli-Israel},
+           familyi={A\bibinithyphendelim I\bibinitperiod},
+           given={Sonia},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5d2feaec86445ad422cd699e4368490a}{%
+           family={Edinger},
+           familyi={E\bibinitperiod},
+           given={Jack\bibnamedelima D.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=d472999ad2f5e11b4d3229518d0a66d4}{%
+           family={Krystal},
+           familyi={K\bibinitperiod},
+           given={Andrew\bibnamedelima D.},
+           giveni={A\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=92b5769172e31aea84f2096537cb1341}{%
+           family={Lichstein},
+           familyi={L\bibinitperiod},
+           given={Kenneth\bibnamedelima L.},
+           giveni={K\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=823aca7d19eb6845185f4cdd09362edf}{%
+           family={Morin},
+           familyi={M\bibinitperiod},
+           given={Charles\bibnamedelima M.},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{26d41a49c0899f07db31e3c302036758}
+      \strng{fullhash}{1d32e6b83f39f41f5ea4cdee749f24a2}
+      \strng{bibnamehash}{26d41a49c0899f07db31e3c302036758}
+      \strng{authorbibnamehash}{26d41a49c0899f07db31e3c302036758}
+      \strng{authornamehash}{26d41a49c0899f07db31e3c302036758}
+      \strng{authorfullhash}{1d32e6b83f39f41f5ea4cdee749f24a2}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep}
+      \field{number}{2}
+      \field{title}{{The Consensus Sleep Diary: Standardizing Prospective Sleep Self-Monitoring}}
+      \field{volume}{35}
+      \field{year}{2012}
+      \field{pages}{287\bibrangedash 302}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.5665/sleep.1642
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.5665/sleep.1642
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.5665/sleep.1642
+      \endverb
+    \endentry
+    \entry{castro2011}{thesis}{}
+      \name{author}{1}{}{%
+        {{hash=3458e8a83c9251365d29937adc11131a}{%
+           family={Castro},
+           familyi={C\bibinitperiod},
+           given={Laura\bibnamedelimb de\bibnamedelima Siqueira},
+           giveni={L\bibinitperiod\bibinitdelim d\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Universidade Federal de São Paulo}%
+      }
+      \list{location}{1}{%
+        {São Paulo}%
+      }
+      \strng{namehash}{3458e8a83c9251365d29937adc11131a}
+      \strng{fullhash}{3458e8a83c9251365d29937adc11131a}
+      \strng{bibnamehash}{3458e8a83c9251365d29937adc11131a}
+      \strng{authorbibnamehash}{3458e8a83c9251365d29937adc11131a}
+      \strng{authornamehash}{3458e8a83c9251365d29937adc11131a}
+      \strng{authorfullhash}{3458e8a83c9251365d29937adc11131a}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Adaptação e validação do Índice de Gravidade de Insônia (IGI): caracterização populacional, valores normativos e aspectos associados}
+      \field{type}{Dissertação (Mestrado em Psicobiologia)}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2011}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://repositorio.unifesp.br/handle/11600/23193
+      \endverb
+      \verb{url}
+      \verb https://repositorio.unifesp.br/handle/11600/23193
+      \endverb
+    \endentry
+    \entry{chiu2025}{article}{}
+      \name{author}{4}{}{%
+        {{hash=7d91028d5962244bd28f172044eb3754}{%
+           family={Chiu},
+           familyi={C\bibinitperiod},
+           given={Yi-Hang},
+           giveni={Y\bibinithyphendelim H\bibinitperiod}}}%
+        {{hash=77ccb1ee23b3e788fd01bcc8809461c1}{%
+           family={Lee},
+           familyi={L\bibinitperiod},
+           given={Yen-Fen},
+           giveni={Y\bibinithyphendelim F\bibinitperiod}}}%
+        {{hash=c611630da55e745fe054c839f2960d3a}{%
+           family={Lin},
+           familyi={L\bibinitperiod},
+           given={Huang-Li},
+           giveni={H\bibinithyphendelim L\bibinitperiod}}}%
+        {{hash=e0fe962ceccd04b62346e85a21986119}{%
+           family={Cheng},
+           familyi={C\bibinitperiod},
+           given={Li-Chen},
+           giveni={L\bibinithyphendelim C\bibinitperiod}}}%
+      }
+      \strng{namehash}{d5262adbff50bdf389086bcc13050ab6}
+      \strng{fullhash}{6f0ef96a5f531219faaca4ce60b0621a}
+      \strng{bibnamehash}{d5262adbff50bdf389086bcc13050ab6}
+      \strng{authorbibnamehash}{d5262adbff50bdf389086bcc13050ab6}
+      \strng{authornamehash}{d5262adbff50bdf389086bcc13050ab6}
+      \strng{authorfullhash}{6f0ef96a5f531219faaca4ce60b0621a}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Health Informatics Journal}
+      \field{number}{4}
+      \field{title}{{Using cognitive behavioral therapy-based chatbots to alleviate symptoms of insomnia, depression, and anxiety: A randomized controlled trial}}
+      \field{volume}{31}
+      \field{year}{2025}
+      \field{pages}{14604582251396428}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1177/14604582251396428
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1177/14604582251396428
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1177/14604582251396428
+      \endverb
+    \endentry
+    \entry{drager2022}{article}{}
+      \name{author}{6}{}{%
+        {{hash=e3764ccd45239eba214d4686ed195f8b}{%
+           family={Drager},
+           familyi={D\bibinitperiod},
+           given={Luciano\bibnamedelima F.},
+           giveni={L\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=7660ebf4c72250d33458a466e1d929f3}{%
+           family={Pachito},
+           familyi={P\bibinitperiod},
+           given={Daniela\bibnamedelima Vianna},
+           giveni={D\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=95648f19b0fc28739dfdfe038f5f6fa7}{%
+           family={Morihisa},
+           familyi={M\bibinitperiod},
+           given={Rogerio},
+           giveni={R\bibinitperiod}}}%
+        {{hash=34cef2357eedae10242dbde35e860b4d}{%
+           family={Carvalho},
+           familyi={C\bibinitperiod},
+           given={Pedro},
+           giveni={P\bibinitperiod}}}%
+        {{hash=7b1e187b9d321a1b84ed824d25631a23}{%
+           family={Lobao},
+           familyi={L\bibinitperiod},
+           given={Abner},
+           giveni={A\bibinitperiod}}}%
+        {{hash=bac9dbc8f598a22726ce81ac0c289c64}{%
+           family={Poyares},
+           familyi={P\bibinitperiod},
+           given={Dalva},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{fe4bc21409088f24a2c2492342be795c}
+      \strng{fullhash}{e3e0254fc66951789a6b2eed243cc99f}
+      \strng{bibnamehash}{fe4bc21409088f24a2c2492342be795c}
+      \strng{authorbibnamehash}{fe4bc21409088f24a2c2492342be795c}
+      \strng{authornamehash}{fe4bc21409088f24a2c2492342be795c}
+      \strng{authorfullhash}{e3e0254fc66951789a6b2eed243cc99f}
+      \field{extraname}{1}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Epidemiology}
+      \field{title}{{Sleep quality in the Brazilian general population: A cross-sectional study}}
+      \field{volume}{2}
+      \field{year}{2022}
+      \field{pages}{100020}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.sleepe.2022.100020
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.sleepe.2022.100020
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.sleepe.2022.100020
+      \endverb
+    \endentry
+    \entry{drager2023}{article}{}
+      \name{author}{24}{}{%
+        {{hash=00b7782a8d7e10e881343f4d392ad7f8}{%
+           family={Drager},
+           familyi={D\bibinitperiod},
+           given={Luciano\bibnamedelima Ferreira},
+           giveni={L\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=c5a6f09a8f8f6600c639de88aba05ef5}{%
+           family={Assis},
+           familyi={A\bibinitperiod},
+           given={Márcia},
+           giveni={M\bibinitperiod}}}%
+        {{hash=9edd6491ce95c8be2c696588b64648f2}{%
+           family={Bacelar},
+           familyi={B\bibinitperiod},
+           given={Andrea\bibnamedelimb Frota\bibnamedelima Rego},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=9ccdf35789295e89a6256202564953d0}{%
+           family={Poyares},
+           familyi={P\bibinitperiod},
+           given={Dalva\bibnamedelimb Lucia\bibnamedelima Rollemberg},
+           giveni={D\bibinitperiod\bibinitdelim L\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=3c1a1ba6ed56cd0fbbdefa788a486ff9}{%
+           family={Conway},
+           familyi={C\bibinitperiod},
+           given={Silvia\bibnamedelima Gonçalves},
+           giveni={S\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=845449107841872e58dbc3703e156196}{%
+           family={Pires},
+           familyi={P\bibinitperiod},
+           given={Gabriel\bibnamedelima Natan},
+           giveni={G\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=d7b5494e4c40dbb98ce86d937e37922d}{%
+           family={Azevedo},
+           familyi={A\bibinitperiod},
+           given={Alexandre\bibnamedelima Pinto},
+           giveni={A\bibinitperiod\bibinitdelim P\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=80e6f6f2b7eec631045e784bf6735d39}{%
+           family={Carissimi},
+           familyi={C\bibinitperiod},
+           given={Alicia},
+           giveni={A\bibinitperiod}}}%
+        {{hash=136f149a006aceab6c5106d929bebb3a}{%
+           family={Eckeli},
+           familyi={E\bibinitperiod},
+           given={Allan\bibnamedelima Luiz},
+           giveni={A\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=9ed837d95dc47caf7ebfb6b267c33609}{%
+           family={Pentagna},
+           familyi={P\bibinitperiod},
+           given={Álvaro},
+           giveni={Á\bibinitperiod}}}%
+        {{hash=8889955a3cf3e588271584ae54bfad16}{%
+           family={Almeida},
+           familyi={A\bibinitperiod},
+           given={Carlos\bibnamedelimb Maurício\bibnamedelima Oliveira},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim O\bibinitperiod}}}%
+        {{hash=bc5f975f2ebe57335930a166cc129d7c}{%
+           family={Franco},
+           familyi={F\bibinitperiod},
+           given={Clélia\bibnamedelimb Maria\bibnamedelima Ribeiro},
+           giveni={C\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=0be1d23a68f7cbaca711946195373cdb}{%
+           family={Sobreira},
+           familyi={S\bibinitperiod},
+           given={Emmanuelle\bibnamedelimb Silva\bibnamedelima Tavares},
+           giveni={E\bibinitperiod\bibinitdelim S\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=0d4ac48a5d12571266632099f99309ec}{%
+           family={Stelzer},
+           familyi={S\bibinitperiod},
+           given={Fernando\bibnamedelima Gustavo},
+           giveni={F\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=53ca3550b09495216db14a30e3064776}{%
+           family={Mendes},
+           familyi={M\bibinitperiod},
+           given={Giuliana\bibnamedelima Macedo},
+           giveni={G\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=b967018c6eef1c04951cf6c5a776f217}{%
+           family={Minhoto},
+           familyi={M\bibinitperiod},
+           given={Gisele\bibnamedelima Richter},
+           giveni={G\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=eb9a07113116668de8f08dfa374f357e}{%
+           family={Linares},
+           familyi={L\bibinitperiod},
+           given={Ila\bibnamedelimb Marques\bibnamedelima Porto},
+           giveni={I\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+        {{hash=47b3daccbee2448cd4de004d7b50f0c1}{%
+           family={Sousa},
+           familyi={S\bibinitperiod},
+           given={Ksdy\bibnamedelimb Maiara\bibnamedelima Moura},
+           giveni={K\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=f31ff496db439646666ddb28bc321b02}{%
+           family={Gitaí},
+           familyi={G\bibinitperiod},
+           given={Livia\bibnamedelimb Leite\bibnamedelima Góes},
+           giveni={L\bibinitperiod\bibinitdelim L\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=cc96add9546176e1c8c0857f9daebb4f}{%
+           family={Sukys-Claudino},
+           familyi={S\bibinithyphendelim C\bibinitperiod},
+           given={Lucia},
+           giveni={L\bibinitperiod}}}%
+        {{hash=8980bc5396e44f7fd4cc1df50df6fa0e}{%
+           family={Sobreira-Neto},
+           familyi={S\bibinithyphendelim N\bibinitperiod},
+           given={Manoel\bibnamedelima Alves},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=55069f85dab92619b1670e6a02cfbc07}{%
+           family={Zanini},
+           familyi={Z\bibinitperiod},
+           given={Marcio\bibnamedelima Andrei},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=24e041e5ef157eb2ecffc08c011cb2c3}{%
+           family={Margis},
+           familyi={M\bibinitperiod},
+           given={Regina},
+           giveni={R\bibinitperiod}}}%
+        {{hash=e8531b095f92904f0f2ea3cbef0301b2}{%
+           family={Martinez},
+           familyi={M\bibinitperiod},
+           given={Sandra\bibnamedelimb Cristina\bibnamedelima Gonçalves},
+           giveni={S\bibinitperiod\bibinitdelim C\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \strng{namehash}{257b80da0bb51448a3bc595f4fe4b7b4}
+      \strng{fullhash}{dccc4aecb9d3682b18fe3bc46f7f607c}
+      \strng{bibnamehash}{257b80da0bb51448a3bc595f4fe4b7b4}
+      \strng{authorbibnamehash}{257b80da0bb51448a3bc595f4fe4b7b4}
+      \strng{authornamehash}{257b80da0bb51448a3bc595f4fe4b7b4}
+      \strng{authorfullhash}{dccc4aecb9d3682b18fe3bc46f7f607c}
+      \field{extraname}{2}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Science}
+      \field{number}{Suppl. 2}
+      \field{title}{{2023 Guidelines on the Diagnosis and Treatment of Insomnia in Adults: Brazilian Sleep Association}}
+      \field{volume}{16}
+      \field{year}{2023}
+      \field{pages}{507\bibrangedash 549}
+      \range{pages}{43}
+      \verb{doi}
+      \verb 10.1055/s-0043-1776281
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1055/s-0043-1776281
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1055/s-0043-1776281
+      \endverb
+    \endentry
+    \entry{espie2019}{article}{}
+      \name{author}{14}{}{%
+        {{hash=498f08bab68eede6ed51b723be556427}{%
+           family={Espie},
+           familyi={E\bibinitperiod},
+           given={Colin\bibnamedelima A.},
+           giveni={C\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=9bf0d08a872789c72190877f4c287824}{%
+           family={Emsley},
+           familyi={E\bibinitperiod},
+           given={Richard},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f7f0037c083f82747efb774ba5b5d8fc}{%
+           family={Kyle},
+           familyi={K\bibinitperiod},
+           given={Simon\bibnamedelima D.},
+           giveni={S\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=9bdab3d6af46b78b6e76a7fa0d73ec8c}{%
+           family={Gordon},
+           familyi={G\bibinitperiod},
+           given={Christopher},
+           giveni={C\bibinitperiod}}}%
+        {{hash=e05aeb3d0e510696fcc22a2a47c4a936}{%
+           family={Drake},
+           familyi={D\bibinitperiod},
+           given={Christopher\bibnamedelima L.},
+           giveni={C\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=0043c1a7c08acc05469b4690c0c3dbc6}{%
+           family={Siriwardena},
+           familyi={S\bibinitperiod},
+           given={A.\bibnamedelimi Niroshan},
+           giveni={A\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=68e675c8fa63b1f5b42cfa13d70d8df7}{%
+           family={Cape},
+           familyi={C\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=c7ea8c102bfb586b9855bc956d612556}{%
+           family={Ong},
+           familyi={O\bibinitperiod},
+           given={Jason\bibnamedelima C.},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=287bee2b1495c9a5efc907b5909ad8e0}{%
+           family={Sheaves},
+           familyi={S\bibinitperiod},
+           given={Bryony},
+           giveni={B\bibinitperiod}}}%
+        {{hash=253dd821eb91d7d087e2395c74ddedcc}{%
+           family={Foster},
+           familyi={F\bibinitperiod},
+           given={Russell},
+           giveni={R\bibinitperiod}}}%
+        {{hash=d07dde51e32116402084f5910cb9f9df}{%
+           family={Freeman},
+           familyi={F\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=970dd56e1452efcd1b993114f8809cc7}{%
+           family={Costa-Font},
+           familyi={C\bibinithyphendelim F\bibinitperiod},
+           given={Joan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=0531ca51d11462d9b8e8b3a4a410592c}{%
+           family={Marsden},
+           familyi={M\bibinitperiod},
+           given={Antonia},
+           giveni={A\bibinitperiod}}}%
+        {{hash=11627eac55370ab76bbdfb2a3a89869c}{%
+           family={Luik},
+           familyi={L\bibinitperiod},
+           given={Annemarie\bibnamedelima I.},
+           giveni={A\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+      }
+      \strng{namehash}{9bb58a5689d23ed13c52f15ce0b19aa0}
+      \strng{fullhash}{24fa314284682308fc825005f36a3329}
+      \strng{bibnamehash}{9bb58a5689d23ed13c52f15ce0b19aa0}
+      \strng{authorbibnamehash}{9bb58a5689d23ed13c52f15ce0b19aa0}
+      \strng{authornamehash}{9bb58a5689d23ed13c52f15ce0b19aa0}
+      \strng{authorfullhash}{24fa314284682308fc825005f36a3329}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{JAMA Psychiatry}
+      \field{number}{1}
+      \field{title}{{Effect of Digital Cognitive Behavioral Therapy for Insomnia on Health, Psychological Well-being, and Sleep-Related Quality of Life: A Randomized Clinical Trial}}
+      \field{volume}{76}
+      \field{year}{2019}
+      \field{pages}{21\bibrangedash 30}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1001/jamapsychiatry.2018.2745
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1001/jamapsychiatry.2018.2745
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1001/jamapsychiatry.2018.2745
+      \endverb
+    \endentry
+    \entry{hafner2016}{report}{}
+      \name{author}{5}{}{%
+        {{hash=ef3186dfb276927c33a0b3116736f3bf}{%
+           family={Hafner},
+           familyi={H\bibinitperiod},
+           given={Marco},
+           giveni={M\bibinitperiod}}}%
+        {{hash=d34d232592050c357ab0d75dad9a5ad4}{%
+           family={Stepanek},
+           familyi={S\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+        {{hash=fe93a4e6d95e23efe1f461932508bd06}{%
+           family={Taylor},
+           familyi={T\bibinitperiod},
+           given={Jirka},
+           giveni={J\bibinitperiod}}}%
+        {{hash=03df0f7d320159ce7d92c5bca5833c53}{%
+           family={Troxel},
+           familyi={T\bibinitperiod},
+           given={Wendy\bibnamedelima M.},
+           giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=a8762a58e2c44296729bd65740ac31a7}{%
+           family={Stolk},
+           familyi={S\bibinitperiod},
+           given={Christian},
+           giveni={C\bibinitperiod},
+           prefix={van},
+           prefixi={v\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {RAND Corporation}%
+      }
+      \list{location}{1}{%
+        {Santa Monica, CA, e Cambridge, UK}%
+      }
+      \strng{namehash}{e4066fe648ef59b59fab0e3440e21aae}
+      \strng{fullhash}{b31fdb930b41a7d3a98d49bbe57514b8}
+      \strng{bibnamehash}{e4066fe648ef59b59fab0e3440e21aae}
+      \strng{authorbibnamehash}{e4066fe648ef59b59fab0e3440e21aae}
+      \strng{authornamehash}{e4066fe648ef59b59fab0e3440e21aae}
+      \strng{authorfullhash}{b31fdb930b41a7d3a98d49bbe57514b8}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Versão também publicada em Rand Health Quarterly, 6(4):11, 2017}
+      \field{number}{RR-1791}
+      \field{title}{{Why Sleep Matters: The Economic Costs of Insufficient Sleep, a Cross-Country Comparative Analysis}}
+      \field{type}{Research Report}
+      \field{year}{2016}
+      \verb{doi}
+      \verb 10.7249/RR1791
+      \endverb
+      \verb{urlraw}
+      \verb https://www.rand.org/pubs/research_reports/RR1791.html
+      \endverb
+      \verb{url}
+      \verb https://www.rand.org/pubs/research_reports/RR1791.html
+      \endverb
+    \endentry
+    \entry{head2013}{article}{}
+      \name{author}{4}{}{%
+        {{hash=bc45b557ffab230a4559a0380496156c}{%
+           family={Head},
+           familyi={H\bibinitperiod},
+           given={Katharine\bibnamedelima J.},
+           giveni={K\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=d8e80efcd17af06c9b0b7f45a20c3423}{%
+           family={Noar},
+           familyi={N\bibinitperiod},
+           given={Seth\bibnamedelima M.},
+           giveni={S\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=070bba7328073929552bfec7432c0b33}{%
+           family={Iannarino},
+           familyi={I\bibinitperiod},
+           given={Nicholas\bibnamedelima T.},
+           giveni={N\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=26915972bc072bbd0dbd33c694aeea81}{%
+           family={Grant\bibnamedelima Harrington},
+           familyi={G\bibinitperiod\bibinitdelim H\bibinitperiod},
+           given={Nancy},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{c9e5b1aad9a5f96939271df22fd758fa}
+      \strng{fullhash}{bf83f583bd8eddcd9b98ff653cc370e3}
+      \strng{bibnamehash}{c9e5b1aad9a5f96939271df22fd758fa}
+      \strng{authorbibnamehash}{c9e5b1aad9a5f96939271df22fd758fa}
+      \strng{authornamehash}{c9e5b1aad9a5f96939271df22fd758fa}
+      \strng{authorfullhash}{bf83f583bd8eddcd9b98ff653cc370e3}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Social Science \& Medicine}
+      \field{title}{{Efficacy of text messaging-based interventions for health promotion: A meta-analysis}}
+      \field{volume}{97}
+      \field{year}{2013}
+      \field{pages}{41\bibrangedash 48}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1016/j.socscimed.2013.08.003
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.socscimed.2013.08.003
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.socscimed.2013.08.003
+      \endverb
+    \endentry
+    \entry{hirshkowitz2015}{article}{}
+      \name{author}{20}{}{%
+        {{hash=2b5e26bcce5a5f73d13af83e68e39a4c}{%
+           family={Hirshkowitz},
+           familyi={H\bibinitperiod},
+           given={Max},
+           giveni={M\bibinitperiod}}}%
+        {{hash=8565cfdaec8acdec5770d48353ff2eaf}{%
+           family={Whiton},
+           familyi={W\bibinitperiod},
+           given={Kaitlyn},
+           giveni={K\bibinitperiod}}}%
+        {{hash=86256b5fbbbab025a9a8bf0b12aa25f0}{%
+           family={Albert},
+           familyi={A\bibinitperiod},
+           given={Steven\bibnamedelima M.},
+           giveni={S\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=0094359fe6137759e7d383808bd65772}{%
+           family={Alessi},
+           familyi={A\bibinitperiod},
+           given={Cathy},
+           giveni={C\bibinitperiod}}}%
+        {{hash=e0a2430ccc9b5bb41452cb37344ef08b}{%
+           family={Bruni},
+           familyi={B\bibinitperiod},
+           given={Oliviero},
+           giveni={O\bibinitperiod}}}%
+        {{hash=d6095c43173fbee8387428107d4354e4}{%
+           family={DonCarlos},
+           familyi={D\bibinitperiod},
+           given={Lydia},
+           giveni={L\bibinitperiod}}}%
+        {{hash=cc7304f24ec837bd38ea901a924bd017}{%
+           family={Hazen},
+           familyi={H\bibinitperiod},
+           given={Nancy},
+           giveni={N\bibinitperiod}}}%
+        {{hash=26bb6dc090c3fd738df49f05427a4eed}{%
+           family={Herman},
+           familyi={H\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=6db3d9d0430a6c781e8ce3b558d03cfd}{%
+           family={Katz},
+           familyi={K\bibinitperiod},
+           given={Eliot\bibnamedelima S.},
+           giveni={E\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=e8f096ac06d98b0ab8cdad0d70359c26}{%
+           family={Kheirandish-Gozal},
+           familyi={K\bibinithyphendelim G\bibinitperiod},
+           given={Leila},
+           giveni={L\bibinitperiod}}}%
+        {{hash=f9aeee1fde9fe9566fa63587687b6efd}{%
+           family={Neubauer},
+           familyi={N\bibinitperiod},
+           given={David\bibnamedelima N.},
+           giveni={D\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=7b7272d62da0ba3ca5d39140d6d51ed7}{%
+           family={O’Donnell},
+           familyi={O\bibinitperiod},
+           given={Anne\bibnamedelima E.},
+           giveni={A\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=64514791c3e4c913ab36c93c4cd99ac7}{%
+           family={Ohayon},
+           familyi={O\bibinitperiod},
+           given={Maurice},
+           giveni={M\bibinitperiod}}}%
+        {{hash=760fef6d34d1a6fb17e2c1200211937b}{%
+           family={Peever},
+           familyi={P\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=075271eeaef5fdeb2f08ccf3a98f2f2a}{%
+           family={Rawding},
+           familyi={R\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f6fb19d36c329ba2b36ce798eeaf1384}{%
+           family={Sachdeva},
+           familyi={S\bibinitperiod},
+           given={Ramesh\bibnamedelima C.},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=15a0592b71ff1a43aa919d0800dffc7a}{%
+           family={Setters},
+           familyi={S\bibinitperiod},
+           given={Belinda},
+           giveni={B\bibinitperiod}}}%
+        {{hash=798c68dab6d3afb17f215c54a65e9d26}{%
+           family={Vitiello},
+           familyi={V\bibinitperiod},
+           given={Michael\bibnamedelima V.},
+           giveni={M\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=82d125369cc90a1e96ce3b3fac69e61c}{%
+           family={Ware},
+           familyi={W\bibinitperiod},
+           given={J.\bibnamedelimi Catesby},
+           giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=ffb490617a3c0b0a10dd1f18d2e32ce7}{%
+           family={Adams\bibnamedelima Hillard},
+           familyi={A\bibinitperiod\bibinitdelim H\bibinitperiod},
+           given={Paula\bibnamedelima J.},
+           giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{297a19f680c67aa2f6f333a52ca38770}
+      \strng{fullhash}{180080038b809dce4c9144dc39f79f19}
+      \strng{bibnamehash}{297a19f680c67aa2f6f333a52ca38770}
+      \strng{authorbibnamehash}{297a19f680c67aa2f6f333a52ca38770}
+      \strng{authornamehash}{297a19f680c67aa2f6f333a52ca38770}
+      \strng{authorfullhash}{180080038b809dce4c9144dc39f79f19}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Health}
+      \field{number}{1}
+      \field{title}{{National Sleep Foundation’s sleep time duration recommendations: methodology and results summary}}
+      \field{volume}{1}
+      \field{year}{2015}
+      \field{pages}{40\bibrangedash 43}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1016/j.sleh.2014.12.010
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.sleh.2014.12.010
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.sleh.2014.12.010
+      \endverb
+    \endentry
+    \entry{johns1991}{article}{}
+      \name{author}{1}{}{%
+        {{hash=5157e34eff152d8fa24378af6565d8e1}{%
+           family={Johns},
+           familyi={J\bibinitperiod},
+           given={Murray\bibnamedelima W.},
+           giveni={M\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+      }
+      \strng{namehash}{5157e34eff152d8fa24378af6565d8e1}
+      \strng{fullhash}{5157e34eff152d8fa24378af6565d8e1}
+      \strng{bibnamehash}{5157e34eff152d8fa24378af6565d8e1}
+      \strng{authorbibnamehash}{5157e34eff152d8fa24378af6565d8e1}
+      \strng{authornamehash}{5157e34eff152d8fa24378af6565d8e1}
+      \strng{authorfullhash}{5157e34eff152d8fa24378af6565d8e1}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep}
+      \field{number}{6}
+      \field{title}{{A New Method for Measuring Daytime Sleepiness: The Epworth Sleepiness Scale}}
+      \field{volume}{14}
+      \field{year}{1991}
+      \field{pages}{540\bibrangedash 545}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1093/sleep/14.6.540
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1093/sleep/14.6.540
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1093/sleep/14.6.540
+      \endverb
+    \endentry
+    \entry{kecklund2016}{article}{}
+      \name{author}{2}{}{%
+        {{hash=8236f1719635d1a4fa29ffdf7d33e8ed}{%
+           family={Kecklund},
+           familyi={K\bibinitperiod},
+           given={Göran},
+           giveni={G\bibinitperiod}}}%
+        {{hash=ad3806d4e11023a203234100569fc6f9}{%
+           family={Axelsson},
+           familyi={A\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{522cced5324f3d344ae7a073a2af7a06}
+      \strng{fullhash}{522cced5324f3d344ae7a073a2af7a06}
+      \strng{bibnamehash}{522cced5324f3d344ae7a073a2af7a06}
+      \strng{authorbibnamehash}{522cced5324f3d344ae7a073a2af7a06}
+      \strng{authornamehash}{522cced5324f3d344ae7a073a2af7a06}
+      \strng{authorfullhash}{522cced5324f3d344ae7a073a2af7a06}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{BMJ}
+      \field{title}{{Health consequences of shift work and insufficient sleep}}
+      \field{volume}{355}
+      \field{year}{2016}
+      \field{pages}{i5210}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1136/bmj.i5210
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1136/bmj.i5210
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1136/bmj.i5210
+      \endverb
+    \endentry
+    \entry{kessler2011}{article}{}
+      \name{author}{9}{}{%
+        {{hash=3d9874e2b65f12f0f3ff1af6b486bc7f}{%
+           family={Kessler},
+           familyi={K\bibinitperiod},
+           given={Ronald\bibnamedelima C.},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=7b4ed05de5617c7db5c52e78f92c8a85}{%
+           family={Berglund},
+           familyi={B\bibinitperiod},
+           given={Patricia\bibnamedelima A.},
+           giveni={P\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=1a84fe74757a3bf727036bb4791d83b5}{%
+           family={Coulouvrat},
+           familyi={C\bibinitperiod},
+           given={Catherine},
+           giveni={C\bibinitperiod}}}%
+        {{hash=b9a7999090bc84d81cacddc1f61d8227}{%
+           family={Hajak},
+           familyi={H\bibinitperiod},
+           given={Goeran},
+           giveni={G\bibinitperiod}}}%
+        {{hash=e669339b82ae1f947f768ecf4bce1a11}{%
+           family={Roth},
+           familyi={R\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=c72413e2da18e99e1d61faa46c5d9fcb}{%
+           family={Shahly},
+           familyi={S\bibinitperiod},
+           given={Victoria},
+           giveni={V\bibinitperiod}}}%
+        {{hash=569aa03f67aaaf861432edb10f3de796}{%
+           family={Shillington},
+           familyi={S\bibinitperiod},
+           given={Alicia\bibnamedelima C.},
+           giveni={A\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=b5d0d4419903d90af2d22f63bccbd4f5}{%
+           family={Stephenson},
+           familyi={S\bibinitperiod},
+           given={Judith\bibnamedelima J.},
+           giveni={J\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=39b31128c1e465ed9a06d459c0c8fbea}{%
+           family={Walsh},
+           familyi={W\bibinitperiod},
+           given={James\bibnamedelima K.},
+           giveni={J\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+      }
+      \strng{namehash}{5b71dca3d00ac23b464ce7a6c1de981a}
+      \strng{fullhash}{b668ccbc284f4699fd270405099b0ddc}
+      \strng{bibnamehash}{5b71dca3d00ac23b464ce7a6c1de981a}
+      \strng{authorbibnamehash}{5b71dca3d00ac23b464ce7a6c1de981a}
+      \strng{authornamehash}{5b71dca3d00ac23b464ce7a6c1de981a}
+      \strng{authorfullhash}{b668ccbc284f4699fd270405099b0ddc}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep}
+      \field{number}{9}
+      \field{title}{{Insomnia and the Performance of US Workers: Results from the America Insomnia Survey}}
+      \field{volume}{34}
+      \field{year}{2011}
+      \field{pages}{1161\bibrangedash 1171}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.5665/sleep.1230
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.5665/sleep.1230
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.5665/sleep.1230
+      \endverb
+    \endentry
+    \entry{laranjo2018}{article}{}
+      \name{author}{11}{}{%
+        {{hash=84f47956d576e162b30b2745daa10c5d}{%
+           family={Laranjo},
+           familyi={L\bibinitperiod},
+           given={Liliana},
+           giveni={L\bibinitperiod}}}%
+        {{hash=4607c00a2bd67bc9bd7d3037d8c3c8da}{%
+           family={Dunn},
+           familyi={D\bibinitperiod},
+           given={Adam\bibnamedelima G},
+           giveni={A\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=841bb8b37688cc1ff167212c21599fd1}{%
+           family={Tong},
+           familyi={T\bibinitperiod},
+           given={Huong\bibnamedelima Ly},
+           giveni={H\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=06580bc9003e652f6255156138d737e4}{%
+           family={Kocaballi},
+           familyi={K\bibinitperiod},
+           given={Ahmet\bibnamedelima Baki},
+           giveni={A\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=3adccc073752fb44aba7b077fc2c0969}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Jessica},
+           giveni={J\bibinitperiod}}}%
+        {{hash=e6b1e397b39686d262bd4807939ee069}{%
+           family={Bashir},
+           familyi={B\bibinitperiod},
+           given={Rabia},
+           giveni={R\bibinitperiod}}}%
+        {{hash=609af23c17ef54de1c9cd969fd36e446}{%
+           family={Surian},
+           familyi={S\bibinitperiod},
+           given={Didi},
+           giveni={D\bibinitperiod}}}%
+        {{hash=ac68ea382c4db1f6e6260f530cbc70fa}{%
+           family={Gallego},
+           familyi={G\bibinitperiod},
+           given={Blanca},
+           giveni={B\bibinitperiod}}}%
+        {{hash=7b9d4ea19dba42b48232c2a565c7bf97}{%
+           family={Magrabi},
+           familyi={M\bibinitperiod},
+           given={Farah},
+           giveni={F\bibinitperiod}}}%
+        {{hash=a3d9ff8dd97410c70cfa6b988d945ba4}{%
+           family={Lau},
+           familyi={L\bibinitperiod},
+           given={Annie\bibnamedelimb Y\bibnamedelima S},
+           giveni={A\bibinitperiod\bibinitdelim Y\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=9bb08e6618a6dbb56fd9040958bdb9ff}{%
+           family={Coiera},
+           familyi={C\bibinitperiod},
+           given={Enrico},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{764dd47486567ff19b60711a4690c4d7}
+      \strng{fullhash}{ba2c1316c2f2be4679257e9e2e00b92e}
+      \strng{bibnamehash}{764dd47486567ff19b60711a4690c4d7}
+      \strng{authorbibnamehash}{764dd47486567ff19b60711a4690c4d7}
+      \strng{authornamehash}{764dd47486567ff19b60711a4690c4d7}
+      \strng{authorfullhash}{ba2c1316c2f2be4679257e9e2e00b92e}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of the American Medical Informatics Association}
+      \field{number}{9}
+      \field{title}{{Conversational agents in healthcare: a systematic review}}
+      \field{volume}{25}
+      \field{year}{2018}
+      \field{pages}{1248\bibrangedash 1258}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1093/jamia/ocy072
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1093/jamia/ocy072
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1093/jamia/ocy072
+      \endverb
+    \endentry
+    \entry{linton2015}{article}{}
+      \name{author}{12}{}{%
+        {{hash=368db96f233f811362b7354571381e37}{%
+           family={Linton},
+           familyi={L\bibinitperiod},
+           given={Steven\bibnamedelima J.},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=8236f1719635d1a4fa29ffdf7d33e8ed}{%
+           family={Kecklund},
+           familyi={K\bibinitperiod},
+           given={Göran},
+           giveni={G\bibinitperiod}}}%
+        {{hash=2c3a667280b038a8370ebb3fc5e06aa6}{%
+           family={Franklin},
+           familyi={F\bibinitperiod},
+           given={Karl\bibnamedelima A.},
+           giveni={K\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=8984040c57524fd26175fcd465aebf50}{%
+           family={Leissner},
+           familyi={L\bibinitperiod},
+           given={Lena\bibnamedelima C.},
+           giveni={L\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=533beed52b76cef76127ec19fbda095b}{%
+           family={Sivertsen},
+           familyi={S\bibinitperiod},
+           given={Børge},
+           giveni={B\bibinitperiod}}}%
+        {{hash=62a104f6ec4278caeb6e0523b28e86ae}{%
+           family={Lindberg},
+           familyi={L\bibinitperiod},
+           given={Eva},
+           giveni={E\bibinitperiod}}}%
+        {{hash=c20135df1b58dc18e06c95f16b3c7555}{%
+           family={Svensson},
+           familyi={S\bibinitperiod},
+           given={Anna\bibnamedelima C.},
+           giveni={A\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=805154f5f6dbbdaf216964f02d790e51}{%
+           family={Hansson},
+           familyi={H\bibinitperiod},
+           given={Sven\bibnamedelima O.},
+           giveni={S\bibinitperiod\bibinitdelim O\bibinitperiod}}}%
+        {{hash=5ee669485a3af66b799bb19aedb32920}{%
+           family={Sundin},
+           familyi={S\bibinitperiod},
+           given={Örjan},
+           giveni={Ö\bibinitperiod}}}%
+        {{hash=4b36fcba254674273d3a51b4b8b7a6af}{%
+           family={Hetta},
+           familyi={H\bibinitperiod},
+           given={Jerker},
+           giveni={J\bibinitperiod}}}%
+        {{hash=dd4813cba9eeb0eeea975f0524d51ea4}{%
+           family={Björkelund},
+           familyi={B\bibinitperiod},
+           given={Cecilia},
+           giveni={C\bibinitperiod}}}%
+        {{hash=89431d73fcba79c827d03d6ba849f327}{%
+           family={Hall},
+           familyi={H\bibinitperiod},
+           given={Charlotte},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{dacdac14bdbbcba1c3b2d1610e9bf055}
+      \strng{fullhash}{a573886273594b9cc3f7eb9943a82916}
+      \strng{bibnamehash}{dacdac14bdbbcba1c3b2d1610e9bf055}
+      \strng{authorbibnamehash}{dacdac14bdbbcba1c3b2d1610e9bf055}
+      \strng{authornamehash}{dacdac14bdbbcba1c3b2d1610e9bf055}
+      \strng{authorfullhash}{a573886273594b9cc3f7eb9943a82916}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine Reviews}
+      \field{title}{{The effect of the work environment on future sleep disturbances: a systematic review}}
+      \field{volume}{23}
+      \field{year}{2015}
+      \field{pages}{10\bibrangedash 19}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1016/j.smrv.2014.10.010
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.smrv.2014.10.010
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.smrv.2014.10.010
+      \endverb
+    \endentry
+    \entry{meta_optin}{online}{}
+      \name{author}{1}{}{%
+        {{hash=b6755d218d5f4e1cef9cce9cc39aeda9}{%
+           family={{Meta}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Meta for Developers, WhatsApp Business Platform}%
+      }
+      \strng{namehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{fullhash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{bibnamehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{authorbibnamehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{authornamehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{authorfullhash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \field{extraname}{1}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Documentação viva, sem data de publicação, com conteúdo conferido em 2026-10-02}
+      \field{title}{Get opt-in for WhatsApp}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://developers.facebook.com/documentation/business-messaging/whatsapp/getting-opt-in
+      \endverb
+      \verb{url}
+      \verb https://developers.facebook.com/documentation/business-messaging/whatsapp/getting-opt-in
+      \endverb
+    \endentry
+    \entry{meta_servicewindow}{online}{}
+      \name{author}{1}{}{%
+        {{hash=b6755d218d5f4e1cef9cce9cc39aeda9}{%
+           family={{Meta}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Meta for Developers, WhatsApp Cloud API}%
+      }
+      \strng{namehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{fullhash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{bibnamehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{authorbibnamehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{authornamehash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \strng{authorfullhash}{b6755d218d5f4e1cef9cce9cc39aeda9}
+      \field{extraname}{2}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Documentação viva, sem data de publicação, com conteúdo conferido em 2026-10-02}
+      \field{title}{Service messages (customer service window)}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://developers.facebook.com/documentation/business-messaging/whatsapp/messages/send-messages
+      \endverb
+      \verb{url}
+      \verb https://developers.facebook.com/documentation/business-messaging/whatsapp/messages/send-messages
+      \endverb
+    \endentry
+    \entry{mte_portaria1419_2024}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=3813d7a772d94d6e7b2ac52da48d4e74}{%
+           family={{Ministério do Trabalho e Emprego}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{fullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{bibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorbibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authornamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorfullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \field{extraname}{1}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Diário Oficial da União, Seção 1, 28 ago. 2024}
+      \field{title}{Portaria MTE nº 1.419, de 27 de agosto de 2024: aprova a nova redação do capítulo “1.5 Gerenciamento de riscos ocupacionais” e altera o “Anexo I: Termos e definições” da Norma Regulamentadora nº 1 (NR-1)}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/2024/portaria-mte-no-1-419-nr-01-gro-nova-redacao.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/seguranca-e-saude-no-trabalho/sst-portarias/2024/portaria-mte-no-1-419-nr-01-gro-nova-redacao.pdf
+      \endverb
+    \endentry
+    \entry{mte_nr1_2025}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=3813d7a772d94d6e7b2ac52da48d4e74}{%
+           family={{Ministério do Trabalho e Emprego}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{fullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{bibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorbibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authornamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorfullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \field{extraname}{2}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Texto consolidado, gov.br}
+      \field{title}{Norma Regulamentadora nº 01 (NR-01): Disposições Gerais e Gerenciamento de Riscos Ocupacionais}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-01-atualizada-2025-i-1.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/nr-01-atualizada-2025-i-1.pdf
+      \endverb
+    \endentry
+    \entry{mte_guia_psicossociais_2025}{manual}{}
+      \name{author}{1}{}{%
+        {{hash=3813d7a772d94d6e7b2ac52da48d4e74}{%
+           family={{Ministério do Trabalho e Emprego}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Brasília}%
+      }
+      \list{organization}{1}{%
+        {Coordenação-Geral de Normatização e Registros, Secretaria de Inspeção do Trabalho}%
+      }
+      \strng{namehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{fullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{bibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorbibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authornamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorfullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \field{extraname}{3}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{NR-1: Gerenciamento de riscos ocupacionais (GRO): Guia de informações sobre os fatores de riscos psicossociais relacionados ao trabalho}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/guia-nr-01-revisado.pdf
+      \endverb
+      \verb{url}
+      \verb https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/guia-nr-01-revisado.pdf
+      \endverb
+    \endentry
+    \entry{mte_portaria765_2025}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=3813d7a772d94d6e7b2ac52da48d4e74}{%
+           family={{Ministério do Trabalho e Emprego}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{fullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{bibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorbibnamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authornamehash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \strng{authorfullhash}{3813d7a772d94d6e7b2ac52da48d4e74}
+      \field{extraname}{4}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradate}{3}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{Diário Oficial da União, Seção 1, ed. 91, p. 87, 16 maio 2025}
+      \field{note}{Texto consultado em transcrição: https://www.normaslegais.com.br/legislacao/portaria-mte-765-2025.htm}
+      \field{title}{Portaria MTE nº 765, de 15 de maio de 2025: prorroga o prazo de início de vigência da nova redação do capítulo “1.5 Gerenciamento de riscos ocupacionais” da NR-1}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2025}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.in.gov.br/web/dou
+      \endverb
+      \verb{url}
+      \verb https://www.in.gov.br/web/dou
+      \endverb
+    \endentry
+    \entry{olson2015}{article}{}
+      \name{author}{10}{}{%
+        {{hash=14442df0fbd1264556f657ebe3ccde04}{%
+           family={Olson},
+           familyi={O\bibinitperiod},
+           given={Ryan},
+           giveni={R\bibinitperiod}}}%
+        {{hash=c7cb8ce048042151584beab7fd8e8c84}{%
+           family={Crain},
+           familyi={C\bibinitperiod},
+           given={Tori\bibnamedelima L.},
+           giveni={T\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=71d515b6f30ec50c28b0743410e4ecd2}{%
+           family={Bodner},
+           familyi={B\bibinitperiod},
+           given={Todd\bibnamedelima E.},
+           giveni={T\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=d5ced8b5f7e9838dff66f4593c4005c6}{%
+           family={King},
+           familyi={K\bibinitperiod},
+           given={Rosalind},
+           giveni={R\bibinitperiod}}}%
+        {{hash=f1be9d0a4b6b27de33ca6ee2eb593387}{%
+           family={Hammer},
+           familyi={H\bibinitperiod},
+           given={Leslie\bibnamedelima B.},
+           giveni={L\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
+        {{hash=0a1dde5c2fb0e79612147d697deffd37}{%
+           family={Klein},
+           familyi={K\bibinitperiod},
+           given={Laura\bibnamedelima Cousino},
+           giveni={L\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=7f8f9ba8853c4e5efe620d6265ea7fe9}{%
+           family={Erickson},
+           familyi={E\bibinitperiod},
+           given={Leslie},
+           giveni={L\bibinitperiod}}}%
+        {{hash=fdaed47dadcbc7476cafb03cd5a51c39}{%
+           family={Moen},
+           familyi={M\bibinitperiod},
+           given={Phyllis},
+           giveni={P\bibinitperiod}}}%
+        {{hash=ea5bc66537ad480764f7cfe0720a5753}{%
+           family={Berkman},
+           familyi={B\bibinitperiod},
+           given={Lisa\bibnamedelima F.},
+           giveni={L\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=bc13b0c1836f3c00dc3a896a9d9de456}{%
+           family={Buxton},
+           familyi={B\bibinitperiod},
+           given={Orfeu\bibnamedelima M.},
+           giveni={O\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{f54f828e69903216f9e8a28c4a653dd2}
+      \strng{fullhash}{0d692a00b065456ad4109ef3bc1f7ef2}
+      \strng{bibnamehash}{f54f828e69903216f9e8a28c4a653dd2}
+      \strng{authorbibnamehash}{f54f828e69903216f9e8a28c4a653dd2}
+      \strng{authornamehash}{f54f828e69903216f9e8a28c4a653dd2}
+      \strng{authorfullhash}{0d692a00b065456ad4109ef3bc1f7ef2}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Health}
+      \field{number}{1}
+      \field{title}{{A workplace intervention improves sleep: results from the randomized controlled Work, Family, and Health Study}}
+      \field{volume}{1}
+      \field{year}{2015}
+      \field{pages}{55\bibrangedash 65}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1016/j.sleh.2014.11.003
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.sleh.2014.11.003
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.sleh.2014.11.003
+      \endverb
+    \endentry
+    \entry{prates2026_dgabc}{online}{}
+      \name{author}{1}{}{%
+        {{hash=8571cbde53c0029f5b277644bb4dc6de}{%
+           family={Prates},
+           familyi={P\bibinitperiod},
+           given={Caio},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{organization}{1}{%
+        {Diário do Grande ABC}%
+      }
+      \strng{namehash}{8571cbde53c0029f5b277644bb4dc6de}
+      \strng{fullhash}{8571cbde53c0029f5b277644bb4dc6de}
+      \strng{bibnamehash}{8571cbde53c0029f5b277644bb4dc6de}
+      \strng{authorbibnamehash}{8571cbde53c0029f5b277644bb4dc6de}
+      \strng{authornamehash}{8571cbde53c0029f5b277644bb4dc6de}
+      \strng{authorfullhash}{8571cbde53c0029f5b277644bb4dc6de}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{23}
+      \field{month}{3}
+      \field{note}{Dados do Ministério da Previdência Social divulgados em janeiro de 2026}
+      \field{title}{Afastamentos por transtorno mental chegam a 546 mil}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.dgabc.com.br/Noticia/4291324/afastamentos-por-transtorno-mental-chegam-a-546-mil
+      \endverb
+      \verb{url}
+      \verb https://www.dgabc.com.br/Noticia/4291324/afastamentos-por-transtorno-mental-chegam-a-546-mil
+      \endverb
+    \endentry
+    \entry{redeker2019}{article}{}
+      \name{author}{6}{}{%
+        {{hash=afe841d546f40833bb4bf186b8395822}{%
+           family={Redeker},
+           familyi={R\bibinitperiod},
+           given={Nancy\bibnamedelima S.},
+           giveni={N\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=883bcc212da8e2236e5fa24da471ac75}{%
+           family={Caruso},
+           familyi={C\bibinitperiod},
+           given={Claire\bibnamedelima C.},
+           giveni={C\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=1e41ffa321c4720adc37ed806ffc376a}{%
+           family={Hashmi},
+           familyi={H\bibinitperiod},
+           given={Sarah\bibnamedelima D.},
+           giveni={S\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=581196710aa3a8e6efc1d1d54cbe73ef}{%
+           family={Mullington},
+           familyi={M\bibinitperiod},
+           given={Janet\bibnamedelima M.},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=50e31e7d52a02bfb1446712bd54d26df}{%
+           family={Grandner},
+           familyi={G\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=6b34b3180d5767be466f3eef71b8a38c}{%
+           family={Morgenthaler},
+           familyi={M\bibinitperiod},
+           given={Timothy\bibnamedelima I.},
+           giveni={T\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+      }
+      \strng{namehash}{dedb76ce4c481c6885386cf74beffd8a}
+      \strng{fullhash}{252cff6f30cb137227c68505d6ae9caf}
+      \strng{bibnamehash}{dedb76ce4c481c6885386cf74beffd8a}
+      \strng{authorbibnamehash}{dedb76ce4c481c6885386cf74beffd8a}
+      \strng{authornamehash}{dedb76ce4c481c6885386cf74beffd8a}
+      \strng{authorfullhash}{252cff6f30cb137227c68505d6ae9caf}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Clinical Sleep Medicine}
+      \field{number}{4}
+      \field{title}{{Workplace Interventions to Promote Sleep Health and an Alert, Healthy Workforce}}
+      \field{volume}{15}
+      \field{year}{2019}
+      \field{pages}{649\bibrangedash 657}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.5664/jcsm.7734
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.5664/jcsm.7734
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.5664/jcsm.7734
+      \endverb
+    \endentry
+    \entry{robbins2021}{article}{}
+      \name{author}{8}{}{%
+        {{hash=e202dd63d380bf1881cc06580d4097b6}{%
+           family={Robbins},
+           familyi={R\bibinitperiod},
+           given={Rebecca},
+           giveni={R\bibinitperiod}}}%
+        {{hash=22429aa70955b16ef3e1c2924c7dfd00}{%
+           family={Underwood},
+           familyi={U\bibinitperiod},
+           given={Phoenix},
+           giveni={P\bibinitperiod}}}%
+        {{hash=166f0b7fcb52619b92e1957374118acf}{%
+           family={Jackson},
+           familyi={J\bibinitperiod},
+           given={Chandra\bibnamedelima L.},
+           giveni={C\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=fe2cec858b35adaf9ef4a3d9d6dbc0bb}{%
+           family={Jean-Louis},
+           familyi={J\bibinithyphendelim L\bibinitperiod},
+           given={Giradin},
+           giveni={G\bibinitperiod}}}%
+        {{hash=bd4164f2abe48f82e590dca06ca560a6}{%
+           family={Madhavaram},
+           familyi={M\bibinitperiod},
+           given={Shreya},
+           giveni={S\bibinitperiod}}}%
+        {{hash=b6fcde9f5f9af8f7f47defc8d1eb6573}{%
+           family={Kuriakose},
+           familyi={K\bibinitperiod},
+           given={Shiana},
+           giveni={S\bibinitperiod}}}%
+        {{hash=a4825c67f5df1d961950d50273a1e848}{%
+           family={Vieira},
+           familyi={V\bibinitperiod},
+           given={Dorice},
+           giveni={D\bibinitperiod}}}%
+        {{hash=bc13b0c1836f3c00dc3a896a9d9de456}{%
+           family={Buxton},
+           familyi={B\bibinitperiod},
+           given={Orfeu\bibnamedelima M.},
+           giveni={O\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{30baf7b01ad7b0b11621657f90b6c0b8}
+      \strng{fullhash}{029a29a8a938397ce0eded8af0ce8e7f}
+      \strng{bibnamehash}{30baf7b01ad7b0b11621657f90b6c0b8}
+      \strng{authorbibnamehash}{30baf7b01ad7b0b11621657f90b6c0b8}
+      \strng{authornamehash}{30baf7b01ad7b0b11621657f90b6c0b8}
+      \strng{authorfullhash}{029a29a8a938397ce0eded8af0ce8e7f}
+      \field{sortinit}{R}
+      \field{sortinithash}{5e1c39a9d46ffb6bebd8f801023a9486}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Workplace Health \& Safety}
+      \field{number}{11}
+      \field{title}{{A Systematic Review of Workplace-Based Employee Health Interventions and Their Impact on Sleep Duration Among Shift Workers}}
+      \field{volume}{69}
+      \field{year}{2021}
+      \field{pages}{525\bibrangedash 539}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1177/21650799211020961
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1177/21650799211020961
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1177/21650799211020961
+      \endverb
+    \endentry
+    \entry{santossilva2010}{article}{}
+      \name{author}{8}{}{%
+        {{hash=42d5e7b307f64e24f10872b9ff79e37a}{%
+           family={Santos-Silva},
+           familyi={S\bibinithyphendelim S\bibinitperiod},
+           given={Rogerio},
+           giveni={R\bibinitperiod}}}%
+        {{hash=7429a20181b198fb41ee5cce1d3af085}{%
+           family={Bittencourt},
+           familyi={B\bibinitperiod},
+           given={Lia\bibnamedelimb Rita\bibnamedelima Azeredo},
+           giveni={L\bibinitperiod\bibinitdelim R\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=6698a5cce6a530543ed7095174b424dd}{%
+           family={Pires},
+           familyi={P\bibinitperiod},
+           given={Maria\bibnamedelimb Laura\bibnamedelima Nogueira},
+           giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+        {{hash=5123eac2ba531e8d5e46d696ca5d94a8}{%
+           family={Mello},
+           familyi={M\bibinitperiod},
+           given={Marco\bibnamedelima Tulio},
+           giveni={M\bibinitperiod\bibinitdelim T\bibinitperiod},
+           prefix={de},
+           prefixi={d\bibinitperiod}}}%
+        {{hash=d75c7569d11cd7acde348d60db74a8e8}{%
+           family={Taddei},
+           familyi={T\bibinitperiod},
+           given={Jose\bibnamedelima Augusto},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=49afc9759641decab98e3a916aece1fc}{%
+           family={Benedito-Silva},
+           familyi={B\bibinithyphendelim S\bibinitperiod},
+           given={Ana\bibnamedelima Amelia},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=a5a8f2c1e8a671f9859cb0a614ff932c}{%
+           family={Pompeia},
+           familyi={P\bibinitperiod},
+           given={Celine},
+           giveni={C\bibinitperiod}}}%
+        {{hash=23a4702c57e1b0fae09f4ec64c30b3ad}{%
+           family={Tufik},
+           familyi={T\bibinitperiod},
+           given={Sergio},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{e83cd408ac31459d4f8c31c753f37dca}
+      \strng{fullhash}{cda4b983e710eca92e4545e8a7259f38}
+      \strng{bibnamehash}{e83cd408ac31459d4f8c31c753f37dca}
+      \strng{authorbibnamehash}{e83cd408ac31459d4f8c31c753f37dca}
+      \strng{authornamehash}{e83cd408ac31459d4f8c31c753f37dca}
+      \strng{authorfullhash}{cda4b983e710eca92e4545e8a7259f38}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine}
+      \field{number}{6}
+      \field{title}{{Increasing trends of sleep complaints in the city of Sao Paulo, Brazil}}
+      \field{volume}{11}
+      \field{year}{2010}
+      \field{pages}{520\bibrangedash 524}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1016/j.sleep.2009.12.011
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.sleep.2009.12.011
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.sleep.2009.12.011
+      \endverb
+    \endentry
+    \entry{shiffman2008}{article}{}
+      \name{author}{3}{}{%
+        {{hash=2b37d9ef3fde25d93ff42d77cc4893cd}{%
+           family={Shiffman},
+           familyi={S\bibinitperiod},
+           given={Saul},
+           giveni={S\bibinitperiod}}}%
+        {{hash=745d44666fe86a0a503ec1fe768616b4}{%
+           family={Stone},
+           familyi={S\bibinitperiod},
+           given={Arthur\bibnamedelima A.},
+           giveni={A\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=7911d154d18dac0e1518b01e1f4503bc}{%
+           family={Hufford},
+           familyi={H\bibinitperiod},
+           given={Michael\bibnamedelima R.},
+           giveni={M\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \strng{namehash}{3f17cd6a1239c4758ba1998d8f60e0df}
+      \strng{fullhash}{24bcc40f1174892b216540e3c6524137}
+      \strng{bibnamehash}{24bcc40f1174892b216540e3c6524137}
+      \strng{authorbibnamehash}{24bcc40f1174892b216540e3c6524137}
+      \strng{authornamehash}{3f17cd6a1239c4758ba1998d8f60e0df}
+      \strng{authorfullhash}{24bcc40f1174892b216540e3c6524137}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Annual Review of Clinical Psychology}
+      \field{number}{1}
+      \field{title}{{Ecological Momentary Assessment}}
+      \field{volume}{4}
+      \field{year}{2008}
+      \field{pages}{1\bibrangedash 32}
+      \range{pages}{32}
+      \verb{doi}
+      \verb 10.1146/annurev.clinpsy.3.022806.091415
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1146/annurev.clinpsy.3.022806.091415
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1146/annurev.clinpsy.3.022806.091415
+      \endverb
+    \endentry
+    \entry{shimamoto2022}{article}{}
+      \name{author}{7}{}{%
+        {{hash=6bcb926f0c1dc0c06b8b90b233d98888}{%
+           family={Shimamoto},
+           familyi={S\bibinitperiod},
+           given={Tomonari},
+           giveni={T\bibinitperiod}}}%
+        {{hash=317d65ef95edc09c58a5090f31409864}{%
+           family={Furihata},
+           familyi={F\bibinitperiod},
+           given={Ryuji},
+           giveni={R\bibinitperiod}}}%
+        {{hash=3885aeee5cc5078c1fdc47a566501b6b}{%
+           family={Nakagami},
+           familyi={N\bibinitperiod},
+           given={Yukako},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=51bf0c416dddcc3fe49dab8215a6a420}{%
+           family={Tateyama},
+           familyi={T\bibinitperiod},
+           given={Yukiko},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=0c2c9d0e6db2c121320026b766cccc4e}{%
+           family={Kobayashi},
+           familyi={K\bibinitperiod},
+           given={Daisuke},
+           giveni={D\bibinitperiod}}}%
+        {{hash=eb4bfcc76f6243132d5779df3e7024cb}{%
+           family={Kiyohara},
+           familyi={K\bibinitperiod},
+           given={Kosuke},
+           giveni={K\bibinitperiod}}}%
+        {{hash=50a2328a1b050876acb0e40e4d06ece4}{%
+           family={Iwami},
+           familyi={I\bibinitperiod},
+           given={Taku},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{4da7441e456fa1cc9ce37b0702baaf3c}
+      \strng{fullhash}{672b5e2dff35f6cd0827a273c2f416de}
+      \strng{bibnamehash}{4da7441e456fa1cc9ce37b0702baaf3c}
+      \strng{authorbibnamehash}{4da7441e456fa1cc9ce37b0702baaf3c}
+      \strng{authornamehash}{4da7441e456fa1cc9ce37b0702baaf3c}
+      \strng{authorfullhash}{672b5e2dff35f6cd0827a273c2f416de}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Medical Internet Research}
+      \field{number}{7}
+      \field{title}{{Providing Brief Personalized Therapies for Insomnia Among Workers Using a Sleep Prompt App: Randomized Controlled Trial}}
+      \field{volume}{24}
+      \field{year}{2022}
+      \field{pages}{e36862}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.2196/36862
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.2196/36862
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.2196/36862
+      \endverb
+    \endentry
+    \entry{soh2020}{article}{}
+      \name{author}{4}{}{%
+        {{hash=4620fa75e0eaa2d1769529e241d9db0b}{%
+           family={Soh},
+           familyi={S\bibinitperiod},
+           given={Hui\bibnamedelima Ling},
+           giveni={H\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=f21d90d4171d56e8e143dd486064d838}{%
+           family={Ho},
+           familyi={H\bibinitperiod},
+           given={Roger\bibnamedelima C.},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=fb7902f24935a03e954eb90d0d78c1f0}{%
+           family={Ho},
+           familyi={H\bibinitperiod},
+           given={Cyrus\bibnamedelima S.},
+           giveni={C\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=c20d1ad38b1ac1c8107ab4675add5141}{%
+           family={Tam},
+           familyi={T\bibinitperiod},
+           given={Wilson\bibnamedelima W.},
+           giveni={W\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+      }
+      \strng{namehash}{4ab8a7999e031e072becef790276273e}
+      \strng{fullhash}{1de66838f48ce71fbf52b6db2e23e589}
+      \strng{bibnamehash}{4ab8a7999e031e072becef790276273e}
+      \strng{authorbibnamehash}{4ab8a7999e031e072becef790276273e}
+      \strng{authornamehash}{4ab8a7999e031e072becef790276273e}
+      \strng{authorfullhash}{1de66838f48ce71fbf52b6db2e23e589}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine}
+      \field{title}{{Efficacy of digital cognitive behavioural therapy for insomnia: a meta-analysis of randomised controlled trials}}
+      \field{volume}{75}
+      \field{year}{2020}
+      \field{pages}{315\bibrangedash 325}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1016/j.sleep.2020.08.020
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.sleep.2020.08.020
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.sleep.2020.08.020
+      \endverb
+    \endentry
+    \entry{fda_k233577}{online}{}
+      \name{author}{1}{}{%
+        {{hash=2f9a65cc9bb5b4e762ce8af8bb256f98}{%
+           family={{U.S. Food and Drug Administration}},
+           familyi={U\bibinitperiod}}}%
+      }
+      \strng{namehash}{2f9a65cc9bb5b4e762ce8af8bb256f98}
+      \strng{fullhash}{2f9a65cc9bb5b4e762ce8af8bb256f98}
+      \strng{bibnamehash}{2f9a65cc9bb5b4e762ce8af8bb256f98}
+      \strng{authorbibnamehash}{2f9a65cc9bb5b4e762ce8af8bb256f98}
+      \strng{authornamehash}{2f9a65cc9bb5b4e762ce8af8bb256f98}
+      \strng{authorfullhash}{2f9a65cc9bb5b4e762ce8af8bb256f98}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{5}
+      \field{month}{8}
+      \field{title}{510(k) Premarket Notification K233577: Sleepio (Big Health, Inc.), product code QVO}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID=K233577
+      \endverb
+      \verb{url}
+      \verb https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID=K233577
+      \endverb
+    \endentry
+    \entry{uehli2014}{article}{}
+      \name{author}{8}{}{%
+        {{hash=48dda1b104ac53d715da717cdf096b7f}{%
+           family={Uehli},
+           familyi={U\bibinitperiod},
+           given={Katrin},
+           giveni={K\bibinitperiod}}}%
+        {{hash=b333a4a754cfc90719388140d7dec105}{%
+           family={Mehta},
+           familyi={M\bibinitperiod},
+           given={Amar\bibnamedelima J.},
+           giveni={A\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=ff2db1463c36dea01270fe0a6fa38b58}{%
+           family={Miedinger},
+           familyi={M\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=9ed30a5b304278cfd505599176e42467}{%
+           family={Hug},
+           familyi={H\bibinitperiod},
+           given={Kerstin},
+           giveni={K\bibinitperiod}}}%
+        {{hash=4ab86191b52ef45346ca8cdb7cf3bc5a}{%
+           family={Schindler},
+           familyi={S\bibinitperiod},
+           given={Christian},
+           giveni={C\bibinitperiod}}}%
+        {{hash=29526687e1dee14c60e4ca3c0ca5d33d}{%
+           family={Holsboer-Trachsler},
+           familyi={H\bibinithyphendelim T\bibinitperiod},
+           given={Edith},
+           giveni={E\bibinitperiod}}}%
+        {{hash=35c0950a153abb800515c7658ed97811}{%
+           family={Leuppi},
+           familyi={L\bibinitperiod},
+           given={Jörg\bibnamedelima D.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=4255932ebce924ca4f2c692d4aa34da8}{%
+           family={Künzli},
+           familyi={K\bibinitperiod},
+           given={Nino},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{448c64d611ba8e0ff7d417ceeefaaaa7}
+      \strng{fullhash}{9b4087b4b73932776894644b2e0f5c33}
+      \strng{bibnamehash}{448c64d611ba8e0ff7d417ceeefaaaa7}
+      \strng{authorbibnamehash}{448c64d611ba8e0ff7d417ceeefaaaa7}
+      \strng{authornamehash}{448c64d611ba8e0ff7d417ceeefaaaa7}
+      \strng{authorfullhash}{9b4087b4b73932776894644b2e0f5c33}
+      \field{sortinit}{U}
+      \field{sortinithash}{6901a00e45705986ee5e7ca9fd39adca}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine Reviews}
+      \field{number}{1}
+      \field{title}{{Sleep problems and work injuries: A systematic review and meta-analysis}}
+      \field{volume}{18}
+      \field{year}{2014}
+      \field{pages}{61\bibrangedash 73}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1016/j.smrv.2013.01.004
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.smrv.2013.01.004
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.smrv.2013.01.004
+      \endverb
+    \endentry
+    \entry{watson2015}{article}{}
+      \name{author}{15}{}{%
+        {{hash=2718636b2a2e5bc3f1b5a943c3f6174c}{%
+           family={Watson},
+           familyi={W\bibinitperiod},
+           given={Nathaniel\bibnamedelima F.},
+           giveni={N\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=ee6f5a93f822513c3e3e6cd543bc1f4b}{%
+           family={Badr},
+           familyi={B\bibinitperiod},
+           given={M.\bibnamedelimi Safwan},
+           giveni={M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=fbfdfc5f01a06946f5c40d8dc4118aa1}{%
+           family={Belenky},
+           familyi={B\bibinitperiod},
+           given={Gregory},
+           giveni={G\bibinitperiod}}}%
+        {{hash=48e0f4d74bb78ce1747d3f28e06635ef}{%
+           family={Bliwise},
+           familyi={B\bibinitperiod},
+           given={Donald\bibnamedelima L.},
+           giveni={D\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=bc13b0c1836f3c00dc3a896a9d9de456}{%
+           family={Buxton},
+           familyi={B\bibinitperiod},
+           given={Orfeu\bibnamedelima M.},
+           giveni={O\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=cbfdea77e347f310bb9337e8e4deae49}{%
+           family={Buysse},
+           familyi={B\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=d7f85330c42a27b51ebd09aacb2650fd}{%
+           family={Dinges},
+           familyi={D\bibinitperiod},
+           given={David\bibnamedelima F.},
+           giveni={D\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=cd3bc5f34ea13d980cc7147863b77ca1}{%
+           family={Gangwisch},
+           familyi={G\bibinitperiod},
+           given={James},
+           giveni={J\bibinitperiod}}}%
+        {{hash=150dd3081b8eac179d7c3c56f844ea4a}{%
+           family={Grandner},
+           familyi={G\bibinitperiod},
+           given={Michael\bibnamedelima A.},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=3749110f3a5c5f663a77a3e38334427f}{%
+           family={Kushida},
+           familyi={K\bibinitperiod},
+           given={Clete},
+           giveni={C\bibinitperiod}}}%
+        {{hash=f90a1c47a14ac0345d7cca116e7ae8fd}{%
+           family={Malhotra},
+           familyi={M\bibinitperiod},
+           given={Raman\bibnamedelima K.},
+           giveni={R\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=3f9800b723ca99bad23c7cb449eb0463}{%
+           family={Martin},
+           familyi={M\bibinitperiod},
+           given={Jennifer\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=9c1c397be25abc6a9ac91a15be0d47a0}{%
+           family={Patel},
+           familyi={P\bibinitperiod},
+           given={Sanjay\bibnamedelima R.},
+           giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+        {{hash=d1cc3e92f8efcbd636d8302cc31c66c5}{%
+           family={Quan},
+           familyi={Q\bibinitperiod},
+           given={Stuart},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5fb3a65bce53d7c24edf7c20bf6016bb}{%
+           family={Tasali},
+           familyi={T\bibinitperiod},
+           given={Esra},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{0e8db8905ba9344707a2aa4ce32db5fb}
+      \strng{fullhash}{496801889217c06fd383222be72465d7}
+      \strng{bibnamehash}{0e8db8905ba9344707a2aa4ce32db5fb}
+      \strng{authorbibnamehash}{0e8db8905ba9344707a2aa4ce32db5fb}
+      \strng{authornamehash}{0e8db8905ba9344707a2aa4ce32db5fb}
+      \strng{authorfullhash}{496801889217c06fd383222be72465d7}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep}
+      \field{number}{6}
+      \field{title}{{Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society}}
+      \field{volume}{38}
+      \field{year}{2015}
+      \field{pages}{843\bibrangedash 844}
+      \range{pages}{2}
+      \verb{doi}
+      \verb 10.5665/sleep.4716
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.5665/sleep.4716
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.5665/sleep.4716
+      \endverb
+    \endentry
+    \entry{whatsapp_policy}{online}{}
+      \name{author}{1}{}{%
+        {{hash=8b777ebcc5034ce0fe96dd154bcb370e}{%
+           family={{WhatsApp}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{8b777ebcc5034ce0fe96dd154bcb370e}
+      \strng{fullhash}{8b777ebcc5034ce0fe96dd154bcb370e}
+      \strng{bibnamehash}{8b777ebcc5034ce0fe96dd154bcb370e}
+      \strng{authorbibnamehash}{8b777ebcc5034ce0fe96dd154bcb370e}
+      \strng{authornamehash}{8b777ebcc5034ce0fe96dd154bcb370e}
+      \strng{authorfullhash}{8b777ebcc5034ce0fe96dd154bcb370e}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{23}
+      \field{month}{9}
+      \field{note}{Última atualização em 23 set. 2026}
+      \field{title}{WhatsApp Business Messaging Policy}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2026}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://whatsappbusiness.com/policy/
+      \endverb
+      \verb{url}
+      \verb https://whatsappbusiness.com/policy/
+      \endverb
+    \endentry
+    \entry{wysa_fda_2022}{online}{}
+      \name{author}{1}{}{%
+        {{hash=045d359671acd08a9ef97f3568e602bc}{%
+           family={{Wysa}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{fullhash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{bibnamehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authorbibnamehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authornamehash}{045d359671acd08a9ef97f3568e602bc}
+      \strng{authorfullhash}{045d359671acd08a9ef97f3568e602bc}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{12}
+      \field{month}{5}
+      \field{title}{Wysa Receives FDA Breakthrough Device Designation for AI-led Mental Health Conversational Agent}
+      \field{urlday}{2}
+      \field{urlmonth}{10}
+      \field{urlyear}{2026}
+      \field{year}{2022}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://blogs.wysa.io/blog/research/wysa-receives-fda-breakthrough-device-designation-for-ai-led-mental-health-conversational-agent
+      \endverb
+      \verb{url}
+      \verb https://blogs.wysa.io/blog/research/wysa-receives-fda-breakthrough-device-designation-for-ai-led-mental-health-conversational-agent
+      \endverb
+    \endentry
+    \entry{zachariae2016}{article}{}
+      \name{author}{4}{}{%
+        {{hash=1e68f029b5e9f363d4c6a3b4075554cc}{%
+           family={Zachariae},
+           familyi={Z\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+        {{hash=cd4600159082c1112e354f9cfbeb8bb1}{%
+           family={Lyby},
+           familyi={L\bibinitperiod},
+           given={Marlene\bibnamedelima S.},
+           giveni={M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=dab34e2a78a4c9b53d8ba100fb6fee9e}{%
+           family={Ritterband},
+           familyi={R\bibinitperiod},
+           given={Lee\bibnamedelima M.},
+           giveni={L\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=056bddaba6e5a3c4725c4028ce60406e}{%
+           family={O'Toole},
+           familyi={O\bibinitperiod},
+           given={Mia\bibnamedelima S.},
+           giveni={M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+      }
+      \strng{namehash}{5a7951d85480fff4471a2d560c7b16b7}
+      \strng{fullhash}{941e86eccd40e8987eab5d7358295d1a}
+      \strng{bibnamehash}{5a7951d85480fff4471a2d560c7b16b7}
+      \strng{authorbibnamehash}{5a7951d85480fff4471a2d560c7b16b7}
+      \strng{authornamehash}{5a7951d85480fff4471a2d560c7b16b7}
+      \strng{authorfullhash}{941e86eccd40e8987eab5d7358295d1a}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Sleep Medicine Reviews}
+      \field{title}{{Efficacy of internet-delivered cognitive-behavioral therapy for insomnia: a systematic review and meta-analysis of randomized controlled trials}}
+      \field{volume}{30}
+      \field{year}{2016}
+      \field{pages}{1\bibrangedash 10}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1016/j.smrv.2015.10.004
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1016/j.smrv.2015.10.004
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1016/j.smrv.2015.10.004
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

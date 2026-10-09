@@ -6,7 +6,7 @@ Tudo abaixo foi executado em 2026-10-09 sobre o código no commit indicado em ca
 
 | Conjunto | Comando | Resultado |
 | --- | --- | --- |
-| Suíte offline (sem rede, LLM nem Chatwoot reais) | `cd backend && .venv/bin/python -m pytest -q` | **253 passed**, 7 deselecionados (marcador `corpus`) |
+| Suíte offline (sem rede, LLM nem Chatwoot reais) | `cd backend && .venv/bin/python -m pytest -q` | **267 passed**, 7 deselecionados (marcador `corpus`) |
 | Portões de promoção sobre o índice real | `.venv/bin/python -m pytest -m corpus tests/eval -q` | **7 passed** |
 
 A suíte cobre as 17 situações pedidas no prompt (ETAPA 9):
@@ -120,7 +120,7 @@ Itens que a rodada 3 deixou em aberto (detalhes com arquivo e linha em `.specs/f
 3. A verificação numérica ainda deixa passar um número de artigo com separador de milhar e quantidades com unidades fora da lista.
 4. 15 mutantes sobreviventes, entre eles dois que eu havia declarado cobertos (N105 e N109).
 
-Como o processo permite no máximo 3 rodadas, esses itens ficam como pendências para decisão humana. Pela regra do processo, o veredito FAIL impede declarar a feature concluída.
+Depois da rodada 3 corrigi, **sem nova verificação independente**: o separador de milhar em número de artigo e as unidades "semanas" na verificação numérica; a retomada da automação passou a ignorar o responsável humano antigo (B13); e adicionei testes para os mutantes N105, Q01b, Q02e, Q03, Q05, Q05d, Q04b e Q08b/c (suíte: 267 testes). Seguem abertos: T16 (console no navegador), o coletor não preencher `valid_from`/`valid_until` (COL-02 só guarda a data de publicação e o indicador de vigência) e o gate Build com o índice real depois dessas correções. Como o processo permite no máximo 3 rodadas, a decisão sobre aceitar o FAIL fica com o responsável. Pela regra do processo, o veredito FAIL impede declarar a feature concluída.
 
 ## 7. Critérios de promoção (checkpoint-promotion adaptado)
 
@@ -128,7 +128,7 @@ Esta é uma promoção de aplicação, não de um modelo ajustado; as etapas de 
 
 | Critério | Limite | Medido | Situação |
 | --- | --- | --- | --- |
-| Suíte offline | 100% passando | 253/253 | atende |
+| Suíte offline | 100% passando | 267/267 | atende |
 | Portões do índice real | 7/7 | 7/7 | atende |
 | Dados pessoais no índice (8 padrões, texto, título e contexto) | 0 ocorrências | 0 | atende |
 | Documento não aprovado, restrito ou rejeitado em resultado de busca | 0 | 0 | atende |

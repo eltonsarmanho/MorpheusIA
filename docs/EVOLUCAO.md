@@ -13,7 +13,8 @@
 9. **Perfil e intenção por regras.** A classificação é lexical. Perguntas fora do vocabulário previsto caem em "fora de escopo" ou herdam o domínio da conversa.
 10. **WhatsApp:** o Chatwoot só entrega o evento ao bot enquanto o Agent Bot estiver ligado à inbox; o bot responde texto, sem tratar áudio, imagem ou documento enviados pelo usuário.
 11. **Estado da conversa em SQLite local.** Uma única instância do backend; para mais de uma réplica é preciso mover o estado para Postgres ou Redis.
-12. **Verificação de fundamentação é parcial.** Ela confere datas, valores, números de processo e identificadores, não o sentido das frases. A fidelidade semântica depende do modelo e da revisão humana; a avaliação com LLM-juiz é só uma estimativa.
+12. **O coletor não preenche `valid_from` e `valid_until`**; só guarda a data de publicação e o indicador de vigência quando a página os traz (ex.: "Situação" no site do CNJ).
+13. **Verificação de fundamentação é parcial.** Ela confere datas, valores, números de processo e identificadores, não o sentido das frases. A fidelidade semântica depende do modelo e da revisão humana; a avaliação com LLM-juiz é só uma estimativa.
 
 ## 2. Riscos
 
