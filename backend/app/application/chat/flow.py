@@ -39,7 +39,9 @@ class Action:
 
 
 # ------------------------------------------------------------------------------------------------ opções
-OPT_MENU = Option("📋 Menu principal", "menu")
+# O WhatsApp limita o título do botão a 20 caracteres: "Retornar ao menu principal" (26) não cabe; esta é a forma mais próxima que cabe.
+OPT_MENU = Option("↩️ Retornar ao menu", "menu")
+LEGACY_MENU_TITLE = "📋 Menu principal"  # botões antigos ainda na conversa continuam funcionando
 OPT_PROCESS = Option("📄 Consultar processo", "processos")
 OPT_OTHER_PROC = Option("📄 Outro processo", "outro_processo")
 OPT_ASK = Option("🔎 Fazer pergunta", "fazer_pergunta")
@@ -92,8 +94,8 @@ def _register() -> None:
     def add(opt: Option, action: Action) -> None:
         _BY_TITLE[clean(opt.title)] = action
 
-    for opt in (OPT_MENU,):
-        add(opt, Action(Kind.MENU))
+    add(OPT_MENU, Action(Kind.MENU))
+    add(Option(LEGACY_MENU_TITLE, "menu"), Action(Kind.MENU))
     add(OPT_PROCESS, Action(Kind.PROCESS_ASK))
     add(OPT_OTHER_PROC, Action(Kind.PROCESS_ASK))
     add(OPT_INST, Action(Kind.INST_MENU))
@@ -162,7 +164,6 @@ LEGAL_MENU_TEXT = "⚖️ *Termos e conceitos jurídicos*\nEscolha um tema ou di
 PROCESS_ASK_TEXT = ("Claro, posso ajudar com isso! 😊\nSobre *qual processo* você quer falar? Digite o número do processo, por exemplo: _6080680-32.2025.8.03.0001_.")
 PROCESS_NOT_FOUND_TEXT = ("Hmm, não encontrei esse número no acervo de demonstração 🤔\nConfira se digitou certinho (formato 0000000-00.0000.8.03.0000) "
                           "e tente de novo, ou volte ao menu 👇")
-PROCESS_NO_NUMBER_TEXT = "Não consegui identificar um número de processo na sua mensagem 😅\nDigite o número completo do processo (0000000-00.0000.8.03.0000) ou volte ao menu 👇"
 PROCESS_NEXT_TEXT = "O que você gostaria de saber sobre este processo? ✍️ Escreva sua pergunta ou escolha uma opção 👇"
 PROCESS_PICK_TEXT = "Sobre qual processo é a sua pergunta? 🤔 Digite o número do processo."
 
@@ -179,6 +180,27 @@ def _money(raw: str) -> str:
     return raw if raw and raw != "desconhecido" else "não informado"
 
 
+def _parties_text(parties: list[dict], limit: int = 200) -> str:
+    """"NOME (PAPEL); NOME (PAPEL)" em caixa alta, sem cortar uma parte ao meio."""
+    items = [f"{p['nome']} ({p['papel']})".upper() for p in parties[:4]]
+    text = ""
+    for item in items:
+        candidate = f"{text}; {item}" if text else item
+        if len(candidate) > limit:
+            break
+        text = candidate
+    if not text and items:
+        text = items[0][:limit]  # uma única parte já passa do limite: corta só nesse caso
+    return text or "não informadas"
+
+
+def handoff_notice(team: str, ticket_id: str | None = None) -> str:
+    """Aviso ao usuário depois que a transferência para a equipe foi confirmada."""
+    protocol = f"\n🎫 Protocolo: {ticket_id}" if ticket_id else ""
+    return (f"Aguarde um momento, por favor. 😊 Sua conversa foi encaminhada para nossa equipe de {team}, e em breve um atendente "
+            f"dará continuidade ao seu atendimento por aqui.{protocol}\nAgradecemos pela paciência e compreensão!")
+
+
 def process_summary(info: dict, documents: int) -> str:
     """Resumo da capa (dentro do limite de 1024 caracteres do WhatsApp), só com dados lidos do PDF."""
     def d(v: str) -> str:
@@ -187,10 +209,10 @@ def process_summary(info: dict, documents: int) -> str:
     dist = d(info.get("distribution_date", ""))
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", dist):
         dist = f"{dist[8:]}/{dist[5:7]}/{dist[:4]}"
-    parties = "; ".join(f"{p['nome'].title()} ({p['papel'].title()})" for p in (info.get("parties") or [])[:4]) or "não informadas"
+    parties = _parties_text(info.get("parties") or [])
     text = (f"📄 *Processo {info['process_number']}*\n"
             f"⚖️ Classe: {d(info.get('process_class', ''))}\n🏛️ Órgão: {d(info.get('court_unit', ''))}\n"
             f"📅 Distribuição: {dist}\n💰 Valor da causa: {_money(info.get('case_value', ''))}\n"
-            f"📌 Assuntos: {d(info.get('subjects', ''))[:120]}\n👥 Partes: {parties[:200]}\n"
+            f"📌 Assuntos: {d(info.get('subjects', ''))[:120]}\n👥 Partes Interessadas: {parties}\n"
             f"🗂️ {documents} documentos no acervo\n\nℹ️ Resumo da capa do PDF (acervo de demonstração).")
     return text[:950]

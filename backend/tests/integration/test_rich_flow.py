@@ -214,7 +214,7 @@ def test_digitar_encerrar_nao_encerra_so_orienta(env):
     for i, word in enumerate(("encerrar", "Encerrar atendimento", "tchau", "sair"), start=2):
         say(h, word, i)
     assert ops.get_open_ticket(KEY) is not None and (77, "resolved") not in gw.statuses
-    assert "toque em *✅ Encerrar*" in texts(gw)[-1] and [o for _, o in gw.options if o][-1] == ["✅ Encerrar", "📋 Menu principal"]
+    assert "toque em *✅ Encerrar*" in texts(gw)[-1] and [o for _, o in gw.options if o][-1] == ["✅ Encerrar", "↩️ Retornar ao menu"]
     say(h, "✅ Encerrar", 9)  # o toque no botão encerra
     assert ops.get_open_ticket(KEY) is None and gw.statuses[-1] == (77, "resolved")
 
@@ -283,7 +283,7 @@ def test_consultar_processo_pergunta_qual_processo_sem_listar_nenhum(env):
     say(h, "📄 Consultar processo", 2)
     reply = texts(gw)[-1]
     assert "qual processo" in reply.lower() and "Digite o número" in reply and P1 not in reply and P2 not in reply
-    assert [o for _, o in gw.options if o][-1] == ["📋 Menu principal"] and ops.get(KEY).awaiting == "process"
+    assert [o for _, o in gw.options if o][-1] == ["↩️ Retornar ao menu"] and ops.get(KEY).awaiting == "process"
 
 
 def test_usuario_digita_o_numero_e_recebe_resumo_e_a_pergunta_seguinte(env):
@@ -296,7 +296,7 @@ def test_usuario_digita_o_numero_e_recebe_resumo_e_a_pergunta_seguinte(env):
     say(h, "📄 Consultar processo", 2)
     say(h, f"é o processo {P1}", 3)  # número dentro de uma frase também vale
     summary = texts(gw)[-2]
-    assert P1 in summary and "Classe" in summary and "R$ 10.000,00" in summary and "12/05/2026" in summary and "Maria Exemplo (Autor)" in summary and len(summary) <= 1024
+    assert P1 in summary and "Classe" in summary and "R$ 10.000,00" in summary and "12/05/2026" in summary and "Partes Interessadas: MARIA EXEMPLO (AUTOR)" in summary and len(summary) <= 1024
     assert "O que você gostaria de saber" in texts(gw)[-1]
     nxt = [o for _, o in gw.options if o][-1]
     assert "🙋 Falar com atendente" in nxt and "✅ Encerrar atendimento" in nxt and "🔎 Fazer pergunta" in nxt
@@ -310,8 +310,8 @@ def test_numero_fora_do_acervo_e_texto_sem_numero_pedem_de_novo_com_gentileza(en
     say(h, "📄 Consultar processo", 2)
     say(h, "processo 9999999-99.2026.8.03.0001", 3)
     assert "não encontrei esse número" in texts(gw)[-1] and ops.get(KEY).awaiting == "process"
-    say(h, "não sei qual é", 4)
-    assert "Não consegui identificar um número" in texts(gw)[-1] and ops.get(KEY).awaiting == "process"
+    say(h, "não sei qual é", 4)  # sem número: tratado como pergunta, o bot não fica preso pedindo o número
+    assert "Posso ajudar com mais alguma coisa" in texts(gw)[-1] or "qual processo" in texts(gw)[-1].lower()
 
 
 def test_depois_do_resumo_a_pergunta_livre_e_respondida_e_oferece_proximos_passos(env):
@@ -322,7 +322,7 @@ def test_depois_do_resumo_a_pergunta_livre_e_respondida_e_oferece_proximos_passo
     say(h, P1, 2)  # número digitado sozinho já seleciona o processo
     say(h, "Quando é a audiência de conciliação?", 3)
     assert "20/07/2026" in texts(gw)[-2]
-    assert [o for _, o in gw.options if o][-1] == ["📋 Menu principal", "🙋 Atendente", "✅ Encerrar"]
+    assert [o for _, o in gw.options if o][-1] == ["↩️ Retornar ao menu", "🙋 Atendente", "✅ Encerrar"]
     assert "mais alguma coisa" in texts(gw)[-1]
 
 
@@ -393,3 +393,56 @@ def test_cliente_espera_ate_a_mensagem_ser_despachada():
     c = ChatwootClient("https://cw.example", 1, api_token="a", transport=httpx.MockTransport(handler))
     assert c.wait_dispatched(1, 9, 5, timeout_s=5, interval_s=0.01) is True and polls["n"] == 3
     assert c.wait_dispatched(1, 9, 6, timeout_s=0.05, interval_s=0.01) is False  # mensagem inexistente: desiste no prazo
+
+
+# -------------------------------------------------------------------------------- ajustes da lista de correções
+def test_partes_interessadas_em_caixa_alta_com_papel():
+    parties = [{"nome": "Bruno Raynner De Moraes Loreiro", "papel": "Autor"}, {"nome": "Saulo De Tarso De Souza Monteiro", "papel": "Advogado"},
+               {"nome": "Estado Do Amapa", "papel": "Reu"}]
+    text = flow.process_summary({"process_number": P1, "parties": parties}, 3)
+    assert ("Partes Interessadas: BRUNO RAYNNER DE MORAES LOREIRO (AUTOR); SAULO DE TARSO DE SOUZA MONTEIRO (ADVOGADO); "
+            "ESTADO DO AMAPA (REU)") in text
+    many = [{"nome": f"Pessoa Com Nome Bem Comprido Numero {i}", "papel": "Advogado"} for i in range(4)]
+    cut = flow._parties_text(many)
+    assert len(cut) <= 200 and cut.endswith(")")  # nunca corta uma parte ao meio
+    assert flow._parties_text([{"nome": "X" * 300, "papel": "Autor"}]) == "X" * 200 and flow._parties_text([]) == "não informadas"
+
+
+def test_botao_de_volta_ao_menu_cabe_no_whatsapp_e_o_botao_antigo_ainda_funciona():
+    assert flow.OPT_MENU.title == "↩️ Retornar ao menu" and len(flow.OPT_MENU.title) <= 20
+    assert flow.parse("↩️ Retornar ao menu", []).kind is flow.Kind.MENU and flow.parse("📋 Menu principal", []).kind is flow.Kind.MENU
+
+
+def test_aviso_de_transferencia_pede_para_aguardar_e_traz_o_protocolo(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "🙋 Falar com atendente", 2)
+    tid = ops.get_open_ticket(KEY).ticket_id
+    assert texts(gw)[-1] == ("Aguarde um momento, por favor. 😊 Sua conversa foi encaminhada para nossa equipe de Atendimento Humano Geral, e em breve um "
+                             f"atendente dará continuidade ao seu atendimento por aqui.\n🎫 Protocolo: {tid}\nAgradecemos pela paciência e compreensão!")
+
+
+def test_pergunta_sem_processo_seguida_de_outra_pergunta_nao_trava_pedindo_o_numero(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "Qual a audiência marcada?", 2)
+    assert ops.get(KEY).awaiting == "process"
+    say(h, "E o valor da causa?", 3)  # outra pergunta sem número: não repete "digite o número"
+    assert "Não consegui identificar" not in texts(gw)[-1] and ops.get(KEY).handoff_state is S.BOT_ACTIVE
+    say(h, f"é o processo {P1}", 4)
+    say(h, "Qual a audiência?", 5)  # com o processo informado, a pergunta seguinte é respondida
+    assert "20/07/2026" in texts(gw)[-2] and ops.get(KEY).process_number == P1
+
+
+def test_processo_fora_do_acervo_nao_vira_o_processo_da_conversa(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "📄 Consultar processo", 2)
+    say(h, P1, 3)
+    say(h, "Qual a audiência do processo 9999999-99.2026.8.03.0001?", 4)
+    assert "não consta do acervo" in texts(gw)[-2] and ops.get(KEY).process_number == P1
+    say(h, "Qual a audiência?", 5)  # continua no processo escolhido, sem ser encaminhado por falhas seguidas
+    assert "20/07/2026" in texts(gw)[-2] and ops.get(KEY).handoff_state is S.BOT_ACTIVE

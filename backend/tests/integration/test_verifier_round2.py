@@ -174,7 +174,7 @@ def test_so_status_falso_tambem_impede_a_confirmacao(store, embedder, ops):
     gw = NoStatus()
     h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("x"))), ops, gw)
     assert process(h, msg_event("quero falar com um atendente", msg_id=1)).outcome == "error"
-    assert not any("Encaminhei" in t for _, t in gw.sent)
+    assert not any("encaminhada para nossa equipe" in t for _, t in gw.sent)
 
 
 def test_retomada_devolve_a_conversa_ao_status_pending(store, embedder, ops):

@@ -167,6 +167,7 @@ class Orchestrator:
             return Turn(self._list_processes(trace, intent.intent), st, domain, labels=labels)
 
         numbers = find_process_numbers(text)
+        previous_process = st.process_number
         if numbers:
             st.process_number = numbers[0]
 
@@ -199,6 +200,7 @@ class Orchestrator:
             msg = (f"O processo {nums} não consta do acervo de documentos de demonstração deste piloto, por isso não consigo "
                    "informar nada sobre ele. Não consulto o PJe nem outro sistema oficial em tempo real. Posso encaminhar você a um "
                    "atendente humano, se desejar.")
+            st.process_number = previous_process  # número fora do acervo não vira o processo da conversa: a próxima pergunta não herda o erro
             return self._abstention(st, domain, intent.intent, msg, "processo_ausente_do_acervo", trace, labels)
         if not result.sufficient:
             return self._abstention(st, domain, intent.intent, self._abstain_text(domain), result.abstain_reason or "insuficiente", trace, labels)

@@ -377,7 +377,7 @@ def test_assign_team_falso_nao_confirma_a_transferencia(store, embedder, ops):  
     gw = NoTeam()
     h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("x"))), ops, gw)
     assert process(h, msg_event("quero falar com um atendente", msg_id=1)).outcome == "error"
-    assert ops.get(KEY).handoff_state is S.HANDOFF_REQUESTED and not any("Encaminhei" in t for _, t in gw.sent)
+    assert ops.get(KEY).handoff_state is S.HANDOFF_REQUESTED and not any("encaminhada para nossa equipe" in t for _, t in gw.sent)
 
 
 def test_etiqueta_humano_e_aplicada_antes_do_aviso(store, embedder, ops):  # M42
@@ -394,7 +394,7 @@ def test_etiqueta_humano_e_aplicada_antes_do_aviso(store, embedder, ops):  # M42
 
     h = ChatwootEventHandler(build(store, embedder, FakeLLM(out("x"))), ops, Ordered())
     process(h, msg_event("quero falar com um atendente", msg_id=1))
-    kinds = [k for k, v in order if (k == "label" and "humano" in v) or (k == "send" and v.startswith("Encaminhei"))]
+    kinds = [k for k, v in order if (k == "label" and "humano" in v) or (k == "send" and v.startswith("Aguarde um"))]
     assert kinds == ["label", "send"]
 
 

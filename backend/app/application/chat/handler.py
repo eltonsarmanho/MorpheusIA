@@ -23,7 +23,6 @@ from app.infrastructure.sqlite.operational_store import ConversationState, Opera
 
 log = logging.getLogger(__name__)
 
-HANDOFF_OK_TEXT = "Encaminhei a sua conversa para a equipe {team}. Uma pessoa vai dar continuidade ao atendimento por aqui."
 HANDOFF_RETRY_TEXT = ("Ainda não consegui concluir o encaminhamento para um atendente. Vou tentar de novo quando você enviar a próxima "
                       "mensagem.")
 HANDOFF_FAILED_TEXT = ("Não foi possível concluir o encaminhamento automaticamente. A conversa foi marcada para atenção da equipe, que "
@@ -228,10 +227,8 @@ class ChatwootEventHandler:
         if awaiting == "process" and k is flow.Kind.FREE:
             numbers = find_process_numbers(content)
             if not numbers:
-                st.awaiting = "process"
-                self.ops.save(st)
-                self._send(account, conv_id, flow.PROCESS_NO_NUMBER_TEXT, flow.PROCESS_ASK_OPTIONS)
-                return HandleResult("processed", "numero_nao_identificado")
+                # sem número: é uma nova pergunta, não uma resposta ao pedido; o orquestrador identifica o processo ou pede o número
+                return self._answer(account, conv_id, key, st, content)
             if numbers[0] not in known:
                 st.awaiting = "process"
                 self.ops.save(st)
@@ -371,11 +368,8 @@ class ChatwootEventHandler:
             st.handoff_attempts = 0
             self.ops.save(st)
             try:
-                notice = HANDOFF_OK_TEXT.format(team=team)
                 ticket = self.ops.get_open_ticket(key) if self.rich else None
-                if ticket:
-                    notice += f"\n🎫 Protocolo: *{ticket.ticket_id}*"
-                self._send(account, conv_id, notice)  # só informa após a confirmação (CHW-10)
+                self._send(account, conv_id, flow.handoff_notice(team, ticket.ticket_id if ticket else None))  # só informa após a confirmação (CHW-10)
             except Exception:  # noqa: BLE001 - a transferência já ocorreu; o aviso falhou
                 log.warning("transferência confirmada, mas o aviso ao usuário falhou")
                 self.ops.audit(key, "handoff_notice_failed", "bot", team)

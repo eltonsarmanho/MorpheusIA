@@ -89,7 +89,7 @@ def test_falha_do_chatwoot_nao_confirma_transferencia_nem_avisa_conclusao(env): 
     h, gw = make(FakeGateway(fail_assign=1))
     res = process(h, msg_event("quero falar com um atendente", msg_id=3))
     assert res.outcome == "error" and ops.get(KEY).handoff_state is S.HANDOFF_REQUESTED
-    assert not any("Encaminhei" in t for _, t in gw.sent)
+    assert not any("encaminhada para nossa equipe" in t for _, t in gw.sent)
     assert "ia_falha" in gw.labels[77]
 
 
@@ -98,7 +98,7 @@ def test_proxima_mensagem_repete_a_tentativa_ate_confirmar(env):  # CHW-03
     h, gw = make(FakeGateway(fail_assign=1))
     process(h, msg_event("quero falar com um atendente", msg_id=3))
     assert process(h, msg_event("alô?", msg_id=4)).outcome == "handoff"
-    assert ops.get(KEY).handoff_state is S.HUMAN_ACTIVE and any("Encaminhei" in t for _, t in gw.sent)
+    assert ops.get(KEY).handoff_state is S.HUMAN_ACTIVE and any("encaminhada para nossa equipe" in t for _, t in gw.sent)
 
 
 def test_conversa_resolvida_fecha_e_so_retoma_com_comando_explicito(env):  # CHW-04
@@ -200,4 +200,4 @@ def test_falha_so_na_etiqueta_nao_impede_a_transferencia(env):  # achado no test
     h, gw = make(NoLabels())
     assert process(h, msg_event("quero falar com um atendente", msg_id=3)).outcome == "handoff"
     assert ops.get(KEY).handoff_state is S.HUMAN_ACTIVE and gw.assigned and gw.statuses == [(77, "open")]
-    assert any("Encaminhei" in t for _, t in gw.sent)
+    assert any("encaminhada para nossa equipe" in t for _, t in gw.sent)
