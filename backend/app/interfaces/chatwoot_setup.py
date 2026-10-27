@@ -21,6 +21,8 @@ TEAMS = {
     "Informações Institucionais": "Balcão Virtual, unidades, contatos e serviços do tribunal.",
     "Informações Jurídico-Institucionais": "Conceitos e procedimentos jurídicos gerais documentados.",
     "Atendimento Humano Geral": "Pedidos de atendimento humano sem equipe específica.",
+    "secretaria": "Roteiro TJPA: diligências, providências e atendimento humano da unidade (padrão).",
+    "gabinete": "Roteiro TJPA: diligências dirigidas ao juiz ou urgentes.",
 }
 LABELS = {
     "ia_orquestrador": ("Conversa tratada pelo orquestrador do assistente.", "#1F93FF"),

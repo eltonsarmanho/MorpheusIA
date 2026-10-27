@@ -12,6 +12,7 @@ services:
     environment:
       DATA_DIR: /data
       SOURCES_FILE: /app/config/sources.yaml
+      UNITS_FILE: /app/config/units.yaml
     volumes:
       - ../data:/data
     ports:

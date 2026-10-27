@@ -45,9 +45,14 @@ INTENT_DOMAIN: dict[Intent, KnowledgeDomain] = {
 
 
 class Profile(StrEnum):
-    CIDADAO = "cidadao"
+    CIDADAO = "cidadao"  # inferido por palavras (heurística de `detect_profile`)
     ADVOGADO = "advogado"
+    PARTE_TESTEMUNHA = "parte_testemunha"  # escolhido no menu de abertura do roteiro
+    GERAL = "geral"  # "não tenho processo": informações gerais
     INDEFINIDO = "indefinido"
+
+
+SIMPLE_LANGUAGE_PROFILES = frozenset({Profile.CIDADAO, Profile.PARTE_TESTEMUNHA, Profile.GERAL})
 
 
 class ResponseKind(StrEnum):

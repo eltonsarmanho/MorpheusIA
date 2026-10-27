@@ -84,7 +84,7 @@ Valores ausentes ficam como `desconhecido`; nada é inferido.
 | Conceito | Papel | Implementação |
 | --- | --- | --- |
 | Inbox | canal de entrada | "WhatsApp TJPA" (id 1, WhatsApp Cloud). Portal Web e e-mail **não** estão integrados |
-| Team | responsável pela demanda | escolhida pela intenção: Informações Processuais, Institucionais, Jurídico-Institucionais; pedido do usuário vai para Atendimento Humano Geral; Triagem e Orquestração fica para falhas e triagem manual |
+| Team | responsável pela demanda | escolhida pela intenção: Informações Processuais, Institucionais, Jurídico-Institucionais; pedido do usuário vai para Atendimento Humano Geral; Triagem e Orquestração fica para falhas e triagem manual. Pedidos do roteiro TJPA (escolha de canal) vão para `secretaria` ou `gabinete` |
 | Etiqueta | classificação operacional | `ia_orquestrador`, `ia_rag`, `ia_falha`, `humano`, `consulta_processual`, `duvida_institucional` |
 | Estado de atendimento | controle do bot | tabela `conversations` |
 
@@ -96,7 +96,10 @@ Máquina de estados (`domain/handoff.py`):
 bot_active ─► handoff_requested ─► handoff_in_progress ─► human_active ─► human_closed ─► automation_resumed
                     ▲                        │                                   (somente por comando explícito)
                     └────── falha ───────────┘
+handoff_requested ─► automation_resumed   (usuário troca de canal após falha; roteiro TJPA)
 ```
+
+Roteiro TJPA (`application/chat/flow.py` + `handler.py`, sem segundo orquestrador): o campo `awaiting` diz o que o bot espera na próxima mensagem (`process`, `cpf`, `name`, `name_refine`, `pick`, `vara_unit`, `unit:<tema>`, `diligence`, `channel`). Os dados do pedido (`diligence`, `request_reason`, `request_channel`, `request_note_id`, `unit_label`, `unit_id`, `choices`) ficam em `conversations`, migrados por `ALTER TABLE` na abertura. A identificação por CPF/nome passa por `ProcessSearchPort` (`domain/ports.py`); no piloto, `DemoCorpusProcessSearch` busca nome nas capas aprovadas e declara CPF indisponível. Unidades e contatos vêm de `UnitDirectory` (`domain/units.py`), carregado de `config/units.yaml`.
 
 O bot só responde em `bot_active` e `automation_resumed`. A transferência é confirmada pela API do Chatwoot (atribuição de equipe, status `open` e etiqueta `humano`) e só depois o usuário recebe o aviso. Se o Chatwoot falha, o estado permanece `handoff_requested`, a conversa recebe `ia_falha` e a mensagem seguinte repete a tentativa até o limite. A retomada exige `POST /api/admin/conversations/{conta}/{conversa}/resume` com autor e motivo, registrados na auditoria.
 

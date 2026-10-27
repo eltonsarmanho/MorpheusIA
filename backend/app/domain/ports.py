@@ -84,6 +84,30 @@ class ChatwootGateway(Protocol):
     def set_status(self, account_id: int, conversation_id: int, status: str) -> bool: ...
 
 
+@dataclass(frozen=True)
+class ProcessCandidate:
+    """Só os campos que o roteiro permite mostrar em uma lista de seleção."""
+
+    process_number: str
+    process_class: str
+    participation: str  # papel da pessoa buscada (autor, réu...) ou "não informada"
+    court_unit: str = ""
+
+
+@dataclass(frozen=True)
+class ProcessSearchResult:
+    available: bool  # False = a fonte não suporta essa busca; nada é simulado
+    candidates: tuple[ProcessCandidate, ...] = ()
+
+
+class ProcessSearchPort(Protocol):
+    """Identificação do processo por CPF ou nome (roteiro, seção 3) em uma fonte autorizada."""
+
+    def by_cpf(self, cpf: str) -> ProcessSearchResult: ...
+
+    def by_name(self, name: str) -> ProcessSearchResult: ...
+
+
 class ProcessLookupPort(Protocol):
     """Evolução futura: consulta a uma API processual OFICIAL (PJe/e-SAJ ou equivalente).
 

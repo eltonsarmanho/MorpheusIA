@@ -17,6 +17,10 @@ Todos os comandos rodam em `backend/` com `.venv/bin/python`. Variáveis em `../
 | `CHATWOOT_WEBHOOK_SECRET` | segredo da URL do webhook | vazio (webhook recusa tudo) |
 | `ADMIN_API_TOKEN` | `/api/admin/*` e console | vazio (rotas recusam tudo) |
 | `CONSOLE_PUBLIC` | libera o console sem token | `false` |
+| `UNITS_FILE` | cadastro de unidades e contatos do roteiro (§6.3) | `backend/config/units.yaml` |
+| `HANDOFF_TEAM_SECRETARIA`, `HANDOFF_TEAM_GABINETE` | equipes dos pedidos do roteiro | `secretaria`, `gabinete` |
+| `HUMAN_WHATSAPP_MODE` | `chatwoot` (transferência nesta conversa) ou `link` (WhatsApp oficial da unidade, exige número cadastrado) | `chatwoot` |
+| `MAX_DILIGENCE_CHARS` | tamanho máximo da diligência (acima disso pede versão menor, sem cortar) | `3000` |
 | `HANDOFF_MAX_ATTEMPTS`, `STALE_AFTER_DAYS`, `RETRIEVAL_*`, `RRF_K`, `MIN_TERM_COVERAGE` | ajustes | ver `app/config.py` |
 
 ## 2. Ingestão do acervo processual
@@ -81,7 +85,7 @@ Ligar o bot à inbox faz as mensagens reais do WhatsApp passarem pelo assistente
 | WhatsApp TJPA | integrada | WhatsApp Cloud, id 1 |
 | Portal Web, e-mail, telefone, presencial | **não integrados** | sem implementação funcional |
 
-Equipes: Triagem e Orquestração, Informações Processuais, Informações Institucionais, Informações Jurídico-Institucionais, Atendimento Humano Geral (criadas pelo usuário; o Chatwoot as grava em minúsculas).
+Equipes: Triagem e Orquestração, Informações Processuais, Informações Institucionais, Informações Jurídico-Institucionais, Atendimento Humano Geral (criadas pelo usuário; o Chatwoot as grava em minúsculas). Para o roteiro TJPA o responsável criou `secretaria` e `gabinete` (2026-10-27); o script de preparação as inclui no plano e não as duplica.
 
 Etiquetas: `ia_orquestrador`, `ia_rag`, `ia_falha`, `humano`, `consulta_processual`, `duvida_institucional`. O nginx do vhost do Chatwoot precisa de `underscores_in_headers on;` para aceitar o cabeçalho `api_access_token` pela URL pública.
 
@@ -102,6 +106,19 @@ Ativo por padrão (`CHAT_RICH_FLOW=true`; com `false` o bot responde só texto, 
 - **Botão "Choose an item" das listas:** o texto vem do Chatwoot (`conversations.messages.whatsapp.list_button_label`), não do bot. A conta 1 está com locale `en`; com `pt_BR` o Chatwoot 4.11.1 mostra "Escolha um item". O texto exato "Selecione um item" exige sobrescrever o arquivo de locale do contêiner `chatwoot_rails`. Nenhuma das duas mudanças foi aplicada (Chatwoot não é alterado sem autorização).
 - **Quem encerra:** o atendimento só termina (1) pelo usuário, tocando em **✅ Encerrar** / **✅ Encerrar atendimento** (digitar a palavra "encerrar", "sair" ou "tchau" **não** encerra: o bot só orienta a usar o botão); (2) pelo atendente, com a nota privada `/encerrar`; (3) quando alguém marca a conversa como Resolvida no Chatwoot; ou (4) por **inatividade**: 23 horas sem nenhuma mensagem (`INACTIVITY_CLOSE_HOURS`, conferido a cada `INACTIVITY_CHECK_MINUTES`=10; 23 h fica dentro da janela de 24 h do WhatsApp, então ainda dá para avisar o cliente). Em todos os casos o ticket é fechado (com quem fechou: usuario, atendente ou sistema), o cliente recebe a mensagem de encerramento com o protocolo e a conversa fica **Resolvida** no Chatwoot. O bot nunca encerra por iniciativa própria fora dessas regras.
 - **Novo contato:** depois de um encerramento, a próxima mensagem abre um novo protocolo e devolve a conversa à automação (estado `automation_resumed`, auditado com ator "sistema").
+
+## 6.3 Roteiro TJPA: perfil, diligência e canal humano
+
+Spec: `.specs/features/tjpa-roteiro-atendimento/spec.md`. A assistente se apresenta como **Júlia** (EscutAI); identidade e voz em `backend/app/application/persona.py`.
+
+- **Abertura:** saudação ou menu mostra o menu de perfis (👤 parte/testemunha, ⚖️ advogado(a), ℹ️ informações gerais, atendente, encerrar). O perfil escolhido fica em `conversations.profile` com `profile_locked=1` e não é trocado pela heurística de palavras. Pergunta livre continua sendo respondida sem forçar o menu.
+- **Identificação:** número (dígitos verificadores CNJ conferidos; válido mas fora do acervo = "não encontrei"), CPF (validado e **indisponível**: o piloto não tem API processual; o CPF não vai para o LLM, log ou auditoria) e nome completo (capas aprovadas do acervo de demonstração; seleção explícita por "Opção N"; muitos resultados pedem a Vara/cidade; sem identificação, pergunta se a pessoa sabe a Vara).
+- **Processo localizado:** advogado recebe 📝 Pedir diligência / 🔎 Ver o processo; menu do processo com Audiências, Situação atual, Providência/diligência, Fazer pergunta, Cronologia.
+- **Diligência:** campo livre guardado exatamente como chegou em `conversations.diligence` (só no banco operacional; a auditoria registra só o tamanho). É apagada quando o atendimento é encerrado.
+- **Canal:** com unidade identificada (processo localizado ou Vara informada), "Falar com atendente" pergunta o canal. **WhatsApp** (modo `chatwoot`): nota privada de contexto (seção 6.3 do roteiro) uma única vez e transferência para `secretaria` ou, se a diligência cita juiz/gabinete/magistrado/desembargador/urgência, `gabinete`; o aviso só sai após a confirmação da API e diz que encaminhar não é realizar. **Balcão Virtual:** mostra o link (da unidade, se cadastrado; senão a página geral, declarada como geral), o horário só se cadastrado e a diligência em mensagem própria para copiar; não há transferência nem alegação de recebimento. Sem unidade identificada, "atendente" segue a transferência direta de antes.
+- **Audiências e situação:** são perguntas curtas ao acervo (perguntas longas derrubam a cobertura lexical e a busca abstém). A resposta traz o que os documentos mostram, com o aviso de demonstração; local e link só aparecem se o modelo os extrair dos trechos, sem garantia.
+- **Falha:** a transferência não confirmada oferece 🔁 Tentar novamente, 🔀 Outro canal e 📞 Telefone (só se cadastrado). Outro canal cancela a tentativa (`handoff_requested -> automation_resumed`, auditado) e mostra só o outro canal.
+- **Cadastro de unidades (`backend/config/units.yaml`):** começa **vazio** (nenhum dado foi fornecido). Cadastre só dado oficial com `fonte` e `verificado_em`; telefone precisa de DDD e links precisam ser `https://*.tjpa.jus.br`, senão o campo é descartado na carga. O TeleJudiciário só aparece se `institucional.telejudiciario` estiver preenchido. Reinicie o contêiner após editar.
 
 ## 6.2 Endpoint para o painel do Chatwoot
 

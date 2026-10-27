@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS conversations (
   key TEXT PRIMARY KEY, handoff_state TEXT NOT NULL, profile TEXT NOT NULL DEFAULT 'indefinido',
   process_number TEXT, failed_retrievals INTEGER NOT NULL DEFAULT 0, offer_pending INTEGER NOT NULL DEFAULT 0,
   handoff_attempts INTEGER NOT NULL DEFAULT 0, last_domain TEXT, last_message_at TEXT, awaiting TEXT, handoff_team TEXT, handoff_reason TEXT, last_reply_hash TEXT,
-  updated_at TEXT
+  updated_at TEXT, profile_locked INTEGER NOT NULL DEFAULT 0, unit_label TEXT, unit_id TEXT, diligence TEXT, request_reason TEXT,
+  request_channel TEXT, request_note_id INTEGER, choices TEXT
 );
 CREATE TABLE IF NOT EXISTS processed_events (event_key TEXT PRIMARY KEY, received_at TEXT);
 CREATE TABLE IF NOT EXISTS tickets (
@@ -28,6 +29,18 @@ CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, conversation TEXT, action TEXT, actor TEXT, detail TEXT
 );
 """
+
+# Colunas acrescentadas depois da primeira versão: bancos existentes recebem ALTER TABLE na abertura (sem perder dados).
+_ADDED_COLUMNS = {
+    "awaiting": "TEXT", "last_message_at": "TEXT",
+    # roteiro TJPA (perfil escolhido, unidade, diligência e canal humano)
+    "profile_locked": "INTEGER NOT NULL DEFAULT 0", "unit_label": "TEXT", "unit_id": "TEXT", "diligence": "TEXT",
+    "request_reason": "TEXT", "request_channel": "TEXT", "request_note_id": "INTEGER", "choices": "TEXT",
+}
+
+_STATE_FIELDS = ("handoff_state", "profile", "process_number", "failed_retrievals", "offer_pending", "handoff_attempts", "last_domain",
+                 "awaiting", "handoff_team", "handoff_reason", "last_reply_hash", "profile_locked", "unit_label", "unit_id", "diligence",
+                 "request_reason", "request_channel", "request_note_id", "choices")
 
 
 def _now() -> str:
@@ -58,6 +71,17 @@ class ConversationState:
     handoff_team: str | None = None
     handoff_reason: str | None = None
     last_reply_hash: str | None = None
+    profile_locked: bool = False  # perfil escolhido no menu; a heurística de palavras não o troca
+    unit_label: str | None = None  # unidade identificada (do processo localizado ou informada pelo usuário)
+    unit_id: str | None = None  # id no cadastro de unidades, quando a unidade foi reconhecida nele
+    diligence: str | None = None  # texto integral da diligência, exatamente como recebido; nunca vai para log ou auditoria
+    request_reason: str | None = None  # motivo do pedido de atendimento humano (diligencia | providencia | atendimento)
+    request_channel: str | None = None  # canal escolhido: whatsapp | balcao
+    request_note_id: int | None = None  # nota de contexto já registrada no Chatwoot (evita duplicar na nova tentativa)
+    choices: str | None = None  # JSON com os números de processo oferecidos para seleção explícita
+
+    def clear_request(self) -> None:
+        self.diligence = self.request_reason = self.request_channel = self.request_note_id = self.choices = None
 
 
 class OperationalStore:
@@ -72,10 +96,10 @@ class OperationalStore:
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.executescript(SCHEMA)
             cols = {r[1] for r in self._conn.execute("PRAGMA table_info(conversations)")}
-            if "awaiting" not in cols:
-                self._conn.execute("ALTER TABLE conversations ADD COLUMN awaiting TEXT")
-            if "last_message_at" not in cols:  # bancos criados antes da inatividade
-                self._conn.execute("ALTER TABLE conversations ADD COLUMN last_message_at TEXT")
+            for name, ddl in _ADDED_COLUMNS.items():
+                if name not in cols:
+                    self._conn.execute(f"ALTER TABLE conversations ADD COLUMN {name} {ddl}")
+            self._conn.commit()
 
     def get(self, key: str) -> ConversationState:
         with self._lock:
@@ -86,20 +110,22 @@ class OperationalStore:
             key=key, handoff_state=HandoffState(r["handoff_state"]), profile=Profile(r["profile"]),
             process_number=r["process_number"], failed_retrievals=r["failed_retrievals"], offer_pending=bool(r["offer_pending"]),
             handoff_attempts=r["handoff_attempts"], last_domain=r["last_domain"], awaiting=r["awaiting"], handoff_team=r["handoff_team"], handoff_reason=r["handoff_reason"],
-            last_reply_hash=r["last_reply_hash"],
+            last_reply_hash=r["last_reply_hash"], profile_locked=bool(r["profile_locked"]), unit_label=r["unit_label"], unit_id=r["unit_id"],
+            diligence=r["diligence"], request_reason=r["request_reason"], request_channel=r["request_channel"],
+            request_note_id=r["request_note_id"], choices=r["choices"],
         )
 
     def save(self, st: ConversationState) -> None:
+        values = [getattr(st, f) for f in _STATE_FIELDS]
+        values[0], values[1] = st.handoff_state.value, st.profile.value
+        values = [int(v) if isinstance(v, bool) else v for v in values]
+        cols = ",".join(_STATE_FIELDS)
+        updates = ", ".join(f"{f}=excluded.{f}" for f in _STATE_FIELDS)
         with self._lock, self._conn:
             self._conn.execute(
-                "INSERT INTO conversations(key,handoff_state,profile,process_number,failed_retrievals,offer_pending,handoff_attempts,"
-                "last_domain,awaiting,handoff_team,handoff_reason,last_reply_hash,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) "
-                "ON CONFLICT(key) DO UPDATE SET handoff_state=excluded.handoff_state, profile=excluded.profile, "
-                "process_number=excluded.process_number, failed_retrievals=excluded.failed_retrievals, offer_pending=excluded.offer_pending, "
-                "handoff_attempts=excluded.handoff_attempts, last_domain=excluded.last_domain, awaiting=excluded.awaiting, handoff_team=excluded.handoff_team, handoff_reason=excluded.handoff_reason, "
-                "last_reply_hash=excluded.last_reply_hash, updated_at=excluded.updated_at",
-                (st.key, st.handoff_state.value, st.profile.value, st.process_number, st.failed_retrievals, int(st.offer_pending),
-                 st.handoff_attempts, st.last_domain, st.awaiting, st.handoff_team, st.handoff_reason, st.last_reply_hash, _now()),
+                f"INSERT INTO conversations(key,{cols},updated_at) VALUES({','.join('?' * (len(_STATE_FIELDS) + 2))}) "
+                f"ON CONFLICT(key) DO UPDATE SET {updates}, updated_at=excluded.updated_at",
+                (st.key, *values, _now()),
             )
 
     def transition(self, key: str, target: HandoffState, *, actor: str, detail: str = "") -> ConversationState:

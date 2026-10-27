@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 
 from app.application.answering.grounding import ModelAnswer, parse_model_output, repair_citations, verify_grounding
 from app.application.answering.intent import IntentResult, classify_intent, detect_profile
+from app.application import persona
 from app.application.answering.prompts import SYSTEM_PROMPT, build_user_prompt, describe_source, evidence_label
 from app.application.retrieval.hybrid import HybridRetriever, RetrievalResult
 from app.domain.models import (
@@ -135,7 +136,8 @@ class Orchestrator:
         if len(text) > self.cfg.max_question_chars:
             raise QuestionError(f"pergunta excede {self.cfg.max_question_chars} caracteres")
 
-        st.profile = detect_profile(text, st.profile)
+        if not st.profile_locked:  # perfil escolhido no menu de abertura não é trocado pela heurística (RTA-02)
+            st.profile = detect_profile(text, st.profile)
         if st.offer_pending and _is_affirmative(text):
             return self._handoff(st, "usuário aceitou o encaminhamento oferecido", self._team_for(st.last_domain), None)
         st.offer_pending = False
@@ -154,9 +156,9 @@ class Orchestrator:
             intent = IntentResult(_DOMAIN_INTENT[KnowledgeDomain(st.last_domain)], 0.5, ("continuacao_da_conversa",))
             trace["intent"], trace["followup_of"] = intent.intent.value, st.last_domain
         if intent.intent is Intent.FORA_DE_ESCOPO:
-            msg = ("Não identifiquei uma pergunta sobre os assuntos que atendo neste piloto: documentos de processos do acervo de "
-                   "demonstração, informações institucionais ou conceitos jurídicos gerais. Pode reformular? Se preferir, posso "
-                   "encaminhar você a um atendente humano.")
+            msg = ("Não consegui identificar ainda o assunto da sua mensagem. Neste piloto, posso ajudar com documentos de processos do "
+                   "acervo de demonstração, informações do Tribunal e conceitos jurídicos gerais. Pode me contar de outro jeito? Se "
+                   "preferir, posso encaminhar você para o atendimento humano.")
             return self._abstention(st, None, intent.intent, msg, "fora_de_escopo", trace, ["ia_orquestrador"])
 
         domain = INTENT_DOMAIN[intent.intent]
@@ -365,9 +367,9 @@ class Orchestrator:
 
     @staticmethod
     def _greeting() -> str:
-        return ("Olá! Sou o Assistente Virtual do projeto-piloto do TJPA. Posso ajudar com (1) documentos de processos do acervo de "
-                "demonstração, (2) informações institucionais, como Balcão Virtual e contatos, e (3) conceitos jurídicos gerais. "
-                "As respostas processuais se baseiam nos documentos do acervo de demonstração, não em consulta em tempo real ao PJe. "
+        return (f"Olá! Eu sou a {persona.NAME}, assistente virtual do {persona.PRODUCT} no piloto do TJPA. Posso ajudar com (1) documentos "
+                "de processos do acervo de demonstração, (2) informações do Tribunal, como Balcão Virtual e contatos, e (3) conceitos "
+                "jurídicos gerais. As respostas sobre processos usam documentos de demonstração, não a consulta em tempo real ao PJe. "
                 "Se quiser falar com uma pessoa, escreva \"atendente\". Como posso ajudar?")
 
     @staticmethod
@@ -377,9 +379,10 @@ class Orchestrator:
             KnowledgeDomain.INSTITUCIONAL: "nas informações institucionais aprovadas",
             KnowledgeDomain.JURIDICO: "nas fontes jurídicas oficiais aprovadas",
         }[domain]
-        why = "Poxa, não encontrei" if grounded else "Poxa, não consegui confirmar com segurança"
-        return (f"{why} {where} informação suficiente para responder a essa pergunta 😕 Prefiro não arriscar uma resposta sem fundamento. "
-                "Você pode reformular a pergunta ou, se preferir, posso pedir o encaminhamento para um atendente humano. Deseja o encaminhamento?")
+        why = "Não encontrei" if grounded else "Não consegui confirmar com segurança"
+        return (f"{why} {where} informação suficiente para responder a essa pergunta. Para não passar uma orientação incorreta, prefiro não "
+                "arriscar. Você pode reformular a pergunta ou, se preferir, posso pedir o encaminhamento para o atendimento humano. "
+                "Deseja o encaminhamento?")
 
     @staticmethod
     def _suggest_handoff_text() -> str:

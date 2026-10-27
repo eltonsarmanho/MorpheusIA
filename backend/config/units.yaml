@@ -1,0 +1,30 @@
+# Cadastro de unidades e contatos institucionais usado pelo roteiro de atendimento (seção 8).
+#
+# Regra: só cadastre dado verificado em fonte oficial, com `fonte` e `verificado_em`. Campos inválidos são descartados
+# na carga (telefone com DDD; links só em https://*.tjpa.jus.br). Sem dado, a Júlia declara que não tem a informação.
+#
+# Modelo de unidade (exemplo comentado; NÃO é dado real):
+# unidades:
+#   - id: "<identificador-estavel>"
+#     nome: "<nome oficial da unidade>"
+#     cidade: "<cidade>"
+#     aliases: ["<apelido usado pelo público>"]
+#     endereco: "<endereço oficial>"
+#     telefone: "<(DD) NNNN-NNNN>"
+#     whatsapp: "<número oficial da unidade>"
+#     balcao_virtual_url: "https://www.tjpa.jus.br/<link direto da unidade>"
+#     horario: "<dias e horas>"
+#     fuso: "America/Belem"
+#     fonte: "<URL ou documento oficial>"
+#     verificado_em: "AAAA-MM-DD"
+#     valido: true
+
+institucional:
+  # Página GERAL do Balcão Virtual e contatos (o usuário escolhe a unidade nela). Fornecida pelo responsável do piloto
+  # em 2026-10-27. Não é link direto de unidade: o fluxo a apresenta como página geral.
+  balcao_virtual_url_geral: "https://www.tjpa.jus.br/PortalExterno/institucional//Balcao-Virtual-e-Contatos/844287-balcao-virtual.xhtml"
+  balcao_virtual_fonte: "informado pelo responsável do piloto em 2026-10-27"
+  telejudiciario: null  # contato não fornecido; preencher só com o canal oficial verificado
+  telejudiciario_fonte: ""
+
+unidades: []

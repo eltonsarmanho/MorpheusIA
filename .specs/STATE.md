@@ -42,10 +42,19 @@
 - **Date**: 2026-10-09
 - **Status**: active
 
+### AD-006
+- **Decision**: O roteiro TJPA (perfil, identificação, diligência, escolha WhatsApp/Balcão Virtual) estende o fluxo guiado existente (`flow.py` + `handler.py`) e a máquina de estados, sem segundo orquestrador. Pedidos do roteiro vão para as equipes `secretaria` (padrão) e `gabinete` (diligência que cita juiz, gabinete ou urgência). "WhatsApp" é a transferência integrada nesta conversa; o modo link exige número oficial cadastrado. Unidades e contatos vêm de `backend/config/units.yaml`, vazio até haver dado oficial; o link do Balcão é a página geral, declarada como geral.
+- **Reason**: Roteiro do TJPA e instrução do responsável (2026-10-27); não há API processual nem cadastro de unidades.
+- **Trade-off**: Busca por CPF fica indisponível; a regra secretaria/gabinete é por palavras e pode exigir reatribuição manual no Chatwoot. Nova transição `handoff_requested -> automation_resumed` só para troca de canal após falha.
+- **Scope**: `backend/app/application/chat`, `backend/app/domain`, `backend/config/units.yaml`
+- **Date**: 2026-10-27
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: tjpa-atendimento-rag / `.specs/features/tjpa-atendimento-rag/`
-- **Phase / Task**: Execute, fases 1 a 5 concluídas; avaliação ponta a ponta e implantação em andamento (ver `tasks.md` T15 a T18)
-- **Next step**: ver `docs/AVALIACAO.md` (resultados e pendências)
-- **Blockers**: nenhum
+- **Feature**: tjpa-roteiro-atendimento / `.specs/features/tjpa-roteiro-atendimento/`
+- **Phase / Task**: Execute T1 a T9 implementados e testados localmente (sem commits; o responsável não pediu). Verifier independente: ver `validation.md`.
+- **Next step**: homologação com número de teste (ver `docs/OPERACAO.md` §6.3); preencher `backend/config/units.yaml` com dados oficiais; confirmar a regra secretaria/gabinete.
+- **Blockers**: dados oficiais de unidades, TeleJudiciário e links diretos do Balcão; API processual para CPF.
 - **Branch**: main
+- **Feature anterior**: tjpa-atendimento-rag (avaliação e implantação em andamento; ver `docs/AVALIACAO.md`)

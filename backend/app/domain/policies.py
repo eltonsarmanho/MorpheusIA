@@ -55,6 +55,41 @@ def find_process_numbers(text: str) -> list[str]:
     return seen
 
 
+def cnj_check_digits_ok(number: str) -> bool:
+    """Dígitos verificadores do número CNJ (Resolução CNJ 65/2008, módulo 97). Formato válido não significa processo localizado."""
+    d = "".join(ch for ch in number if ch.isdigit())
+    if len(d) != 20:
+        return False
+    seq, dv, rest = d[:7], d[7:9], d[9:]
+    return 98 - (int(seq + rest) * 100) % 97 == int(dv)
+
+
+_CPF_LOOSE = re.compile(r"(?<![\d])(\d{3})\.?(\d{3})\.?(\d{3})-?(\d{2})(?![\d])")
+
+
+def extract_cpf(text: str) -> str | None:
+    """Os 11 dígitos do CPF presente no texto (com ou sem pontuação), ou None."""
+    m = _CPF_LOOSE.search(text)
+    return "".join(m.groups()) if m else None
+
+
+def mask_cpf(text: str) -> str:
+    """Troca por [CPF] todo CPF com dígitos válidos; o restante do texto (inclusive números de processo) fica intacto."""
+    return _CPF_LOOSE.sub(lambda m: "[CPF]" if cpf_is_valid("".join(m.groups())) else m.group(0), text)
+
+
+def cpf_is_valid(cpf: str) -> bool:
+    """Dígitos verificadores do CPF; sequências repetidas (111.111.111-11) são inválidas."""
+    d = "".join(ch for ch in cpf if ch.isdigit())
+    if len(d) != 11 or d == d[0] * 11:
+        return False
+    for size in (9, 10):
+        total = sum(int(d[i]) * (size + 1 - i) for i in range(size))
+        if (total * 10) % 11 % 10 != int(d[size]):
+            return False
+    return True
+
+
 @dataclass(frozen=True)
 class AccessTriage:
     review_state: ReviewState

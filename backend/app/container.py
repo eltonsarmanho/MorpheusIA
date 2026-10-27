@@ -40,6 +40,7 @@ from app.application.retrieval.hybrid import HybridRetriever  # noqa: E402
 from app.domain.policies import AbstentionPolicy  # noqa: E402
 from app.domain.ports import ChatwootGateway, LlmGenerator  # noqa: E402
 from app.infrastructure.sqlite.operational_store import OperationalStore  # noqa: E402
+from app.infrastructure.units_file import load_unit_directory  # noqa: E402
 
 
 @dataclass
@@ -105,7 +106,9 @@ def build_container(
     handler = ChatwootEventHandler(
         orchestrator, ops, gateway, max_handoff_attempts=settings.handoff_max_attempts, max_question_chars=settings.max_question_chars,
         default_account_id=settings.chatwoot_account_id,
-        rich_flow=settings.chat_rich_flow,
+        rich_flow=settings.chat_rich_flow, units=load_unit_directory(settings.units_file),
+        teams=(settings.handoff_team_secretaria, settings.handoff_team_gabinete), whatsapp_mode=settings.human_whatsapp_mode,
+        max_diligence_chars=settings.max_diligence_chars,
     ) if gateway is not None else None
     return Container(settings, store, ops, embedder, retriever, orchestrator, handler, gateway, llm)  # type: ignore[arg-type]
 

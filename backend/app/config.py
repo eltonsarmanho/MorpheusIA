@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     knowledge_db: Path | None = None
     operational_db: Path | None = None
     sources_file: Path = REPO_ROOT / "backend" / "config" / "sources.yaml"
+    units_file: Path = REPO_ROOT / "backend" / "config" / "units.yaml"  # cadastro de unidades do roteiro (vazio = sem dados)
 
     # Embeddings e reranking
     embedder_backend: str = "fastembed"  # fastembed | hashing (testes)
@@ -48,6 +49,10 @@ class Settings(BaseSettings):
     inactivity_close_hours: float = 23.0  # encerra o protocolo após esse tempo sem mensagens (0 desliga); abaixo da janela de 24 h do WhatsApp
     inactivity_check_minutes: int = 10
     chat_rich_flow: bool = True  # menus com botões/listas, protocolo (TKT) e encerramento guiado; false = só texto
+    handoff_team_secretaria: str = "secretaria"  # equipe padrão dos pedidos do roteiro (diligência, providência, atendimento)
+    handoff_team_gabinete: str = "gabinete"  # diligência dirigida ao juiz ou urgente
+    human_whatsapp_mode: str = "chatwoot"  # chatwoot = transferência nesta conversa | link = WhatsApp oficial da unidade (cadastro)
+    max_diligence_chars: int = 3000
     public_base_url: str = "https://srv1633081.hstgr.cloud/atendimento"  # exibido na tela de integração
 
     # Segurança da API

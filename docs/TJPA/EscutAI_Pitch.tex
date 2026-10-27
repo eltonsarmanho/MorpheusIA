@@ -313,6 +313,34 @@
 }
 
 % ==========================================================================
+% 7b. HIPÓTESE CENTRAL
+% ==========================================================================
+\begin{frame}{Nossa hipótese central}
+  \centering
+  \begin{tikzpicture}
+    \node[rounded corners=8pt,fill=petroleo,text=white,text width=11.6cm,align=center,inner sep=9pt,font=\normalsize] (h)
+      {\faIcon{lightbulb}\ \textbf{Se} o cidadão encontra o Tribunal em um único canal oficial, o WhatsApp, e uma assistente responde \textbf{somente com fonte aprovada} e passa a vez ao humano quando não tem certeza, \textbf{então} uma parte relevante das dúvidas se resolve sem deslocamento e sem fila, e o atendente fica livre para os casos que exigem julgamento.};
+    \node[below=0.35cm of h.south,text width=3.6cm,align=center,rounded corners=6pt,fill=nevoa,inner sep=6pt,font=\scriptsize,xshift=-4.1cm] (a)
+      {\textbf{\faIcon{ticket-alt}\ Causa}\\[2pt] canais fragmentados e respostas dispersas geram espera e deslocamento};
+    \node[right=0.35cm of a,text width=3.6cm,align=center,rounded corners=6pt,fill=nevoa,inner sep=6pt,font=\scriptsize] (b)
+      {\textbf{\faIcon{shield-alt}\ Mecanismo}\\[2pt] central única, busca com evidência e transbordo com histórico};
+    \node[right=0.35cm of b,text width=3.6cm,align=center,rounded corners=6pt,fill=nevoa,inner sep=6pt,font=\scriptsize] (c)
+      {\textbf{\faIcon{chart-line}\ Efeito esperado}\\[2pt] menos transferências, resposta mais rápida e atendimento rastreável};
+    \draw[-{Stealth},ambar,line width=1.4pt] (a) -- (b);
+    \draw[-{Stealth},ambar,line width=1.4pt] (b) -- (c);
+  \end{tikzpicture}
+  \vfill
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.3cm} X@{}}
+    \toprule
+    \textbf{Como testamos} & \textbf{Critério para dizer que a hipótese falhou} \\
+    \midrule
+    Piloto em uma unidade, com linha de base antes do início & Respostas sem fonte, transferências ao time errado ou nenhum ganho de tempo frente à linha de base \\
+    \bottomrule
+  \end{tabularx}
+  {\tiny\textcolor{cinza}{É uma hipótese a validar no piloto. Os números do protótipo vêm de testes internos e não substituem a medição com o Tribunal.}}
+\end{frame}
+
+% ==========================================================================
 % 8. VISÃO: TODOS OS CANAIS EM UMA CENTRAL
 % ==========================================================================
 \begin{frame}{Todos os canais chegam ao mesmo lugar}

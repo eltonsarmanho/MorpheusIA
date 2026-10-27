@@ -419,8 +419,8 @@ def test_aviso_de_transferencia_pede_para_aguardar_e_traz_o_protocolo(env):
     say(h, "Olá", 1)
     say(h, "🙋 Falar com atendente", 2)
     tid = ops.get_open_ticket(KEY).ticket_id
-    assert texts(gw)[-1] == ("Aguarde um momento, por favor. 😊 Sua conversa foi encaminhada para nossa equipe de Atendimento Humano Geral, e em breve um "
-                             f"atendente dará continuidade ao seu atendimento por aqui.\n🎫 Protocolo: {tid}\nAgradecemos pela paciência e compreensão!")
+    assert texts(gw)[-1] == ("Aguarde um momento, por favor. 😊 Sua conversa foi encaminhada para nossa equipe de Atendimento Humano Geral, e em breve uma "
+                             f"pessoa da equipe dará continuidade ao seu atendimento por aqui.\n🎫 Protocolo: {tid}\nObrigada pela paciência!")
 
 
 def test_pergunta_sem_processo_seguida_de_outra_pergunta_nao_trava_pedindo_o_numero(env):

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import re
 
+from app.application.persona import VOICE_PROMPT
 from app.domain.models import Evidence, KnowledgeDomain, Profile
 
-SYSTEM_PROMPT = """Você é o Assistente Virtual de Atendimento do projeto-piloto do Tribunal de Justiça do Estado do Pará.
+SYSTEM_PROMPT = VOICE_PROMPT + """
 
 Seu objetivo é fornecer informações institucionais e jurídico-informacionais confiáveis, além de explicar documentos de processos presentes no conjunto documental público disponibilizado para o hackathon.
 
@@ -45,6 +46,8 @@ Reproduza números, datas e valores exatamente como aparecem nas evidências. Se
 PROFILE_HINT = {
     Profile.CIDADAO: "Perfil identificado: cidadão. Use linguagem simples e explique termos jurídicos.",
     Profile.ADVOGADO: "Perfil identificado: advogado. Use terminologia jurídica e preserve referências normativas e de autos.",
+    Profile.PARTE_TESTEMUNHA: "Perfil escolhido: parte ou testemunha. Use linguagem simples, frases curtas e explique termos jurídicos.",
+    Profile.GERAL: "Perfil escolhido: pessoa sem processo, em busca de informações gerais. Use linguagem simples e acessível.",
     Profile.INDEFINIDO: "Perfil não identificado: use linguagem acessível e profissional.",
 }
 

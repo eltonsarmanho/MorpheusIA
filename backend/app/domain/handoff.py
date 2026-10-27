@@ -16,7 +16,8 @@ class HandoffState(StrEnum):
 
 _ALLOWED: dict[HandoffState, frozenset[HandoffState]] = {
     HandoffState.BOT_ACTIVE: frozenset({HandoffState.HANDOFF_REQUESTED, HandoffState.HUMAN_ACTIVE}),
-    HandoffState.HANDOFF_REQUESTED: frozenset({HandoffState.HANDOFF_IN_PROGRESS, HandoffState.HUMAN_ACTIVE}),
+    # -> AUTOMATION_RESUMED: o usuário troca de canal depois de uma transferência não confirmada (roteiro TJPA, RTA-20)
+    HandoffState.HANDOFF_REQUESTED: frozenset({HandoffState.HANDOFF_IN_PROGRESS, HandoffState.HUMAN_ACTIVE, HandoffState.AUTOMATION_RESUMED}),
     HandoffState.HANDOFF_IN_PROGRESS: frozenset({HandoffState.HUMAN_ACTIVE, HandoffState.HANDOFF_REQUESTED}),
     HandoffState.HUMAN_ACTIVE: frozenset({HandoffState.HUMAN_CLOSED}),
     HandoffState.HUMAN_CLOSED: frozenset({HandoffState.AUTOMATION_RESUMED, HandoffState.HUMAN_ACTIVE}),

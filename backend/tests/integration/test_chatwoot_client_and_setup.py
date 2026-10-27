@@ -117,13 +117,14 @@ def test_sem_token_nao_chama_a_rede(fake):
 
 def test_setup_cria_so_o_que_falta_e_e_idempotente(client, fake):  # CHW-08
     p = setup.plan(client, None, None)
-    assert p["teams_to_create"] == ["Triagem e Orquestração", "Informações Institucionais", "Informações Jurídico-Institucionais", "Atendimento Humano Geral"]
+    assert p["teams_to_create"] == ["Triagem e Orquestração", "Informações Institucionais", "Informações Jurídico-Institucionais", "Atendimento Humano Geral",
+                                    "secretaria", "gabinete"]  # equipes do roteiro TJPA
     assert len(p["labels_to_create"]) == 6
     out = setup.apply(client, None, None)
-    assert len(out["created_teams"]) == 4 and len(out["created_labels"]) == 6
+    assert len(out["created_teams"]) == 6 and len(out["created_labels"]) == 6
     again = setup.apply(client, None, None)
     assert again["created_teams"] == [] and again["created_labels"] == []
-    assert len(fake.teams) == 5 and len(fake.labels) == 6
+    assert len(fake.teams) == 7 and len(fake.labels) == 6
 
 
 def test_setup_dry_run_nao_escreve(client, fake):
