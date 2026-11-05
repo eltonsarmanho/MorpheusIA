@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     handoff_team_mulher: str = "ouvidoria_mulher"  # equipe criada no Chatwoot (não há caixa de entrada própria)
     mulher_file: Path = REPO_ROOT / "backend" / "config" / "mulher.yaml"
     max_relato_chars: int = 2000
+    # Retomada por protocolo e resumo para o atendente (RTK): desligados por padrão
+    ticket_resume_enabled: bool = False
+    ticket_summary_ai_enabled: bool = False  # resumo por IA (fase 2): rascunho rotulado, nunca na Ouvidoria nem em caso restrito
+    ticket_facts_retention_days: int = 90
     public_base_url: str = "https://srv1633081.hstgr.cloud/atendimento"  # exibido na tela de integração
 
     # Segurança da API

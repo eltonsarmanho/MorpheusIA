@@ -58,11 +58,19 @@
 - **Date**: 2026-11-04
 - **Status**: active
 
+### AD-008
+- **Decision**: Retomada por protocolo liga um protocolo novo ao anterior (nunca reabre) e só conferindo o contato do Chatwoot; fatos fechados do atendimento encerrado ficam 90 dias; caso da Ouvidoria é restrito (retoma sem citar o assunto; contato não seguro não retoma por chat); a nota de transferência traz o histórico do mesmo contato; o resumo por IA (fase 2) é rascunho rotulado, em segundo plano, e nunca roda para caso restrito. Chaves `TICKET_RESUME_ENABLED` e `TICKET_SUMMARY_AI_ENABLED`.
+- **Reason**: Pedido do responsável (2026-11-05) para reduzir a pulverização da informação entre atendentes; fase 2 aprovada para o piloto.
+- **Trade-off**: Conferir o contato autentica o telefone, não a pessoa; retenção de 90 dias de dados pessoais vinculados ao contato (D7 segue com a DPO); resumo por IA envia conversas a fornecedor externo (Res. CNJ 615 a enquadrar).
+- **Scope**: `backend/app/application/chat`, `backend/app/infrastructure/sqlite`
+- **Date**: 2026-11-05
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: ouvidoria-mulher / `.specs/features/ouvidoria-mulher/` (anterior: tjpa-roteiro-atendimento)
-- **Phase / Task**: Execute T1 a T5 implementados e testados offline (451 testes); Verifier PASS na iteração 3 (`validation.md`). Implantado na VM em 2026-11-04 só como código, com `OUVIDORIA_MULHER_ENABLED=true` no `/opt/tjpa/.env`; sem commits.
-- **Next step**: ensaio com a Ouvidoria (número de teste); `chatwoot_setup --apply` (rótulos e atributos) só com aprovação; revisão dos textos pela Ouvidoria; confirmar dias de atendimento e contatos.
-- **Blockers**: Agent Bot ainda não ligado à inbox real (decisão do responsável); política de retenção do relato (DPO); busca livre na Cartilha depende de OCR e aprovação humana.
+- **Feature**: retomada-ticket (`.specs/features/retomada-ticket/`, RTK-01..RTK-18); ouvidoria-mulher e tjpa-roteiro-atendimento também implantadas na VM (código de 2026-11-05) com `TICKET_RESUME_ENABLED`, `TICKET_SUMMARY_AI_ENABLED` e `OUVIDORIA_MULHER_ENABLED` ligadas a pedido do responsável.
+- **Phase / Task**: retomada-ticket T1 a T6 implementadas (537 testes passando). Verifier independente: FAIL nas 3 rodadas (sem defeito aberto; lacunas de teste fechadas pelo autor, sem nova verificação independente). RTK-18 (menu com contexto do processo) foi pedido depois da verificação e não foi verificado de forma independente. ouvidoria-mulher: PASS. Sem commits.
+- **Next step**: ensaio com a equipe; nova verificação independente da retomada ou decisão do responsável; decidir os 3 pontos de produto do fim de `validation.md`; confirmar nome e horário da Ouvidoria; `chatwoot_setup --apply` (rótulos e atributos) só com aprovação.
+- **Blockers**: Agent Bot ligado à caixa real (decisão do responsável); retenção do relato e dos fatos (DPO); enquadramento do resumo por IA na Res. CNJ 615 (área de IA do TJPA).
 - **Branch**: main
 - **Feature anterior**: tjpa-atendimento-rag (avaliação e implantação em andamento; ver `docs/AVALIACAO.md`)

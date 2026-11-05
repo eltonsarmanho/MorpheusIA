@@ -23,6 +23,8 @@ Todos os comandos rodam em `backend/` com `.venv/bin/python`. Variáveis em `../
 | `MAX_DILIGENCE_CHARS` | tamanho máximo da diligência (acima disso pede versão menor, sem cortar) | `3000` |
 | `OUVIDORIA_MULHER_ENABLED` | liga o serviço Ouvidoria da Mulher no menu (§6.4) | `false` |
 | `HANDOFF_TEAM_MULHER`, `MULHER_FILE`, `MAX_RELATO_CHARS` | equipe do Chatwoot, contatos da Ouvidoria e tamanho máximo do relato | `ouvidoria_mulher`, `backend/config/mulher.yaml`, `2000` |
+| `TICKET_RESUME_ENABLED` | liga a retomada por protocolo e o histórico nas notas (§6.5) | `false` |
+| `TICKET_SUMMARY_AI_ENABLED`, `TICKET_FACTS_RETENTION_DAYS` | resumo por IA (rascunho rotulado) e retenção dos fatos | `false`, `90` |
 | `HANDOFF_MAX_ATTEMPTS`, `STALE_AFTER_DAYS`, `RETRIEVAL_*`, `RRF_K`, `MIN_TERM_COVERAGE` | ajustes | ver `app/config.py` |
 
 ## 2. Ingestão do acervo processual
@@ -134,6 +136,22 @@ Spec: `.specs/features/ouvidoria-mulher/spec.md`; planejamento e evidências: `d
 - **Contato não seguro (decisão D3):** a Júlia orienta (telefone, e-mail, 180) e, com consentimento, registra o pedido **sem retorno por este WhatsApp**; a nota ordena à equipe não responder por aqui.
 - **Contatos:** `backend/config/mulher.yaml` (telefone, e-mail e horário da Carta de Serviços do TJPA, ainda a confirmar com a Ouvidoria; dias da semana não verificados).
 - **Ativar na VM:** colocar `OUVIDORIA_MULHER_ENABLED=true` no `.env` de `/opt/tjpa` e recriar o contêiner; só depois de revisão dos textos e a pedido do responsável. Desativar é o inverso.
+
+## 6.5 Retomada por protocolo e resumo para o atendente
+
+Spec: `.specs/features/retomada-ticket/spec.md`; evidências e comparativo: `docs/Retomada/`. **Desligada por padrão** (`TICKET_RESUME_ENABLED=false`): com a chave desligada, menu e notas são os anteriores.
+
+- **Por que é um protocolo novo ligado ao anterior:** com `lock_to_single_conversation=False`, quem volta ganha uma conversa nova no Chatwoot. A retomada digita o TKT anterior (menu "🎫 Retomar atendimento", ou o TKT em qualquer mensagem) e o novo protocolo fica ligado ao antigo (`parent_ticket_id`, gravado uma vez). Nada é reaberto.
+- **Dono do protocolo:** o id do contato do Chatwoot (`sender.id`). Protocolo inexistente, de outro contato, sem dono (anterior à funcionalidade ou apagado pela retenção) e sem chat recebem exatamente a mesma resposta. Conferir o contato autentica o telefone, não a pessoa: por isso a Júlia não devolve conteúdo do caso e o histórico só vai para a equipe.
+- **Fatos do atendimento encerrado** (`tickets.facts`): perfil, processo e unidade *informados*, motivo, telefone de retorno e o resumo escrito pelo atendente. Nunca diligência nem relato. Gravados uma vez, só com dono e visibilidade normal. **Apagados após 90 dias** (`TICKET_FACTS_RETENTION_DAYS`) pela varredura de inatividade; a linha do protocolo permanece. Protocolos antigos não são retomáveis.
+- **Resumo do atendente:** `/encerrar <texto>` em nota privada (máx. 600 caracteres, CPF mascarado). Encerrar pela interface do Chatwoot não tem resumo, e a nota informa isso pela ausência.
+- **Nota na retomada (sem esperar a transferência):** ao retomar um protocolo normal, a Júlia grava uma nota privada "RETOMADA DE ATENDIMENTO" com o protocolo anterior, seus fatos e o link da conversa; com a IA ligada, um rascunho rotulado do assunto do atendimento anterior (só o período dele). O assunto de um protocolo sem fatos (criado antes de a retomada existir ou sem dono) só aparece por esse rascunho e pelo link. Protocolo restrito não gera nenhuma das duas notas.
+- **Dono do protocolo no evento real:** vem de `sender.id` (tipo `contact` ou ausente), depois de `conversation.meta.sender.id` e `contact_inbox.contact_id`; remetente bot/agente nunca é dono. Se nada for encontrado, a auditoria registra `ticket_sem_contato` com o tipo e os nomes dos campos, sem valores.
+- **Nota na transferência:** agora também no caminho "Falar com atendente" sem unidade. Traz fatos do atendimento atual, protocolo vinculado, os últimos 5 protocolos do mesmo contato (marcados "vinculado pela pessoa" ou "mesmo contato, não confirmado") e o link da conversa de cada um. Erro ao montar o histórico não impede a transferência.
+- **Casos da Ouvidoria da Mulher:** o protocolo vira *restrito* ao entrar no serviço ou ao receber a oferta por texto de violência; não aparece em listas nem em notas de outros times. Retomar um protocolo restrito leva ao time `ouvidoria_mulher` sem citar o assunto à pessoa, com nota que traz só protocolos, data e o link da conversa anterior. Contato informado como não seguro vira *sem chat*: não retoma pelo chat e perde o dono.
+- **Balcão Virtual:** antes de mostrar o link, a Júlia pergunta uma vez por protocolo se pode retornar por WhatsApp (neste número, outro número ou prefiro não informar). Grava nota privada com o protocolo e o telefone, **sem transferir**, e pede que a pessoa informe o TKT ao atendente. Se a chamada cair, a pessoa retoma pelo TKT. A confirmação de que quem atende o Balcão olha o Chatwoot está pendente.
+- **Resumo por IA (fase 2, `TICKET_SUMMARY_AI_ENABLED`):** depois da transferência confirmada, em segundo plano e fora do lock da conversa, uma tentativa por protocolo. Lê só mensagens públicas (últimas 20 da página da API) da conversa e da anterior vinculada, com CPF, telefone e e-mail mascarados, trata o texto como dado, exige JSON fechado e descarta número ou data que não esteja na fonte. Vai como nota privada "RASCUNHO GERADO POR IA", só se a conversa ainda estiver com o atendente. Nunca roda para caso restrito, sem chat ou da Ouvidoria. O modelo é o mesmo fornecedor externo das respostas (MariTalk); a Res. CNJ 615/2025 (art. 19 §3º IV) veda LLM externo para dados sigilosos ou em segredo de justiça, e o enquadramento do uso e do anúncio ao usuário (art. 33) deve ser confirmado com a área de IA do TJPA.
+- **Janela de 24 h do WhatsApp:** retorno do atendente depois de 24 h da última mensagem da pessoa exige modelo aprovado na Meta (configuração fora do código).
 
 ## 6.2 Endpoint para o painel do Chatwoot
 

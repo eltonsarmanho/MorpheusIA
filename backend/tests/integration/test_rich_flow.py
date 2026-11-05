@@ -7,6 +7,7 @@ import pytest
 from app.application.chat import flow
 from app.application.chat.handler import ChatwootEventHandler
 from app.domain.handoff import HandoffState as S
+from app.domain.models import Profile
 from tests.conftest import FakeGateway, FakeLLM, add_doc
 from tests.integration.test_chatwoot_handler import KEY, msg_event, process
 from tests.integration.test_orchestrator import P1, P2, build, out
@@ -322,8 +323,33 @@ def test_depois_do_resumo_a_pergunta_livre_e_respondida_e_oferece_proximos_passo
     say(h, P1, 2)  # número digitado sozinho já seleciona o processo
     say(h, "Quando é a audiência de conciliação?", 3)
     assert "20/07/2026" in texts(gw)[-2]
+    # com processo localizado, o contexto continua: itens do processo, atendente e encerrar (não só "menu")
+    opts = [o for _, o in gw.options if o][-1]
+    assert opts == [o.title for o in flow.process_menu(Profile.INDEFINIDO)]
+    assert "🙋 Falar com atendente" in opts and "✅ Encerrar atendimento" in opts and "🗓️ Audiências" in opts and "🔎 Fazer pergunta" in opts
+    assert P1 in texts(gw)[-1] and "Escolha outro item deste processo" in texts(gw)[-1]
+
+
+def test_sem_processo_localizado_a_pergunta_continua_oferecendo_so_menu_atendente_encerrar(env):
+    make, ops = env
+    h, gw = make()
+    say(h, "Olá", 1)
+    say(h, "O que é a gratuidade da justiça?", 2)
+    assert ops.get(KEY).process_number is None
     assert [o for _, o in gw.options if o][-1] == ["↩️ Retornar ao menu", "🙋 Atendente", "✅ Encerrar"]
     assert "mais alguma coisa" in texts(gw)[-1]
+
+
+def test_o_contexto_do_processo_se_mantem_em_perguntas_seguidas(env):
+    make, ops = env
+    h, gw = make()
+    h.orch.store.process_info = lambda n: {"process_number": n, "process_class": "X", "court_unit": "Y", "parties": []}
+    say(h, "Olá", 1)
+    say(h, P1, 2)
+    for n, q in enumerate(("Quando é a audiência de conciliação?", "Há audiência designada?"), start=3):
+        say(h, q, n)
+        assert ops.get(KEY).process_number == P1
+        assert [o for _, o in gw.options if o][-1] == [o.title for o in flow.process_menu(Profile.INDEFINIDO)]
 
 
 def test_cronologia_usa_o_processo_ja_escolhido(env):

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C .. status --short)",
+      "Bash(sed -i '33d' .env.example && grep -n \"TICKET_\\\\|OUVIDORIA\" .env.example)",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(sed -i 's/replies.append\\(\\(texts\\(gw\\)\\\\[-1\\\\], last_opts\\(gw\\)\\)\\)/replies.append\\(\\(texts\\(gw\\)[-1], tuple\\(last_opts\\(gw\\)\\)\\)\\)/' tests/integration/test_retomada_ticket.py)",
+      "Bash(.venv/bin/python -m pytest tests/integration/test_retomada_ticket.py -q)",
+      "Read(//home/nees/Documents/VSCodigo/**)",
+      "Bash(/home/nees/Documents/VSCodigo/morpheusia/backend/.venv/bin/python -m pytest -q -s -p no:cacheprovider tests/integration/test_probe.py)",
+      "Bash(grep -v \"^$\")"
+    ],
+    "additionalDirectories": [
+      "/home/nees/Documents/VSCodigo/morpheusia"
+    ]
+  }
+}

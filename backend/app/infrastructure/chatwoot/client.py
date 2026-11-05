@@ -100,6 +100,11 @@ class ChatwootClient:
         if merged != current:
             self._request("POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/labels", admin=True, json={"labels": merged})
 
+    def list_messages(self, account_id: int, conversation_id: int) -> list[dict]:
+        """Últimas mensagens da conversa (uma página da API, em ordem cronológica), para o resumo por IA."""
+        data = self._request("GET", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/messages", admin=True)
+        return list(data.get("payload", []))
+
     def assign_team(self, account_id: int, conversation_id: int, team_name: str) -> bool:
         team_id = self.team_id(team_name)
         if team_id is None:

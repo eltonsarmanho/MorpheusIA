@@ -1,0 +1,293 @@
+% ==========================================================================
+% Retomada por protocolo e resumo para o atendente (piloto TJPA / EscutAI)
+% Evidências, comparativo e desenho. Compilar: pdflatex Retomada_Planejamento.tex (duas vezes)
+% ==========================================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[scaled=0.95]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{fontawesome5}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,fit,backgrounds}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=petroleo,linkcolor=petroleo}
+\graphicspath{{../TJPA/img/}}
+
+% Identidade visual: mesma paleta do pitch EscutAI + rosa da Cartilha da Ouvidoria da Mulher
+\definecolor{escuro}{HTML}{053F35}
+\definecolor{petroleo}{HTML}{0B5345}
+\definecolor{verde}{HTML}{00A884}
+\definecolor{menta}{HTML}{16E0A9}
+\definecolor{ambar}{HTML}{FDB833}
+\definecolor{areia}{HTML}{FDE3A7}
+\definecolor{nevoa}{HTML}{E8F4F0}
+\definecolor{tinta}{HTML}{0E2F33}
+\definecolor{cinza}{HTML}{5E6B6B}
+\definecolor{seta}{HTML}{A8D5C6}
+\definecolor{rosa}{HTML}{B03060}
+\definecolor{rosaclaro}{HTML}{F8E1EA}
+\definecolor{alerta}{HTML}{C0392B}
+
+\setbeamercolor{normal text}{fg=tinta,bg=white}
+\setbeamercolor{structure}{fg=petroleo}
+\setbeamercolor{frametitle}{fg=tinta}
+\setbeamercolor{itemize item}{fg=rosa}
+\setbeamercolor{itemize subitem}{fg=ambar}
+\setbeamercolor{alerted text}{fg=rosa}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\footnotesize\raise0.1ex\hbox{\textcolor{rosa}{\faCaretRight}}}
+\setbeamertemplate{itemize subitem}{\scriptsize\textcolor{ambar}{\faCircle}}
+\setbeamersize{text margin left=0.75cm,text margin right=0.75cm}
+
+\setbeamertemplate{frametitle}{%
+  \vskip0.30cm
+  \begin{minipage}[c]{0.74\paperwidth}\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.15\paperwidth}\raggedleft
+    \includegraphics[height=0.55cm]{logo_escutai_verde.png}\hspace{0.1cm}{\bfseries\small\textcolor{tinta}{Escut}\textcolor{verde}{AI}}%
+  \end{minipage}\par
+  \vskip-0.10cm
+}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox to\paperwidth{%
+    \hspace{0.75cm}{\tiny\textcolor{cinza}{Retomada por protocolo e resumo para o atendente \textperiodcentered\ piloto}}\hfill
+    {\tiny\textcolor{cinza}{\insertframenumber}}\hspace{0.75cm}}\vskip0.25cm}
+
+\newcommand{\fundoescuro}{%
+  \setbeamercolor{background canvas}{bg=escuro}%
+  \setbeamercolor{normal text}{fg=white}%
+  \setbeamertemplate{footline}{}%
+  \usebeamercolor[fg]{normal text}}
+
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\fonte}[1]{\par\vskip3pt{\tiny\textcolor{cinza}{Fonte: #1}}}
+
+\tikzset{
+  caixa/.style={rounded corners=5pt,align=center,inner sep=4pt,font=\scriptsize},
+  nova/.style={caixa,fill=rosa,text=white,font=\scriptsize\bfseries},
+  atual/.style={caixa,fill=nevoa,draw=verde,text=tinta},
+  externa/.style={caixa,fill=areia,text=tinta},
+  seta/.style={-{Stealth[length=5pt]},line width=1pt,color=petroleo},
+  setanova/.style={-{Stealth[length=5pt]},line width=1.2pt,color=rosa},
+}
+\renewcommand{\arraystretch}{1.18}
+
+\title{Retomada por protocolo}
+\subtitle{Evidências, comparativo e desenho}
+\author{Equipe EscutAI}
+\date{Piloto TJPA}
+
+\begin{document}
+
+{\fundoescuro
+\begin{frame}[plain]
+  \vspace{1.4cm}
+  {\color{menta}\bfseries\small PILOTO TJPA \textperiodcentered\ ESCUTAI \textperiodcentered\ JÚLIA}\\[0.3cm]
+  {\fontsize{26}{30}\selectfont\bfseries Retomada por protocolo e\\resumo para o atendente}\\[0.35cm]
+  {\large Evidências, comparativo com a nossa solução e desenho}\\[0.9cm]
+  \begin{tikzpicture}
+    \node[fill=ambar,text=tinta,rounded corners=4pt,inner sep=6pt,font=\small\bfseries,align=left]
+      {\faInfoCircle\ Fase 1 (sem IA) e fase 2 (resumo por IA) implementadas no piloto;\\ficam atrás de chaves e dependem de homologação com a equipe.};
+  \end{tikzpicture}
+\end{frame}}
+
+\begin{frame}{O problema, com o que verificamos}
+\begin{itemize}\setlength\itemsep{4pt}\small
+  \item \alert{Cada retorno vira uma conversa nova.} A caixa do WhatsApp está com \code{lock_to_single_conversation=false} (Chatwoot 4.11.1). Na VM, 29 conversas têm exatamente 1 protocolo cada.
+  \item \alert{O protocolo não guardava nada.} A tabela tinha só id, conversa, datas e quem encerrou; ao encerrar, processo, unidade e perfil eram apagados.
+  \item \alert{A nota ao atendente era parcial.} Só saía quando a pessoa escolhia o canal; \emph{Falar com atendente} sem unidade transferia sem contexto.
+  \item \alert{Balcão Virtual sem rastro.} A Júlia só mostrava o link: se a chamada caísse, a equipe não tinha telefone nem contexto.
+  \item \alert{Resultado:} a pessoa repete o caso a cada atendente e a informação fica espalhada.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Decisões do responsável e escopo entregue}
+\small
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{3.4cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Tema & Decisão \\
+\midrule
+Resumo & Por fases: fase 1 sem IA; \textbf{fase 2 (IA) aprovada para o piloto}, como rascunho rotulado \\
+Retenção & Fatos do atendimento encerrado por \textbf{90 dias}, depois apagados (D7 segue com a DPO) \\
+Ouvidoria da Mulher & Retoma só com o protocolo digitado e o mesmo contato, sem citar o assunto; contato não seguro não retoma por chat \\
+Balcão Virtual & Pergunta o telefone de retorno (recusar é possível), porque a chamada cai e o atendente retorna por WhatsApp \\
+Chaves & \code{TICKET_RESUME_ENABLED} e \code{TICKET_SUMMARY_AI_ENABLED}; desligadas, tudo fica como antes \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{Evidências e o que cada uma muda no desenho}
+\fontsize{6.0}{7.0}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.2cm}@{}}
+\toprule
+Fonte & O que afirma & Decisão de desenho & Força \\
+\midrule
+Decreto 11.034/2022, arts. 10 e 12 & Veda pedir que a pessoa repita a demanda já registrada; registro numérico; acesso ao histórico; guarda mínima de 2 anos & Referência de \emph{contar uma vez}. \textbf{Não obriga o tribunal}: vale para serviços regulados pelo Executivo federal & Norma, lida na fonte \\
+Res. CNJ 615/2025: BR1, art. 19 §3º IV, art. 33, art. 10 I & Resumo supervisionado por humano é baixo risco; LLM externo vedado para dados sigilosos; informar o uso de IA; revisão humana & Fase 2 como rascunho rotulado; fora de caso restrito; \textbf{enquadrar com a área de IA do TJPA} & Transcrição não oficial; texto não cita chatbot \\
+Res. CNJ 372/2021 & Balcão Virtual por videoconferência; admite aplicativos de mensagem como meio assíncrono & Base para retorno por WhatsApp quando a chamada cai & Resumo de busca \\
+Zendesk (follow-up) & Ticket fechado não reabre; resposta cria ticket novo ligado & \textbf{Mesmo modelo}: protocolo novo ligado ao anterior & Documentação oficial \\
+Fala.BR & Consulta com protocolo e código de acesso & Protocolo sozinho não basta: conferimos o contato & Tutorial institucional \\
+OWASP IDOR & Conhecer o identificador não autoriza o acesso & Resposta idêntica para inexistente e de outro contato & Guia técnico \\
+Nota incremental em produção (arXiv 2510.06677) & 3\% menos tempo de atendimento; até 9\% nos casos complexos & Ganho real, \textbf{modesto}: não prometer mais & Estudo do fornecedor \\
+Observe.ai, FECT & LLM inventa valores e próximos passos em conversas incompletas & Saída fechada; número e data conferidos na fonte; link para o original & Blog e preprint (resumos) \\
+Five9 & 96\% das empresas dizem manter o contexto; 83\% dos consumidores ainda repetem ao menos às vezes & Medir a repetição do lado de quem é atendido & Pesquisa patrocinada \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{O que não conseguimos confirmar}
+\begin{itemize}\setlength\itemsep{5pt}\small
+  \item \alert{Sem estudo} sobre retomada e resumo em tribunais brasileiros, nem estudo independente sobre resumo na transferência: a comparação é com norma de SAC e prática de mercado. \textbf{O piloto precisa medir.}
+  \item O texto oficial da Res. CNJ 615/2025 não abriu direto (bloqueio do site); lemos uma transcrição. Conferir o art.~15 na versão compilada (Res.~674/2026).
+  \item A Res.~615 não menciona chatbot nem atendimento: o enquadramento do resumo por IA e o anúncio ao usuário (art.~33) são \textbf{decisões a tomar com a área de IA do TJPA}.
+  \item Números da Five9, Zendesk e Salesforce vieram por fontes secundárias; os relatórios originais não foram abertos.
+  \item Chatwoot Captain (IA nativa) está nos planos pagos e enviaria as conversas a outro fornecedor: não é alternativa gratuita ao que construímos.
+  \item A janela de 24 h do WhatsApp (retorno só com modelo aprovado) veio de documentação da Twilio: conferir na Meta.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Desenho: protocolo novo ligado ao anterior}
+\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize}]
+  \node[atual,text width=3.0cm] (a) at (2.2,0) {Conversa 77\\\textbf{TKT-A}, encerrado\\fatos guardados 90 dias};
+  \node[atual,text width=3.0cm] (b) at (8.0,0) {Conversa 78 (nova)\\\textbf{TKT-B}, \code{parent}=TKT-A\\histórico na nota};
+  \node[nova,text width=3.2cm] (c) at (13.2,0) {Atendente recebe a nota:\\fatos, últimos 5 protocolos,\\links das conversas};
+  \draw[setanova] (a) -- node[above,font=\tiny]{pessoa digita TKT-A} (b);
+  \draw[seta] (b) -- node[above,font=\tiny]{transferência} (c);
+  \node[externa,text width=3.4cm] (r) at (2.2,-2.1) {Caso da Ouvidoria: \emph{restrito}\\fora de listas e de outros times};
+  \node[externa,text width=3.4cm] (n) at (8.0,-2.1) {Contato não seguro: \emph{sem chat}\\não retoma; dono solto};
+  \node[atual,text width=3.4cm] (i) at (13.2,-2.1) {Resumo por IA (fase 2):\\rascunho rotulado,\\só caso normal};
+\end{tikzpicture}
+\vskip8pt
+{\scriptsize O Chatwoot não reabre conversa resolvida quando a caixa não trava em uma conversa; por isso a retomada \textbf{liga} protocolos, como o follow-up do Zendesk.}
+\end{frame}
+
+\begin{frame}{Retomada: como a Júlia decide}
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\begin{itemize}\setlength\itemsep{4pt}\scriptsize
+  \item Menu: \textbf{\faHistory\ Retomar atendimento} antes de \emph{Falar com atendente}; o TKT digitado em qualquer mensagem também funciona.
+  \item Dono = \code{sender.id} do contato do Chatwoot, gravado só de mensagem da própria pessoa.
+  \item \textbf{Mesma resposta} para protocolo inexistente, de outro contato, sem dono (antigo ou apagado) e sem chat: não há como testar se um número existe.
+  \item 3 tentativas e oferece o atendimento humano.
+  \item \emph{Não sei o número}: lista só os protocolos \textbf{deste} contato, sem os restritos.
+  \item Restaura perfil, unidade e processo \textbf{só onde estiverem vazios}; processo só se constar no acervo.
+  \item TKT dentro de diligência ou relato continua sendo texto.
+\end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+\begin{tikzpicture}
+  \node[draw=petroleo,rounded corners=4pt,fill=nevoa,inner sep=6pt,text width=0.95\textwidth,font=\scriptsize,align=left]{%
+  \textbf{Limite conhecido}\\[2pt]
+  Conferir o contato autentica o \emph{telefone}, não a \emph{pessoa}. Por isso a Júlia \textbf{não devolve conteúdo do caso} à pessoa: o histórico só vai para a equipe, que confirma a identidade antes de falar do caso.};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Resumo para o atendente: fase 1 e fase 2}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\textbf{Fase 1 (sem IA, sempre que há transferência)}
+\begin{itemize}\setlength\itemsep{3pt}\scriptsize
+  \item Nota privada, uma vez, \textbf{também em \emph{Falar com atendente}} sem unidade.
+  \item Fatos do atendimento atual; protocolo vinculado; últimos 5 protocolos do contato, marcados \emph{vinculado pela pessoa} ou \emph{não confirmado}.
+  \item Equipe, motivo, unidade e processo \emph{informados}, link da conversa anterior.
+  \item \code{/encerrar <resumo>}: o atendente registra o que foi feito (até 600 caracteres).
+  \item Erro no histórico não impede a transferência.
+\end{itemize}
+\end{column}
+\begin{column}{0.47\textwidth}
+\textbf{Fase 2 (IA, atrás de chave)}
+\begin{itemize}\setlength\itemsep{3pt}\scriptsize
+  \item Depois da transferência, em segundo plano, \textbf{uma tentativa por protocolo}.
+  \item Só mensagens públicas, com CPF, telefone e e-mail mascarados; a conversa é tratada como \textbf{dado}, não como instrução.
+  \item Saída em campos fechados; \textbf{número ou data fora do texto é descartado}.
+  \item Nota rotulada \emph{rascunho gerado por IA}; só se a conversa ainda está com o atendente.
+  \item \alert{Nunca} para caso restrito, sem chat ou da Ouvidoria. Falha da IA não afeta nada.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Balcão Virtual: telefone de retorno e protocolo}
+\begin{itemize}\setlength\itemsep{5pt}\small
+  \item Antes do link, \emph{uma vez por protocolo}: \textbf{Posso retornar por este WhatsApp se a chamada cair?} Opções: neste número, outro número (validado com DDD) ou prefiro não informar.
+  \item A Júlia grava uma \textbf{nota privada} com o protocolo e o telefone, \textbf{sem transferir}, e pede que a pessoa informe o TKT ao atendente do Balcão.
+  \item Se a chamada cair, a pessoa volta e toca em \emph{Retomar atendimento}.
+  \item O telefone não vai para log nem auditoria e é apagado com os fatos, em 90 dias.
+  \item \alert{A confirmar:} quem atende o Balcão olha o Chatwoot? Se não olha, a nota só ajuda quem retorna por ele.
+  \item \alert{A confirmar:} retorno depois de 24 h da última mensagem da pessoa exige modelo de mensagem aprovado na Meta.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Comparativo com a nossa solução}
+\small
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{3.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Capacidade & Antes & Agora & Mercado (Zendesk, Captain) \\
+\midrule
+Retomar pelo protocolo & Não & Sim, conferindo o dono & Resposta ao ticket ou cliente logado \\
+Vínculo entre atendimentos & Não & Protocolo novo ligado & Follow-up ligado \\
+Contexto em toda transferência & Só no roteiro & Sim & Sim \\
+Resumo narrativo & Não & Atendente; IA rotulada & IA em planos pagos \\
+Caso sensível & Parcial & Restrito, sem chat, sem IA & Por permissões \\
+\bottomrule
+\end{tabularx}
+\vskip6pt
+{\scriptsize\textcolor{cinza}{Isolamento de caso sensível continua parcial: a caixa é compartilhada e o painel de conversas anteriores do Chatwoot pode expor casos a outros agentes. A conferir na versão instalada.}}
+\end{frame}
+
+\begin{frame}{Riscos, limites e o que vamos medir}
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\textbf{Riscos}
+\begin{itemize}\setlength\itemsep{3pt}\scriptsize
+  \item \alert{Retenção:} 90 dias de dados ligados ao contato; D7 segue com a DPO.
+  \item \alert{Celular compartilhado:} o contato autentica o telefone, não a pessoa.
+  \item \alert{Resumo por IA:} envia conversas a fornecedor externo; enquadrar na Res.~615 e decidir o anúncio ao usuário.
+  \item \alert{Adoção:} sem \code{/encerrar <resumo>}, o valor está nos links.
+  \item Resumo por IA lê só a última página da API (20 mensagens).
+\end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+\textbf{Métricas do piloto}
+\begin{itemize}\setlength\itemsep{3pt}\scriptsize
+  \item Transferências com nota.
+  \item Retomadas concluídas e não localizadas.
+  \item Por amostra com atendentes: quantas vezes a pessoa precisou \textbf{repetir} o caso e se a nota bastou.
+  \item Uso e correções do rascunho de IA.
+  \item Não há linha de base: medir antes de ligar.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Referências}
+\tiny
+\begin{itemize}\setlength\itemsep{2pt}
+  \item Decreto 11.034/2022: \url{https://www.planalto.gov.br/ccivil_03/_Ato2019-2022/2022/Decreto/D11034.htm}
+  \item Res. CNJ 615/2025 (transcrição): \url{https://legislarei.defensorarei.com/lei/ato-cnj-res-615-2025}; texto oficial: \url{https://atos.cnj.jus.br/atos/detalhar/6001}
+  \item Res. CNJ 372/2021: \url{https://atos.cnj.jus.br/atos/detalhar/3742}
+  \item Zendesk, follow-up de ticket fechado: \url{https://support.zendesk.com/hc/en-us/articles/4408883882522-Creating-a-follow-up-for-a-closed-ticket}
+  \item Chatwoot, planos e Captain: \url{https://chatwoot.com/pricing/self-hosted-plans}
+  \item Fala.BR, consulta por protocolo e código: \url{https://portal.ufrrj.br/wp-content/uploads/2025/08/Fala.BR_.pdf}
+  \item OWASP, IDOR: \url{https://owasp.org/www-community/attacks/insecure_direct_object_reference}
+  \item Nota incremental em produção: \url{https://arxiv.org/abs/2510.06677}; FECT: \url{https://arxiv.org/pdf/2508.00889}
+  \item Observe.ai: \url{https://www.observe.ai/blog/evaluating-llms-in-contact-centers}
+  \item Five9 (via CMSWire): \url{https://www.cmswire.com/customer-experience/customers-the-ai-handoff-is-broken-contact-center-leaders-wont-hear-it/}
+  \item WhatsApp, janela de 24 h (Twilio): \url{https://www.twilio.com/docs/whatsapp/key-concepts}
+  \item Código: \code{backend/app/application/chat/\{handler,retomada,flow\}.py}, \code{infrastructure/sqlite/operational_store.py}.
+\end{itemize}
+\end{frame}
+
+\end{document}

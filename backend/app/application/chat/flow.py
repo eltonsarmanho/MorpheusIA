@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 
 from app.application import persona
-from app.application.chat import mulher
+from app.application.chat import mulher, retomada
 from app.domain.models import Option, Profile
 from app.domain.policies import find_process_numbers
 
@@ -59,6 +59,12 @@ class Kind(StrEnum):
     MULHER_SKIP = "mulher_skip"
     MULHER_SEND = "mulher_send"
     MULHER_REDO = "mulher_redo"
+    # Retomada por protocolo (RTK)
+    RESUME = "resume"  # menu: pedir o número do protocolo
+    RESUME_LIST = "resume_list"  # "não sei o número": lista os últimos protocolos deste contato
+    PHONE_YES = "phone_yes"
+    PHONE_OTHER = "phone_other"
+    PHONE_NO = "phone_no"
 
 
 @dataclass(frozen=True)
@@ -91,11 +97,18 @@ MULHER_KINDS = frozenset({Kind.MULHER, Kind.MULHER_DANGER, Kind.MULHER_ORIENT_ME
                           Kind.MULHER_SKIP, Kind.MULHER_SEND, Kind.MULHER_REDO})
 
 
-def profile_menu(mulher_enabled: bool = False) -> list[Option]:
-    """Menu principal; com a Ouvidoria da Mulher ligada, ela entra na linha 4 (OVM-01). Desligada, é o menu anterior."""
-    if not mulher_enabled:
-        return list(PROFILE_MENU)
-    return [OPT_PARTE, OPT_ADV, OPT_GERAL, mulher.OPT_ENTRY, OPT_HUMAN_LIST, OPT_CLOSE_LIST]
+RESUME_KINDS = frozenset({Kind.RESUME, Kind.RESUME_LIST, Kind.PHONE_YES, Kind.PHONE_OTHER, Kind.PHONE_NO})
+
+
+def profile_menu(mulher_enabled: bool = False, resume_enabled: bool = False) -> list[Option]:
+    """Menu principal. Com a Ouvidoria da Mulher ligada ela entra na linha 4 (OVM-01); com a retomada ligada, "Retomar atendimento"
+    entra antes de "Falar com atendente" (RTK-01). Tudo desligado é o menu anterior."""
+    menu = list(PROFILE_MENU)
+    if mulher_enabled:
+        menu.insert(3, mulher.OPT_ENTRY)
+    if resume_enabled:
+        menu.insert(menu.index(OPT_HUMAN_LIST), retomada.OPT_RESUME)
+    return menu
 
 
 MAIN_MENU = PROFILE_MENU  # o menu principal passa a ser a escolha de perfil do roteiro
@@ -242,6 +255,12 @@ def _register() -> None:
     add(OPT_RETRY, Action(Kind.RETRY_CHANNEL))
     add(OPT_OTHER_CHANNEL, Action(Kind.OTHER_CHANNEL))
     add(OPT_UNIT_PHONE, Action(Kind.UNIT_PHONE))
+    # Retomada por protocolo
+    add(retomada.OPT_RESUME, Action(Kind.RESUME))
+    add(retomada.OPT_UNKNOWN, Action(Kind.RESUME_LIST))
+    add(retomada.OPT_PHONE_YES, Action(Kind.PHONE_YES))
+    add(retomada.OPT_PHONE_OTHER, Action(Kind.PHONE_OTHER))
+    add(retomada.OPT_PHONE_NO, Action(Kind.PHONE_NO))
     # Ouvidoria da Mulher
     add(mulher.OPT_ENTRY, Action(Kind.MULHER))
     add(mulher.OPT_DANGER, Action(Kind.MULHER_DANGER))
@@ -308,6 +327,8 @@ PROFILE_MENU_TEXT = "{intro}\n\nPara eu orientar você do jeito certo, me conta:
 MAIN_MENU_TEXT = PROFILE_MENU_TEXT
 CLOSE_HINT_TEXT = "Para encerrar o atendimento, toque em *✅ Encerrar*. Se foi sem querer, siga normalmente ou volte ao menu 👇"
 CLOSE_HINT_OPTIONS = [OPT_CLOSE, OPT_MENU]
+PROCESS_AFTER_TEXT = ("Isso esclareceu sua dúvida sobre o processo *{n}*? 😊 Escolha outro item deste processo, fale com o atendimento "
+                      "humano ou encerre 👇")
 AFTER_ANSWER_TEXT = ("Isso esclareceu sua dúvida? Posso ajudar com mais alguma coisa? 😊 Escreva a próxima pergunta ou, se preferir, "
                      "fale com o atendimento humano 👇")
 INST_MENU_TEXT = "🏛️ *Balcão Virtual e informações do Tribunal*\nEscolha um assunto 👇"

@@ -51,16 +51,18 @@ def create_app(container: Container | None = None, settings: Settings | None = N
     @contextlib.asynccontextmanager
     async def lifespan(_app: FastAPI):
         task = None
-        if settings.inactivity_close_hours > 0:
+        if settings.inactivity_close_hours > 0 or settings.ticket_resume_enabled:
             async def sweep() -> None:
                 while True:
                     await asyncio.sleep(settings.inactivity_check_minutes * 60)
                     try:
                         c = get_container()
                         if c.handler is not None:
-                            closed = await asyncio.to_thread(c.handler.close_inactive, settings.inactivity_close_hours)
-                            if closed:
-                                log.info("protocolos encerrados por inatividade: %s", closed)
+                            if settings.inactivity_close_hours > 0:
+                                closed = await asyncio.to_thread(c.handler.close_inactive, settings.inactivity_close_hours)
+                                if closed:
+                                    log.info("protocolos encerrados por inatividade: %s", closed)
+                            await asyncio.to_thread(c.handler.purge_expired)  # retenção também sem encerramento por inatividade
                     except Exception:  # noqa: BLE001 - o varredor nunca pode derrubar a API
                         log.exception("falha no encerramento por inatividade")
 
@@ -201,7 +203,8 @@ def create_app(container: Container | None = None, settings: Settings | None = N
 
     @router.get("/tickets")
     def tickets(status: str | None = Query(None, pattern="^(open|closed)$"), limit: int = Query(100, le=500)) -> list[dict]:
-        return [t.__dict__ for t in get_container().ops.list_tickets(status, limit)]
+        hidden = {"contact_id", "facts", "visibility"}  # dado pessoal e fatos do atendimento não saem pela API administrativa
+        return [{k: v for k, v in t.__dict__.items() if k not in hidden} for t in get_container().ops.list_tickets(status, limit)]
 
     @router.get("/integration")
     def integration() -> dict:

@@ -35,7 +35,7 @@ def build_ingestion(settings: Settings, store: SqliteKnowledgeStore, embedder: E
 from dataclasses import dataclass  # noqa: E402
 
 from app.application.answering.orchestrator import Orchestrator, OrchestratorConfig  # noqa: E402
-from app.application.chat.handler import ChatwootEventHandler, MulherSettings  # noqa: E402
+from app.application.chat.handler import ChatwootEventHandler, MulherSettings, TicketSettings  # noqa: E402
 from app.application.retrieval.hybrid import HybridRetriever  # noqa: E402
 from app.domain.policies import AbstentionPolicy  # noqa: E402
 from app.domain.ports import ChatwootGateway, LlmGenerator  # noqa: E402
@@ -112,6 +112,8 @@ def build_container(
         max_diligence_chars=settings.max_diligence_chars,
         mulher=MulherSettings(settings.ouvidoria_mulher_enabled, settings.handoff_team_mulher, load_ouvidoria_mulher(settings.mulher_file),
                               settings.max_relato_chars),
+        tickets=TicketSettings(settings.ticket_resume_enabled, settings.ticket_summary_ai_enabled, settings.ticket_facts_retention_days,
+                               settings.chatwoot_base_url),
     ) if gateway is not None else None
     return Container(settings, store, ops, embedder, retriever, orchestrator, handler, gateway, llm)  # type: ignore[arg-type]
 

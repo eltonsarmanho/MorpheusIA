@@ -18,13 +18,16 @@ from typing import Any
 from app.application.answering.orchestrator import TEAM_GENERAL, Orchestrator, QuestionError
 from app.application.chat import flow
 from app.application.chat import mulher as ovm
+from app.application.chat import retomada
+from app.application.chat.retomada import ai_summary_note
 from app.application.chat.process_search import DemoCorpusProcessSearch, name_tokens
 from app.domain.handoff import HandoffState, InvalidTransition, bot_may_reply
 from app.domain.models import Option, Profile, ResponseKind
 from app.domain.policies import cnj_check_digits_ok, cpf_is_valid, extract_cpf, find_process_numbers, mask_cpf
 from app.domain.ports import ChatwootGateway, ProcessCandidate, ProcessSearchPort
 from app.domain.triage_mulher import NAO_INFORMADO, OuvidoriaMulher, Triage, mentions_violence
-from app.domain.units import UnitDirectory, fold, format_phone, whatsapp_link
+from app.domain.privacy import mask_pii
+from app.domain.units import UnitDirectory, fold, format_phone, valid_br_phone, whatsapp_link
 from app.infrastructure.sqlite.operational_store import ConversationState, OperationalStore
 
 log = logging.getLogger(__name__)
@@ -62,6 +65,18 @@ class MulherSettings:
     max_relato_chars: int = 2000
 
 
+@dataclass(frozen=True)
+class TicketSettings:
+    """Retomada por protocolo e resumo para o atendente (RTK). Desligada por padrão: sem `enabled`, tudo é como antes."""
+
+    enabled: bool = False
+    ai_enabled: bool = False  # resumo por IA (fase 2); só roda com `enabled`
+    retention_days: int = 90
+    base_url: str = ""  # URL pública do Chatwoot, para os links das conversas anteriores
+
+
+AI_WINDOW_SLACK_S = 2
+_SPACED_PHONE = re.compile(r"(?<!\d)(?:\+?55[\s.]?)?\(?\d{2}\)?[\s.\-]?9?\d{4}[\s.\-]?\d{4}(?!\d)")  # telefone com espaços, que mask_pii não cobre
 _TRIAGE_ONLY = frozenset({flow.Kind.MULHER_ANSWER, flow.Kind.MULHER_SKIP, flow.Kind.MULHER_SEND, flow.Kind.MULHER_REDO})
 
 
@@ -85,7 +100,8 @@ class ChatwootEventHandler:
     def __init__(self, orchestrator: Orchestrator, ops: OperationalStore, gateway: ChatwootGateway, *, max_handoff_attempts: int = 3,
                  max_question_chars: int = 1000, default_account_id: int = 1, rich_flow: bool = False, units: UnitDirectory | None = None,
                  search: ProcessSearchPort | None = None, teams: tuple[str, str] = ("secretaria", "gabinete"),
-                 whatsapp_mode: str = "chatwoot", max_diligence_chars: int = 3000, mulher: MulherSettings | None = None) -> None:
+                 whatsapp_mode: str = "chatwoot", max_diligence_chars: int = 3000, mulher: MulherSettings | None = None,
+                 tickets: TicketSettings | None = None) -> None:
         self.orch, self.ops, self.gw = orchestrator, ops, gateway
         self.units = units or UnitDirectory()
         self.search = search or DemoCorpusProcessSearch(orchestrator.store)
@@ -93,6 +109,8 @@ class ChatwootEventHandler:
         self.whatsapp_mode = whatsapp_mode  # chatwoot: transferência integrada nesta conversa | link: WhatsApp oficial da unidade
         self.max_diligence = max_diligence_chars
         self.mulher = mulher or MulherSettings()
+        self.tickets = tickets or TicketSettings()
+        self._threads: list[threading.Thread] = []  # resumos por IA em segundo plano (os testes aguardam por eles)
         self.now = lambda: datetime.now(timezone.utc)  # relógio injetável (horário da Ouvidoria nos testes)
         self.default_account = default_account_id
         self.rich = rich_flow  # menus com botões/listas, protocolo (ticket) e encerramento guiado
@@ -155,9 +173,10 @@ class ChatwootEventHandler:
         sender_type = str(sender.get("type") or "").lower()
         if payload.get("private"):
             if self.rich and mtype == "outgoing" and sender_type in ("user", "agent"):
-                cmd = (payload.get("content") or "").strip().lower()
+                raw = (payload.get("content") or "").strip()
+                cmd = raw.lower()
                 if cmd == "/encerrar" or cmd.startswith("/encerrar "):
-                    return self._close_by_agent(account, conv_id, key)
+                    return self._close_by_agent(account, conv_id, key, mask_cpf(raw[len("/encerrar"):].strip())[:retomada.SUMMARY_LIMIT] or None)
             return HandleResult("ignored", "mensagem privada")
         if self.rich:
             self.ops.touch(key)  # base da regra de inatividade (qualquer mensagem pública)
@@ -223,7 +242,11 @@ class ChatwootEventHandler:
         else:
             self._send(account, conv_id, reply.text)
             if self.rich and reply.kind in (ResponseKind.ANSWER, ResponseKind.ABSTAIN, ResponseKind.GREETING):
-                self._send(account, conv_id, flow.AFTER_ANSWER_TEXT, flow.AFTER_ANSWER)
+                if turn.state.process_number:
+                    # com processo localizado, o contexto continua: itens do processo, atendente ou encerrar (e não só "menu")
+                    self._send(account, conv_id, flow.PROCESS_AFTER_TEXT.format(n=turn.state.process_number), flow.process_menu(turn.state.profile))
+                else:
+                    self._send(account, conv_id, flow.AFTER_ANSWER_TEXT, flow.AFTER_ANSWER)
         self._safe_label(account, conv_id, turn.labels + (["ia_falha"] if "ia_falha" in turn.labels else []))
         self.ops.audit(key, f"reply:{reply.kind.value}", "bot", str(reply.trace.get("abstain_reason") or ""))
         if reply.trace.get("injection_flagged"):  # SEC-02: o evento fica no registro de auditoria, não só no trace
@@ -234,11 +257,35 @@ class ChatwootEventHandler:
     def _known_processes(self) -> list[str]:
         return list(self.orch.store.approved_process_numbers())  # type: ignore[attr-defined]
 
-    def _ensure_ticket(self, account: int, conv_id: int, key: str, status: str | None) -> bool:
+    def _contact_id(self, payload: dict) -> str | None:
+        """Id do contato do Chatwoot, só de mensagem recebida da própria pessoa; é o que autentica o telefone na retomada (RTK-02)."""
+        sender = payload.get("sender") or {}
+        conv = payload.get("conversation") or {}
+        sender_type = str(sender.get("type") or "").lower()
+        if sender_type not in ("contact", ""):
+            return None  # bot, agente ou usuário explícito nunca é o contato
+        if sender.get("id"):
+            return str(sender["id"])
+        # o evento real nem sempre traz `sender.type`: o contato também vem em `conversation.meta.sender` e em `contact_inbox`
+        meta_sender = (conv.get("meta") or {}).get("sender") or {}
+        if meta_sender.get("id"):
+            return str(meta_sender["id"])
+        contact_inbox = conv.get("contact_inbox") or {}
+        if contact_inbox.get("contact_id"):
+            return str(contact_inbox["contact_id"])
+        return None
+
+    @staticmethod
+    def _contact_phone(payload: dict) -> str | None:
+        sender = payload.get("sender") or {}
+        meta_sender = ((payload.get("conversation") or {}).get("meta") or {}).get("sender") or {}
+        return sender.get("phone_number") or meta_sender.get("phone_number")
+
+    def _ensure_ticket(self, account: int, conv_id: int, key: str, status: str | None, contact_id: str | None = None) -> bool:
         """Garante o protocolo do atendimento. Devolve True quando acabou de abrir um novo (e o anunciou)."""
         if self.ops.get_open_ticket(key) is not None:
             return False
-        ticket = self.ops.open_ticket(key)
+        ticket = self.ops.open_ticket(key, contact_id if self.tickets.enabled else None)
         self._send(account, conv_id, flow.opening_text(ticket.ticket_id, ticket.opened_at))
         try:  # nota privada para a equipe e conversa de volta a "pendente" (atendida pelo bot)
             self._send(account, conv_id, f"🎫 {ticket.ticket_id} aberto em {flow.fmt_time(ticket.opened_at)}", private=True)
@@ -250,7 +297,10 @@ class ChatwootEventHandler:
 
     def _rich_incoming(self, payload: dict, account: int, conv_id: int, key: str, st: ConversationState, content: str) -> HandleResult:
         status = (payload.get("conversation") or {}).get("status")
-        self._ensure_ticket(account, conv_id, key, status)
+        contact = self._contact_id(payload)
+        if self._ensure_ticket(account, conv_id, key, status, contact) and self.tickets.enabled and contact is None:
+            sender = payload.get("sender") or {}  # diagnóstico sem dado pessoal: só o formato do evento
+            self.ops.audit(key, "ticket_sem_contato", "bot", f"sender.type={sender.get('type')!s:.20} chaves={','.join(sorted(sender))[:80]}")
         known = self._known_processes()
         action = flow.parse(content, known)
         k = action.kind
@@ -282,6 +332,13 @@ class ChatwootEventHandler:
                     self._send(account, conv_id, ovm.LEFT_TEXT)
                     if k is flow.Kind.CLOSE_HINT:
                         return self._menu(payload, account, conv_id, st)
+        if k in flow.RESUME_KINDS and (not self.tickets.enabled or (k in (flow.Kind.PHONE_YES, flow.Kind.PHONE_OTHER, flow.Kind.PHONE_NO)
+                                                                    and awaiting not in ("return_phone", "return_phone_number"))):
+            action, k = flow.Action(flow.Kind.FREE), flow.Kind.FREE  # sem a chave ligada ou fora do pedido, é texto comum
+        if self.tickets.enabled:
+            handled = self._resume_or_phone(account, conv_id, key, st, payload, action, awaiting, content)
+            if handled is not None:
+                return handled
         if awaiting == "channel" and flow.clean(content) == flow.clean(flow.OPT_CH_BALCAO.title):
             action, k = flow.Action(flow.Kind.CHANNEL, "balcao"), flow.Kind.CHANNEL  # na escolha de canal, "Balcão Virtual" é o canal
         if k is flow.Kind.CLOSE:
@@ -405,10 +462,216 @@ class ChatwootEventHandler:
         # texto livre: a pergunta de fato
         if (self.mulher.enabled and k is flow.Kind.FREE and not awaiting and not find_process_numbers(content)
                 and mentions_violence(flow.clean(content))):
+            self.ops.set_ticket_visibility(key, "restricted")
             self.ops.audit(key, "mulher_oferta", "bot", "")  # só oferece o serviço; nunca inicia a triagem sozinho (OVM-03)
             self._send(account, conv_id, ovm.OFFER_TEXT, [ovm.OPT_ENTRY, flow.OPT_MENU])
             return HandleResult("processed", "oferta_ouvidoria_mulher")
         return self._answer(account, conv_id, key, st, content)
+
+    # ----------------------------------------------------- retomada por protocolo (RTK)
+    def _resume_or_phone(self, account: int, conv_id: int, key: str, st: ConversationState, payload: dict, action: flow.Action,
+                         awaiting: str | None, content: str) -> HandleResult | None:
+        """Retomada por protocolo e telefone de retorno. None = a mensagem segue o tratamento comum."""
+        k = action.kind
+        if k is flow.Kind.RESUME:
+            return self._expect(account, conv_id, st, "resume_ticket:0", retomada.ASK_TEXT, [retomada.OPT_UNKNOWN, flow.OPT_MENU], "retomada_pergunta")
+        if k is flow.Kind.RESUME_LIST:
+            return self._resume_list(account, conv_id, key, st, payload)
+        if k is flow.Kind.PHONE_YES:
+            phone = valid_br_phone(self._contact_phone(payload)) or "contato desta conversa"
+            return self._set_return_phone(account, conv_id, key, st, phone)
+        if k is flow.Kind.PHONE_NO:
+            return self._set_return_phone(account, conv_id, key, st, "")
+        if k is flow.Kind.PHONE_OTHER:
+            return self._expect(account, conv_id, st, "return_phone_number", retomada.RETURN_NUMBER_ASK, [retomada.OPT_PHONE_NO], "retorno_numero")
+        if k is not flow.Kind.FREE:
+            return None
+        if awaiting == "return_phone_number":
+            phone = valid_br_phone(content)
+            if not phone:
+                return self._expect(account, conv_id, st, "return_phone_number", retomada.RETURN_NUMBER_BAD, [retomada.OPT_PHONE_NO], "retorno_numero_invalido")
+            return self._set_return_phone(account, conv_id, key, st, phone)
+        in_resume = bool(awaiting and awaiting.startswith("resume_ticket"))
+        if in_resume or not awaiting:
+            ticket_id = retomada.find_ticket_id(content, bare_ok=in_resume)
+            if ticket_id:
+                return self._resume_lookup(account, conv_id, key, st, payload, ticket_id, int(awaiting.split(":")[1]) if in_resume else 0)
+            if in_resume:  # esperava o protocolo e veio outra coisa: conta como tentativa, sem tratar o texto como pergunta
+                return self._resume_not_found(account, conv_id, st, int(awaiting.split(":")[1]) + 1)
+        return None
+
+    def _resume_not_found(self, account: int, conv_id: int, st: ConversationState, attempts: int) -> HandleResult:
+        """Protocolo inexistente, de outro contato, sem dono ou sem chat recebem exatamente a mesma resposta (RTK-03)."""
+        if attempts >= retomada.MAX_ATTEMPTS:
+            self._send(account, conv_id, retomada.GIVE_UP_TEXT, [flow.OPT_HUMAN_LIST, flow.OPT_MENU])
+            return HandleResult("processed", "retomada_desistiu")
+        return self._expect(account, conv_id, st, f"resume_ticket:{attempts}", retomada.NOT_FOUND_TEXT,
+                            [retomada.OPT_UNKNOWN, flow.OPT_HUMAN_LIST, flow.OPT_MENU], "retomada_nao_localizada")
+
+    def _resume_lookup(self, account: int, conv_id: int, key: str, st: ConversationState, payload: dict, ticket_id: str, attempts: int) -> HandleResult:
+        contact, current = self._contact_id(payload), self.ops.get_open_ticket(key)
+        found = self.ops.get_ticket(ticket_id)
+        if not (found and current and contact and found.contact_id == contact and found.visibility != "no_chat" and found.ticket_id != current.ticket_id):
+            self.ops.audit(key, "resume_nao_localizado", "usuario", "")
+            return self._resume_not_found(account, conv_id, st, attempts + 1)
+        self.ops.link_parent(key, found.ticket_id)
+        self.ops.audit(key, "resume_vinculado", "usuario", f"{current.ticket_id}->{found.ticket_id}")
+        if found.visibility == "restricted":
+            return self._resume_restricted(account, conv_id, key, st)
+        fact = retomada.Fact.from_json(found.facts)
+        if not st.profile_locked and fact.profile in (Profile.PARTE_TESTEMUNHA.value, Profile.ADVOGADO.value, Profile.GERAL.value):
+            st.profile, st.profile_locked = Profile(fact.profile), True
+        if not st.unit_label and fact.unit_label:
+            st.unit_label = fact.unit_label
+            st.unit_id = fact.unit_id if fact.unit_id and self.units.get(fact.unit_id) else None
+        if not st.process_number and fact.process_number and fact.process_number in self._known_processes():
+            st.process_number = fact.process_number
+        st.awaiting = None
+        self.ops.save(st)
+        text = retomada.RESUMED_TEXT.format(new=current.ticket_id, old=found.ticket_id, date=flow.fmt_time(found.opened_at)[:10],
+                                            extra=retomada.RESUMED_ONGOING if found.status == "open" else "")
+        self._send(account, conv_id, text, flow.continue_options(bool(st.process_number)))
+        self._post_resume_note(account, conv_id, key, current, found, fact)
+        return HandleResult("processed", "retomada_vinculada")
+
+    def _post_resume_note(self, account: int, conv_id: int, key: str, current, found, fact: "retomada.Fact") -> None:
+        """Quem abrir esta conversa vê o atendimento anterior sem esperar a transferência; e, com a IA ligada, um rascunho do assunto (RTK-17)."""
+        try:
+            line = retomada.history_line(found, fact, flow.fmt_time(found.opened_at), self.tickets.base_url, linked=True, reasons=REQUEST_REASONS,
+                                         show_link=not self.ops.conversation_has_restricted(found.conversation))
+            self._send(account, conv_id, retomada.resume_note(line, found.ticket_id, found.status == "open"), private=True)
+        except Exception:  # noqa: BLE001 - informativo
+            self.ops.audit(key, "resume_note_failed", "bot", "")
+        if not (self.tickets.ai_enabled and found.visibility == "normal" and current.visibility == "normal" and found.contact_id == current.contact_id
+                and self.orch.llm is not None and hasattr(self.gw, "list_messages")):
+            return
+        t = threading.Thread(target=self._ai_summary_previous, args=(account, key, current.ticket_id, found), daemon=True)
+        self._threads.append(t)
+        t.start()
+
+    def _ai_summary_previous(self, account: int, key: str, ticket_id: str, found) -> None:
+        """Resumo por IA só do atendimento anterior vinculado, no período dele (RTK-17); não depende da transferência."""
+        conv_id = int(key.split(":")[1])
+        if not self.ops.claim_event(f"aisumr:{ticket_id}"):
+            return
+        try:
+            lines = self._transcript(account, int(found.conversation.split(":")[1]), 30, found.opened_at, found.closed_at)
+            text = ai_summary_note(self.orch.llm, lines, [], scope=f"atendimento anterior {found.ticket_id}")  # type: ignore[arg-type]
+            current = self.ops.get_open_ticket(key)
+            if text and current and current.ticket_id == ticket_id and current.visibility == "normal":
+                self.gw.send_message(account, conv_id, text, private=True)
+                self.ops.audit(key, "ai_summary_previous_posted", "bot", ticket_id)
+            else:
+                self.ops.audit(key, "ai_summary_previous_skipped", "bot", ticket_id)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("resumo por IA do atendimento anterior falhou: %s", type(exc).__name__)
+            self.ops.audit(key, "ai_summary_previous_failed", "bot", type(exc).__name__)
+
+    def _resume_restricted(self, account: int, conv_id: int, key: str, st: ConversationState) -> HandleResult:
+        """Caso restrito: nada do caso é citado à pessoa; o time responsável recebe só protocolos e o link da conversa anterior."""
+        self.ops.set_ticket_visibility(key, "restricted")
+        st.request_reason, st.request_channel, st.request_note_id, st.awaiting = "retomada_restrita", "whatsapp", None, None
+        self.ops.save(st)
+        self._send(account, conv_id, retomada.RESTRICTED_TEXT)
+        return self._do_handoff(account, conv_id, key, st, self.mulher.team, "retomada restrita", ["humano", ovm.LABEL_SERVICE])
+
+    def _resume_list(self, account: int, conv_id: int, key: str, st: ConversationState, payload: dict) -> HandleResult:
+        current = self.ops.get_open_ticket(key)
+        items = self.ops.list_contact_tickets(self._contact_id(payload), exclude=current.ticket_id if current else None, limit=retomada.HISTORY_LIMIT)
+        if not items:
+            self._send(account, conv_id, retomada.NO_LIST_TEXT, [flow.OPT_HUMAN_LIST, flow.OPT_MENU])
+            return HandleResult("processed", "retomada_sem_lista")
+        lines = "\n".join(f"• {t.ticket_id} — {flow.fmt_time(t.opened_at)[:10]}" + (f" — {t.team}" if t.team else "") for t in items)
+        st.awaiting = "resume_ticket:0"
+        self.ops.save(st)
+        self._send(account, conv_id, retomada.LIST_TEXT.format(lines=lines), [Option(t.ticket_id, t.ticket_id.lower()) for t in items] + [flow.OPT_MENU])
+        return HandleResult("processed", "retomada_lista")
+
+    def _ask_return_phone(self, account: int, conv_id: int, st: ConversationState) -> HandleResult:
+        return self._expect(account, conv_id, st, "return_phone", retomada.RETURN_ASK, retomada.PHONE_OPTIONS, "retorno_pergunta")
+
+    def _set_return_phone(self, account: int, conv_id: int, key: str, st: ConversationState, phone: str) -> HandleResult:
+        st.return_phone, st.awaiting = phone, None  # o número nunca vai para log nem auditoria
+        self.ops.save(st)
+        self.ops.audit(key, "return_phone", "usuario", "informado" if phone else "recusado")
+        return self._balcao(account, conv_id, key, st)
+
+    def _history_lines(self, key: str, current) -> list[str]:
+        """Atendimentos anteriores do mesmo contato (restritos e sem chat nunca entram) e o protocolo vinculado pela pessoa."""
+        if not current or not current.contact_id:
+            return []
+        items = self.ops.list_contact_tickets(current.contact_id, exclude=current.ticket_id, limit=retomada.HISTORY_LIMIT)
+        if current.parent_ticket_id and all(t.ticket_id != current.parent_ticket_id for t in items):
+            parent = self.ops.get_ticket(current.parent_ticket_id)
+            if parent and parent.visibility == "normal":
+                items.insert(0, parent)
+        return [retomada.history_line(t, retomada.Fact.from_json(t.facts), flow.fmt_time(t.opened_at), self.tickets.base_url,
+                                      linked=t.ticket_id == current.parent_ticket_id, reasons=REQUEST_REASONS,
+                                      show_link=not self.ops.conversation_has_restricted(t.conversation))  # link abre a conversa inteira
+                for t in items]
+
+    def _facts_for_close(self, key: str, summary: str | None = None) -> dict | None:
+        if not self.tickets.enabled:
+            return None
+        st = self.ops.get(key)
+        reason = st.request_reason if st.request_reason in REQUEST_REASONS else None
+        phone = st.return_phone or None
+        return retomada.Fact(profile=st.profile.value if st.profile_locked else None, process_number=st.process_number, unit_id=st.unit_id,
+                             unit_label=st.unit_label, reason=reason, return_phone=phone, agent_summary=summary).to_json() or None
+
+    # ----------------------------------------------------- resumo por IA (RTK, fase 2)
+    def _start_ai_summary(self, account: int, conv_id: int, key: str, st: ConversationState) -> None:
+        """Depois da transferência, fora do lock da conversa; nunca para caso restrito, sem chat ou da Ouvidoria (RTK-12)."""
+        ticket = self.ops.get_open_ticket(key)
+        if not (self.tickets.enabled and self.tickets.ai_enabled and ticket and ticket.contact_id and ticket.visibility == "normal"):
+            return
+        if st.request_reason in ("ouvidoria_mulher", "retomada_restrita") or self.orch.llm is None or not hasattr(self.gw, "list_messages"):
+            return
+        parent = self.ops.get_ticket(ticket.parent_ticket_id) if ticket.parent_ticket_id else None
+        parent_conv = parent.conversation if parent and parent.visibility == "normal" and parent.contact_id == ticket.contact_id else None
+        until = (self.now() + timedelta(seconds=AI_WINDOW_SLACK_S)).isoformat()  # o protocolo atual não lê nada que chegue depois da transferência
+        window = (ticket.opened_at, parent_conv, parent.opened_at if parent else None, parent.closed_at if parent else None, until)
+        t = threading.Thread(target=self._ai_summary, args=(account, conv_id, key, ticket.ticket_id, window), daemon=True)
+        self._threads.append(t)
+        t.start()
+
+    def _transcript(self, account: int, conv_id: int, limit: int, since: str | None, until: str | None = None) -> list[str]:
+        """Mensagens públicas só do período do protocolo: uma conversa pode ter hospedado outro protocolo, inclusive restrito (RTK-12).
+        Mensagem sem horário não pode ser atribuída a um protocolo e fica de fora."""
+        lo = datetime.fromisoformat(since).timestamp() if since else None
+        hi = datetime.fromisoformat(until).timestamp() if until else None
+        rows = []
+        for m in self.gw.list_messages(account, conv_id):  # type: ignore[attr-defined]
+            at = m.get("created_at")
+            if m.get("private") or m.get("message_type") not in (0, 1) or not (m.get("content") or "").strip() or not isinstance(at, (int, float)):
+                continue
+            if (lo is not None and at < lo) or (hi is not None and at > hi):
+                continue
+            rows.append(m)
+        out = []
+        for m in rows[-limit:]:
+            text = _SPACED_PHONE.sub("[TELEFONE]", mask_pii(" ".join(m["content"].split()))[0])
+            text = text.replace("<<<", "<").replace(">>>", ">")[:500]  # a conversa não pode fechar o bloco de dados do prompt
+            out.append(("PESSOA: " if m["message_type"] == 0 else "ATENDIMENTO: ") + text)
+        return out
+
+    def _ai_summary(self, account: int, conv_id: int, key: str, ticket_id: str, window: tuple) -> None:
+        opened_at, parent_conv, parent_opened, parent_closed, until = window
+        if not self.ops.claim_event(f"aisum:{ticket_id}"):
+            return  # uma tentativa por protocolo
+        try:
+            lines = self._transcript(account, conv_id, 30, opened_at, until)
+            before = (self._transcript(account, int(parent_conv.split(":")[1]), 15, parent_opened, parent_closed) if parent_conv else [])
+            text = ai_summary_note(self.orch.llm, lines, before)  # type: ignore[arg-type]
+            current = self.ops.get_open_ticket(key)
+            if text and current and current.ticket_id == ticket_id and self.ops.get(key).handoff_state is HandoffState.HUMAN_ACTIVE:
+                self.gw.send_message(account, conv_id, text, private=True)
+                self.ops.audit(key, "ai_summary_posted", "bot", ticket_id)
+            else:
+                self.ops.audit(key, "ai_summary_skipped", "bot", ticket_id)
+        except Exception as exc:  # noqa: BLE001 - informativo: a transferência já ocorreu
+            log.warning("resumo por IA falhou: %s", type(exc).__name__)
+            self.ops.audit(key, "ai_summary_failed", "bot", type(exc).__name__)
 
     # ----------------------------------------------------- Ouvidoria da Mulher (OVM)
     def _mulher_ask(self, account: int, conv_id: int, st: ConversationState, tri: Triage, stale: bool = False) -> HandleResult:
@@ -440,6 +703,8 @@ class ChatwootEventHandler:
     def _mulher_action(self, account: int, conv_id: int, key: str, st: ConversationState, tri: Triage | None, action: flow.Action,
                        awaiting: str | None) -> HandleResult:
         k = action.kind
+        if k in (flow.Kind.MULHER, flow.Kind.MULHER_DANGER, flow.Kind.MULHER_START):
+            self.ops.set_ticket_visibility(key, "restricted")  # caso da Ouvidoria: fora de listas, notas de outros times e fatos (RTK-07)
         if k is flow.Kind.MULHER:
             self.ops.audit(key, "mulher_entrada", "usuario", "")
             self._send(account, conv_id, ovm.WELCOME_TEXT, ovm.ENTRY_OPTIONS)
@@ -493,6 +758,7 @@ class ChatwootEventHandler:
             return self._mulher_ask(account, conv_id, st, tri)  # pede o número (etapa de texto)
         if field == "contato" and value in ("nao", "telefone"):
             self.ops.audit(key, "mulher_contato_inseguro", "usuario", "")  # orienta e segue; o registro será sem retorno por aqui (OVM-16)
+            self.ops.set_ticket_visibility(key, "no_chat", detach_contact=True)  # não retomável por chat (RTK-07)
             self._send(account, conv_id, ovm.UNSAFE_TEXT.format(contacts=self.mulher.contacts.contact_lines()))
         return self._mulher_advance(account, conv_id, st, tri)
 
@@ -557,7 +823,7 @@ class ChatwootEventHandler:
         """Sem perfil escolhido: apresentação da Júlia e menu de perfis. Com perfil: o menu do perfil (RTA-01, RTA-04, RTA-07)."""
         if not st.profile_locked:
             name = ((payload.get("sender") or {}).get("name") or "").split(" ")[0].strip()
-            self._send(account, conv_id, flow.profile_menu_text(name.title() if name.isalpha() else ""), flow.profile_menu(self.mulher.enabled))
+            self._send(account, conv_id, flow.profile_menu_text(name.title() if name.isalpha() else ""), flow.profile_menu(self.mulher.enabled, self.tickets.enabled))
             return HandleResult("processed", "menu")
         if st.profile is Profile.GERAL:
             self._send(account, conv_id, flow.GERAL_MENU_TEXT, flow.GERAL_MENU)
@@ -783,9 +1049,18 @@ class ChatwootEventHandler:
         if not url:
             self._send(account, conv_id, flow.BALCAO_NO_LINK_TEXT.format(unit=self._unit_name(st)), self._failure_options(st, retry=False))
             return HandleResult("processed", "balcao_sem_link")
+        if self.tickets.enabled and st.return_phone is None:
+            return self._ask_return_phone(account, conv_id, st)  # só uma vez por protocolo; pode recusar
         unit = self.units.get(st.unit_id)
-        self._send(account, conv_id, flow.balcao_text(self._unit_name(st), url, direct, st.process_number, unit.hours if unit else None,
-                                                      bool(st.diligence)))
+        current = self.ops.get_open_ticket(key) if self.tickets.enabled else None
+        text = flow.balcao_text(self._unit_name(st), url, direct, st.process_number, unit.hours if unit else None, bool(st.diligence))
+        if current:
+            text += retomada.BALCAO_TKT_NOTE.format(tkt=current.ticket_id)
+            try:  # nota para a equipe: não é transferência; o Balcão Virtual não está integrado
+                self._send(account, conv_id, retomada.balcao_note(current.ticket_id, flow.fmt_time(self.now().isoformat()), st.return_phone), private=True)
+            except Exception:  # noqa: BLE001 - informativo
+                self.ops.audit(key, "balcao_note_failed", "bot", "")
+        self._send(account, conv_id, text)
         if st.diligence:
             self._send(account, conv_id, st.diligence)  # mensagem só com o texto integral, para copiar
         self.ops.audit(key, "balcao_link_shown", "bot", "direto" if direct else "pagina_geral")  # exibir o link não é envio
@@ -850,10 +1125,16 @@ class ChatwootEventHandler:
             tri = Triage.from_json(st.triage) or Triage()
             return ovm.context_note(tri, ticket.ticket_id if ticket else None, flow.fmt_time(self.now().isoformat()), self._mulher_open_now(),
                                     self.mulher.contacts)
+        if st.request_reason == "retomada_restrita":
+            parent = self.ops.get_ticket(ticket.parent_ticket_id) if ticket and ticket.parent_ticket_id else None
+            link = retomada.conversation_url(self.tickets.base_url, int(key.split(":")[0]), parent.conversation) if parent else "não identificada"
+            return retomada.restricted_note(ticket.ticket_id if ticket else None, parent.ticket_id if parent else "não identificado",
+                                            flow.fmt_time(self.now().isoformat()), link)
         unit_origin = "do processo localizado" if st.process_number else "informada pelo usuário"
         lines = [
             "ATENDIMENTO VIRTUAL — SOLICITAÇÃO DE ATENDIMENTO HUMANO",
-            "Canal escolhido: WhatsApp (esta conversa)",
+            "Canal escolhido: WhatsApp (esta conversa)" if st.request_channel == "whatsapp" or not self.tickets.enabled
+            else "Canal: WhatsApp (esta conversa); transferência pelo atendimento virtual",
             f"Perfil: {PROFILE_LABELS.get(st.profile, st.profile.value)}",
             f"Processo: {st.process_number} (acervo de demonstração)" if st.process_number else "Processo: não identificado",
             f"Unidade: {st.unit_label} ({unit_origin})" if st.unit_label else "Unidade: não identificada",
@@ -866,7 +1147,16 @@ class ChatwootEventHandler:
             lines += ["", f"Motivo do atendimento: {REQUEST_REASONS.get(st.request_reason or '', 'pedido de atendimento humano')}"]
         if ticket:
             lines.append(f"Número de atendimento: {ticket.ticket_id} (interno; não é protocolo judicial)")
-        return "\n".join(lines)
+        if self.tickets.enabled:
+            try:  # o histórico nunca pode impedir a transferência: erro aqui devolve a nota básica
+                if ticket and ticket.parent_ticket_id:
+                    lines.append(f"A pessoa informou que este atendimento continua o {ticket.parent_ticket_id}.")
+                lines.append(retomada.return_phone_line(st.return_phone).lstrip("\n"))
+                lines.append(retomada.history_block(self._history_lines(key, ticket)))
+            except Exception:  # noqa: BLE001
+                log.warning("não foi possível montar o histórico da nota")
+                self.ops.audit(key, "history_failed", "bot", "")
+        return "\n".join(line for line in lines if line is not None)
 
     def _close_by_user(self, account: int, conv_id: int, key: str) -> HandleResult:
         """Opção ENCERRAR do usuário: fecha o protocolo, avisa e marca a conversa como resolvida."""
@@ -889,14 +1179,24 @@ class ChatwootEventHandler:
                     closed.append(t.ticket_id)
                 except Exception:  # noqa: BLE001 - tenta de novo no próximo ciclo
                     log.warning("falha ao encerrar por inatividade %s", t.ticket_id)
+        self.purge_expired(now)
         return closed
 
-    def _close_by_agent(self, account: int, conv_id: int, key: str) -> HandleResult:
-        """Nota privada `/encerrar` do atendente: fecha o protocolo e resolve a conversa no Chatwoot."""
-        return self._finish(account, conv_id, key, "atendente")
+    def purge_expired(self, now: datetime | None = None) -> int:
+        """Retenção dos fatos (RTK-06); roda na varredura mesmo sem encerramento por inatividade."""
+        if not self.tickets.enabled:
+            return 0
+        purged = self.ops.purge_ticket_facts(self.tickets.retention_days, now)
+        if purged:
+            log.info("fatos de atendimento apagados pela retenção: %d", purged)
+        return purged
 
-    def _finish(self, account: int, conv_id: int, key: str, closed_by: str) -> HandleResult:
-        ticket = self.ops.close_ticket(key, closed_by)
+    def _close_by_agent(self, account: int, conv_id: int, key: str, summary: str | None = None) -> HandleResult:
+        """Nota privada `/encerrar [resumo]` do atendente: fecha o protocolo, guarda o resumo e resolve a conversa no Chatwoot."""
+        return self._finish(account, conv_id, key, "atendente", summary)
+
+    def _finish(self, account: int, conv_id: int, key: str, closed_by: str, summary: str | None = None) -> HandleResult:
+        ticket = self.ops.close_ticket(key, closed_by, self._facts_for_close(key, summary))
         if ticket is not None:
             self._send(account, conv_id, flow.closing_text(ticket.ticket_id, ticket.opened_at, ticket.closed_at or ticket.opened_at, closed_by))
             if closed_by == "atendente":
@@ -958,7 +1258,7 @@ class ChatwootEventHandler:
         st.handoff_attempts += 1
         self.ops.save(st)
         try:
-            if self.rich and st.request_channel == "whatsapp" and st.request_note_id is None:
+            if self.rich and (st.request_channel == "whatsapp" or self.tickets.enabled) and st.request_note_id is None:
                 # contexto e diligência chegam à equipe antes da transferência, uma única vez (sem duplicar na nova tentativa)
                 note_id = self._send(account, conv_id, self._context_note(key, st), private=True)
                 if not note_id:
@@ -979,10 +1279,13 @@ class ChatwootEventHandler:
             st = self.ops.get(key)
             st.handoff_attempts = 0
             self.ops.save(st)
+            self.ops.set_ticket_team(key, team)
             try:
                 ticket = self.ops.get_open_ticket(key) if self.rich else None
                 request = st.request_reason in ("diligencia", "providencia")
-                if st.request_reason == "ouvidoria_mulher":
+                if st.request_reason == "retomada_restrita":
+                    notice = retomada.RESTRICTED_NOTICE.format(tkt=ticket.ticket_id if ticket else "")
+                elif st.request_reason == "ouvidoria_mulher":
                     tri = Triage.from_json(st.triage) or Triage()
                     self._set_attributes(account, conv_id, key, tri)
                     tid = ticket.ticket_id if ticket else None
@@ -991,6 +1294,7 @@ class ChatwootEventHandler:
                 else:
                     notice = flow.handoff_notice(team, ticket.ticket_id if ticket else None, request)
                 self._send(account, conv_id, notice)  # só após a confirmação (CHW-10)
+                self._start_ai_summary(account, conv_id, key, st)
             except Exception:  # noqa: BLE001 - a transferência já ocorreu; o aviso falhou
                 log.warning("transferência confirmada, mas o aviso ao usuário falhou")
                 self.ops.audit(key, "handoff_notice_failed", "bot", team)
@@ -1003,7 +1307,9 @@ class ChatwootEventHandler:
         if giving_up:
             text = HANDOFF_FAILED_TEXT if flagged else HANDOFF_FAILED_UNFLAGGED_TEXT
             self.ops.audit(key, "handoff_exhausted", "bot", f"equipe={team}")
-        if self.rich and st.request_reason == "ouvidoria_mulher":
+        if self.rich and st.request_reason == "retomada_restrita":
+            text, options = retomada.RESTRICTED_FAILED, [flow.OPT_RETRY, flow.OPT_MENU]
+        elif self.rich and st.request_reason == "ouvidoria_mulher":
             text, options = ovm.FAILED_TEXT.format(contacts=self.mulher.contacts.contact_lines()), [flow.OPT_RETRY, flow.OPT_MENU]
         elif self.rich and st.request_channel:
             # pedido do roteiro: o texto fica guardado e a pessoa escolhe o próximo passo (RTA-20)
@@ -1027,7 +1333,7 @@ class ChatwootEventHandler:
             status = "resolved"
         st = self.ops.get(key)
         if status == "resolved" and self.rich:
-            ticket = self.ops.close_ticket(key, "atendente")  # resolvido direto na interface do Chatwoot
+            ticket = self.ops.close_ticket(key, "atendente", self._facts_for_close(key))  # resolvido direto na interface do Chatwoot
             if ticket is not None:
                 account, conv_id = (int(x) for x in key.split(":"))
                 try:
