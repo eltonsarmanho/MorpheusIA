@@ -1,0 +1,398 @@
+% ==========================================================================
+% Painel gerencial do atendimento (piloto TJPA / EscutAI)
+% Desenho do painel em TikZ, com números ilustrativos. Compilar: pdflatex Dashboard_Gerencial.tex (duas vezes)
+% ==========================================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[scaled=0.95]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{fontawesome5}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=petroleo,linkcolor=petroleo}
+\graphicspath{{../TJPA/img/}{./}}
+
+% Identidade visual: mesma paleta do pitch EscutAI
+\definecolor{escuro}{HTML}{053F35}
+\definecolor{petroleo}{HTML}{0B5345}
+\definecolor{verde}{HTML}{00A884}
+\definecolor{menta}{HTML}{16E0A9}
+\definecolor{ambar}{HTML}{FDB833}
+\definecolor{areia}{HTML}{FDE3A7}
+\definecolor{nevoa}{HTML}{E8F4F0}
+\definecolor{tinta}{HTML}{0E2F33}
+\definecolor{cinza}{HTML}{5E6B6B}
+\definecolor{seta}{HTML}{A8D5C6}
+\definecolor{rosa}{HTML}{B03060}
+\definecolor{alerta}{HTML}{C0392B}
+\definecolor{fundo}{HTML}{F4F7F6}
+\definecolor{trilho}{HTML}{DDE7E3}
+
+\setbeamercolor{normal text}{fg=tinta,bg=white}
+\setbeamercolor{structure}{fg=petroleo}
+\setbeamercolor{frametitle}{fg=tinta}
+\setbeamercolor{alerted text}{fg=rosa}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\footnotesize\raise0.1ex\hbox{\textcolor{verde}{\faCaretRight}}}
+\setbeamersize{text margin left=0.6cm,text margin right=0.6cm}
+
+\setbeamertemplate{frametitle}{%
+  \vskip0.22cm
+  \begin{minipage}[c]{0.74\paperwidth}\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.15\paperwidth}\raggedleft
+    \includegraphics[height=0.5cm]{logo_escutai_verde.png}\hspace{0.1cm}{\bfseries\small\textcolor{tinta}{Escut}\textcolor{verde}{AI}}%
+  \end{minipage}\par
+  \vskip-0.12cm
+}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox to\paperwidth{%
+    \hspace{0.6cm}{\tiny\textcolor{cinza}{Painel gerencial do atendimento \textperiodcentered\ piloto TJPA}}\hfill
+    {\tiny\textcolor{cinza}{\insertframenumber}}\hspace{0.6cm}}\vskip0.18cm}
+
+\newcommand{\fundoescuro}{%
+  \setbeamercolor{background canvas}{bg=escuro}%
+  \setbeamercolor{normal text}{fg=white}%
+  \setbeamertemplate{footline}{}%
+  \usebeamercolor[fg]{normal text}}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\renewcommand{\arraystretch}{1.16}
+
+% Imagem externa: mostra o arquivo quando existir; enquanto não existir, mostra uma caixa com o nome a baixar.
+% #1 arquivo em img/, #2 largura, #3 altura, #4 o que buscar (Freepik, Pixabay ou Pexels)
+\newcommand{\imagem}[4]{%
+  \IfFileExists{img/#1}{\includegraphics[width=#2,height=#3,keepaspectratio]{img/#1}}{%
+    \begin{tikzpicture}
+      \node[draw=cinza,dashed,fill=nevoa,rounded corners=4pt,minimum width=#2,minimum height=#3,text width=#2-0.5cm,align=center,text=tinta,font=\scriptsize]
+        {\faImage\\[3pt]\textbf{\detokenize{img/#1}}\\[3pt]#4};
+    \end{tikzpicture}}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% -------------------------------------------------------------- blocos TikZ da página web
+\newcommand{\ptit}{\fontsize{7.6}{9}\selectfont\bfseries}
+\newcommand{\plab}{\fontsize{6.6}{8}\selectfont}
+\newcommand{\pmin}{\fontsize{5.6}{7}\selectfont}
+
+% Janela do navegador, menu lateral e cabeçalho. #1: item ativo do menu (1, 2 ou 3), #2: título da página
+\newcommand{\pagina}[2]{%
+  % janela
+  \fill[fundo,rounded corners=4pt] (0,0) rectangle (14.8,7.2);
+  \fill[trilho,rounded corners=4pt] (0,6.75) rectangle (14.8,7.2);
+  \fill[trilho] (0,6.75) rectangle (14.8,6.9);
+  \foreach \vc/\vx in {alerta/.2,ambar/.42,verde/.64}{\fill[\vc] (\vx,6.975) circle (.065);}
+  \fill[white,rounded corners=5pt] (1.0,6.84) rectangle (11.6,7.11);
+  \node[anchor=west,text=cinza,font=\plab,inner sep=0] at (1.13,6.975) {\faLock\ \ /atendimento/painel};
+  % menu lateral
+  \fill[escuro] (0,0) rectangle (2.25,6.75);
+  \node[anchor=west,text=white,font=\ptit,inner sep=0] at (.2,6.33) {Escut\textcolor{menta}{AI}};
+  \node[anchor=west,text=seta,font=\pmin,inner sep=0] at (.2,6.03) {Painel gerencial};
+  \foreach \vn/\vy/\vi/\vt in {1/5.4/\faChartPie/Visão geral,2/4.9/\faCheckCircle/Qualidade,3/4.4/\faListUl/Detalhes}{
+    \ifnum\vn=#1 \fill[petroleo,rounded corners=2pt] (.08,\vy-.2) rectangle (2.17,\vy+.2); \fill[menta] (.08,\vy-.2) rectangle ++(.05,.4); \fi
+    \node[text=white,font=\plab,inner sep=0] at (.36,\vy) {\vi};
+    \node[anchor=west,text=white,font=\plab,inner sep=0] at (.58,\vy) {\vt};
+  }
+  % cabeçalho da página
+  \node[anchor=west,text=tinta,font=\fontsize{12}{13}\selectfont\bfseries,inner sep=0] at (2.45,6.36) {#2};
+  \node[anchor=east,fill=areia,text=tinta,rounded corners=2pt,inner sep=2.5pt,font=\pmin\bfseries] at (10.9,6.36) {NÚMEROS ILUSTRATIVOS};
+  \node[anchor=east,fill=white,draw=trilho,text=tinta,rounded corners=2pt,inner sep=3pt,font=\plab] at (14.6,6.36) {\faCalendar\ \ Últimos 30 dias\ \ \faCaretDown};
+}
+% indicador: posição (0 a 3), rótulo, valor, contexto
+\newcommand{\kpi}[4]{%
+  \pgfmathsetmacro{\kx}{2.45+#1*3.07}
+  \fill[white,rounded corners=3pt,draw=trilho,line width=.3pt] (\kx,4.6) rectangle ++(2.94,1.4);
+  \node[anchor=west,text=cinza,font=\plab,inner sep=0] at (\kx+.15,5.76) {#2};
+  \node[anchor=west,text=tinta,font=\fontsize{17}{18}\selectfont\bfseries,inner sep=0] at (\kx+.15,5.27) {#3};
+  \node[anchor=west,text=cinza,font=\pmin,inner sep=0] at (\kx+.15,4.81) {#4};
+}
+% painel: x, y, largura, altura, título
+\newcommand{\painel}[5]{%
+  \fill[white,rounded corners=3pt,draw=trilho,line width=.3pt] (#1,#2) rectangle ++(#3,#4);
+  \node[anchor=west,text=tinta,font=\ptit,inner sep=0] at (#1+.18,#2+#4-.26) {#5};
+}
+% barra horizontal: x, y, largura do rótulo, comprimento máximo, fração 0-1, cor, rótulo, valor
+\newcommand{\hbarra}[8]{%
+  \node[anchor=base west,text=tinta,font=\plab,inner sep=0] at (#1,#2-.08) {#7};
+  \fill[#6,rounded corners=.5pt] (#1+#3,#2-.08) rectangle ++({#4*#5},.16);
+  \node[anchor=base west,text=tinta,font=\plab\bfseries,inner sep=0] at ({#1+#3+#4*#5+.07},#2-.08) {#8};
+}
+
+\title{Painel gerencial do atendimento}
+\author{Equipe EscutAI}
+\date{Piloto TJPA}
+
+\begin{document}
+
+{\fundoescuro
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=north east] at ($(current page.north east)+(-0.6,-0.6)$)
+      {\imagem{capa_painel_indicadores_tribunal.png}{5.2cm}{3.6cm}{Tela com gráficos e indicadores, tom institucional}};
+  \end{tikzpicture}
+  \vspace{1.3cm}
+  {\color{menta}\bfseries\small PILOTO TJPA \textperiodcentered\ ESCUTAI \textperiodcentered\ JÚLIA}\\[0.3cm]
+  {\fontsize{28}{32}\selectfont\bfseries Painel gerencial\\do atendimento}\\[0.35cm]
+  {\large Quanto entra, quanto se resolve e onde o atendimento trava}\\[0.8cm]
+  \begin{tikzpicture}
+    \node[fill=ambar,text=tinta,rounded corners=4pt,inner sep=6pt,font=\small\bfseries,align=left]
+      {\faInfoCircle\ Proposta de painel, ainda não implementado.\\Todos os números das telas são ilustrativos, não são resultados do piloto.};
+  \end{tikzpicture}
+\end{frame}}
+
+% ======================================================= para quem
+\begin{frame}{Quatro perguntas que a gestão precisa responder}
+\begin{columns}[c,totalwidth=\linewidth]
+\begin{column}{0.60\linewidth}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \foreach \vy/\vi/\vt/\vd/\vc in {
+    4.5/\faInbox/Quanto entra e quanto está parado?/{Abertos, fechados e o que precisa de atenção}/verde,
+    3.0/\faCheckCircle/O atendimento resolve de fato?/Resolução no 1º contato e como os protocolos fecharam/petroleo,
+    1.5/\faSitemap/Em qual serviço está o problema?/Volume e resolução por serviço/ambar,
+    0.0/\faBell/Alguém ficou sem resposta?/Transferidos fechados por inatividade e tempo de espera/rosa}{
+    \fill[nevoa,rounded corners=5pt] (0,\vy) rectangle ++(8.6,1.3);
+    \fill[\vc,rounded corners=3pt] (.15,\vy+.3) rectangle ++(.7,.7);
+    \node[text=white] at (.5,\vy+.65) {\vi};
+    \node[anchor=west,text=tinta,font=\small\bfseries,inner sep=0] at (1.05,\vy+.86) {\vt};
+    \node[anchor=west,text=cinza,font=\scriptsize,inner sep=0] at (1.05,\vy+.4) {\vd};
+  }
+\end{tikzpicture}
+\end{column}
+\begin{column}{0.37\linewidth}
+\centering
+\imagem{gestora_analisando_indicadores.png}{5.2cm}{5.8cm}{Gestora de tribunal analisando indicadores em um computador}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ======================================================= TELA 1
+\begin{frame}{O painel: visão geral}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \pagina{1}{Visão geral}
+  \kpi{0}{Protocolos abertos}{32}{8\% dos 400 do período}
+  \kpi{1}{Protocolos fechados}{368}{92\% dos 400 do período}
+  \kpi{2}{Resolução no 1º contato}{75\%}{180 de 240 elegíveis}
+  \kpi{3}{Transferidos à equipe}{35\%}{140 de 400 protocolos}
+
+  % atendimento por serviço
+  \painel{2.45}{1.5}{6.9}{2.97}{Atendimento por serviço}
+  \foreach \vi/\vn/\vv/\vp/\vc in {0/Consulta de processo/160/40/verde,1/Informações gerais/88/22/verde,2/Diligência ou providência/64/16/verde,3/Falar com atendente/40/10/verde,4/Retomada por protocolo/28/7/verde,5/Ouvidoria da Mulher/20/5/rosa}{
+    \pgfmathsetmacro{\y}{3.8-\vi*.41}
+    \pgfmathsetmacro{\fr}{\vv/160}
+    \hbarra{2.63}{\y}{2.75}{2.65}{\fr}{\vc}{\vn}{\vv}
+  }
+
+  % abertos e fechados por semana
+  \painel{9.5}{1.5}{5.1}{2.97}{Volume por semana}
+  \fill[verde] (12.62,4.15) rectangle ++(.13,.13); \node[anchor=west,font=\pmin,text=cinza,inner sep=1.5pt] at (12.76,4.215) {abertos};
+  \fill[ambar] (13.5,4.15) rectangle ++(.13,.13); \node[anchor=west,font=\pmin,text=cinza,inner sep=1.5pt] at (13.64,4.215) {fechados};
+  \draw[trilho,line width=.5pt] (9.7,1.95) -- (14.4,1.95);
+  \foreach \vi/\va/\vf/\vs in {0/86/78/Sem. 1,1/94/88/Sem. 2,2/108/98/Sem. 3,3/112/104/Sem. 4}{
+    \pgfmathsetmacro{\x}{9.95+\vi*1.15}
+    \pgfmathsetmacro{\ha}{\va/112*1.65}
+    \pgfmathsetmacro{\hf}{\vf/112*1.65}
+    \fill[verde] (\x,1.95) rectangle ++(.4,\ha);
+    \fill[ambar] (\x+.44,1.95) rectangle ++(.4,\hf);
+    \node[anchor=south,font=\pmin,text=tinta,inner sep=1pt] at (\x+.2,1.95+\ha) {\va};
+    \node[anchor=south,font=\pmin,text=tinta,inner sep=1pt] at (\x+.64,1.95+\hf) {\vf};
+    \node[anchor=north,font=\pmin,text=cinza,inner sep=2pt] at (\x+.42,1.95) {\vs};
+  }
+
+  % o que pede atenção
+  \fill[white,rounded corners=3pt,draw=trilho,line width=.3pt] (2.45,.2) rectangle ++(12.15,1.17);
+  \node[anchor=west,text=tinta,font=\ptit,inner sep=0] at (2.63,1.11) {Precisa de atenção};
+  \foreach \vi/\vv/\vt in {0/14/{Transferidos fechados\\por inatividade},1/12/{Retomadas\\não localizadas},2/6/{Transferências\\não confirmadas}}{
+    \pgfmathsetmacro{\x}{2.63+\vi*4.05}
+    \node[anchor=west,text=alerta,font=\fontsize{13}{14}\selectfont\bfseries,inner sep=0] at (\x,.57) {\vv};
+    \node[anchor=west,text=tinta,font=\plab,text width=3.0cm,align=left,inner sep=0] at (\x+.6,.57) {\vt};
+    \node[anchor=east,text=petroleo,font=\plab,inner sep=0] at (\x+3.85,.57) {\faChevronRight};
+  }
+\end{tikzpicture}
+\end{frame}
+
+% ======================================================= TELA 2
+\begin{frame}{O painel: qualidade}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \pagina{2}{Qualidade}
+  \kpi{0}{Resolvidos só pela Júlia}{41\%}{150 de 368 fechados}
+  \kpi{1}{Transferências confirmadas}{96\%}{140 de 146 tentativas}
+  \kpi{2}{1ª resposta humana}{42 min}{mediana, após transferir}
+  \kpi{3}{Retomadas concluídas}{70\%}{28 de 40 tentativas}
+
+  % resolução por serviço
+  \painel{2.45}{1.5}{6.9}{2.97}{Resolução no 1º contato, por serviço}
+  \foreach \vi/\vn/\vp/\vc in {0/Informações gerais/87/petroleo,1/Consulta de processo/78/petroleo,2/Retomada por protocolo/67/petroleo,3/Falar com atendente/64/petroleo,4/Diligência ou providência/60/petroleo}{
+    \pgfmathsetmacro{\y}{3.8-\vi*.41}
+    \pgfmathsetmacro{\fr}{\vp/100}
+    \hbarra{2.63}{\y}{2.75}{2.95}{\fr}{\vc}{\vn}{\vp\%}
+  }
+  \node[anchor=west,font=\pmin,text=cinza,inner sep=0] at (2.63,1.72) {Ouvidoria da Mulher fica fora: voltar a procurar não é falha do serviço.};
+
+  % como fecharam
+  \painel{9.5}{1.5}{5.1}{2.97}{Como os protocolos fecharam}
+  \fill[verde]    (9.68,3.42) rectangle ++(2.17,.42);
+  \fill[petroleo] (11.85,3.42) rectangle ++(1.51,.42);
+  \fill[ambar]    (13.36,3.42) rectangle ++(1.02,.42);
+  \node[text=white,font=\plab\bfseries] at (10.76,3.63) {46\%};
+  \node[text=white,font=\plab\bfseries] at (12.6,3.63) {32\%};
+  \node[text=tinta,font=\plab\bfseries] at (13.87,3.63) {22\%};
+  \foreach \vy/\vc/\vt/\vv in {3.08/verde/A pedido da pessoa/170,2.68/petroleo/Pelo atendente/118,2.28/ambar/Por inatividade/80}{
+    \fill[\vc] (9.68,\vy-.07) rectangle ++(.14,.14);
+    \node[anchor=west,text=tinta,font=\plab,inner sep=0] at (9.92,\vy) {\vt};
+    \node[anchor=east,text=tinta,font=\plab\bfseries,inner sep=0] at (14.38,\vy) {\vv};
+  }
+  \node[anchor=west,font=\pmin,text=cinza,inner sep=0] at (9.68,1.72) {Inatividade não conta como resolvido.};
+
+  % ainda sem medição
+  \fill[white,rounded corners=3pt,draw=trilho,line width=.3pt] (2.45,.2) rectangle ++(12.15,1.17);
+  \node[anchor=west,text=tinta,font=\ptit,inner sep=0] at (2.63,1.11) {Ainda sem medição};
+  \foreach \vx/\vi/\vt/\vd in {2.63/\faClipboardList/A pessoa precisou repetir o caso?/Revisão por amostra com os atendentes,8.7/\faStar[regular]/Satisfação de quem foi atendido/{Pesquisa ao encerrar, a decidir}}{
+    \node[text=cinza,font=\small,inner sep=0] at (\vx+.16,.55) {\vi};
+    \node[anchor=west,text=tinta,font=\plab\bfseries,inner sep=0] at (\vx+.48,.67) {\vt};
+    \node[anchor=west,text=cinza,font=\pmin,inner sep=0] at (\vx+.48,.42) {\vd};
+  }
+\end{tikzpicture}
+\end{frame}
+
+% ======================================================= FCR
+\begin{frame}{Como medir a resolução no primeiro contato}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \node[fill=nevoa,draw=verde,rounded corners=4pt,inner sep=7pt,font=\small,text width=13.5cm,align=center] at (7.2,5.75)
+    {\textbf{Regra proposta:} o protocolo conta como resolvido se a pessoa \textbf{não abrir outro em até 7 dias}};
+  % funil em setas
+  \foreach \x/\vv/\vt/\vc/\vf in {0.2/368/Fechados/petroleo/white,3.85/288/Fechados por pessoa\\ou atendente/verde/white,7.5/240/Elegíveis/seta/tinta,11.15/180/Sem novo protocolo\\em 7 dias/menta/tinta}{
+    \fill[\vc,rounded corners=4pt] (\x,3.55) rectangle ++(3.05,1.45);
+    \node[text=\vf,font=\fontsize{18}{19}\selectfont\bfseries] at (\x+1.525,4.55) {\vv};
+    \node[text=\vf,font=\scriptsize,align=center] at (\x+1.525,3.93) {\vt};
+  }
+  \foreach \x/\vt in {3.25/$-$80,6.9/$-$48,10.55/$-$60}{
+    \draw[-{Stealth[length=5pt]},line width=1pt,color=cinza] (\x,4.27) -- ++(.6,0);
+    \node[font=\tiny,text=cinza] at (\x+.3,4.47) {\vt};
+  }
+  \node[anchor=north,font=\scriptsize,text=cinza,text width=3.2cm,align=center] at (5.0,3.45) {Inatividade não é resolução};
+  \node[anchor=north,font=\scriptsize,text=cinza,text width=3.3cm,align=center] at (9.0,3.45) {Fora: sem dono, caso restrito, janela de 7 dias em curso};
+  \node[anchor=north,font=\scriptsize,text=cinza,text width=3.2cm,align=center] at (12.7,3.45) {$180 \div 240 = 75\%$};
+  % limites
+  \node[anchor=north west,text width=6.3cm,fill=areia,rounded corners=4pt,inner sep=6pt,font=\scriptsize] at (0.2,2.4)
+    {\textbf{Onde a medida erra}\\[2pt]
+     \faArrowDown\ Assunto novo no mesmo telefone conta como não resolvido.\\[1pt]
+     \faArrowUp\ Quem desistiu e não voltou conta como resolvido.\\[1pt]
+     Por isso é indicador de tendência; a amostra com atendentes calibra.};
+  \node[anchor=north west,text width=6.3cm,fill=nevoa,rounded corners=4pt,inner sep=6pt,font=\scriptsize] at (7.3,2.4)
+    {\textbf{O que já foi conferido}\\[2pt]
+     A consulta rodou sobre o esquema real do banco, com 10 protocolos sintéticos, e separou corretamente os 5 elegíveis e os 4 resolvidos. Ainda não rodou sobre dados da VM.};
+\end{tikzpicture}
+\end{frame}
+
+% ======================================================= catálogo
+\newcommand{\hoje}{\textcolor{verde}{\faCheckCircle}}
+\newcommand{\ajuste}{\textcolor{ambar}{\faWrench}}
+\newcommand{\chat}{\textcolor{petroleo}{\faComments}}
+\newcommand{\novo}{\textcolor{rosa}{\faPlusCircle}}
+\newcommand{\legenda}{\par\vskip3pt{\scriptsize\hoje\ já registrado \quad \ajuste\ exige ajuste no backend \quad \chat\ relatório do Chatwoot (a confirmar na versão 4.11.1) \quad \novo\ coleta nova}}
+
+\begin{frame}{As medidas pedidas e como calcular cada uma}
+\vskip4pt
+\footnotesize
+\begin{tabularx}{\linewidth}{@{}P{3.8cm}L P{3.9cm} c@{}}
+\toprule
+\textbf{Medida} & \textbf{Cálculo} & \textbf{Fonte} & \\
+\midrule
+Protocolos abertos e fechados & Contagem por situação no período & \code{tickets.status} & \hoje \\ \addlinespace[3pt]
+Como fecharam & Pessoa, atendente ou inatividade & \code{tickets.closed_by} & \hoje \\ \addlinespace[3pt]
+Resolução no 1º contato & Elegíveis sem novo protocolo do mesmo contato em 7 dias & \code{tickets.contact_id} & \hoje \\ \addlinespace[3pt]
+Transferências por equipe & Protocolos com equipe confirmada & \code{tickets.team} & \hoje \\ \addlinespace[3pt]
+Atendimento por serviço & Um único serviço por protocolo, em lista fechada & Campo \code{service}, a criar & \ajuste \\
+\bottomrule
+\end{tabularx}
+\legenda
+\vskip8pt
+\centering
+\begin{tikzpicture}
+  \node[fill=areia,rounded corners=4pt,inner sep=6pt,text width=13.9cm,font=\scriptsize,align=left]
+  {\textbf{O ponto que falta é o serviço.} Hoje só há equipe (e só quando houve transferência) e perfil (guardado ao encerrar e apagado em 90 dias). Sem um campo próprio, a tela de serviços não fecha em 100\%. Os protocolos só têm contato desde a ligação da chave \code{TICKET_RESUME_ENABLED}: antes disso ficam fora da resolução no 1º contato.};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Outras medidas que propomos incluir}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}P{4.6cm}L P{4.2cm} c@{}}
+\toprule
+\textbf{Medida} & \textbf{Por que importa} & \textbf{Fonte} & \\
+\midrule
+Resolvidos só pela Júlia & Quanto a automação poupa da equipe & \code{closed_by}, sem \code{team} & \hoje \\
+Transferências confirmadas & Pedido perdido é o pior erro & \code{team}, \code{handoff_exhausted} & \hoje \\
+Transferidos fechados por inatividade & Sinal de pessoa sem resposta & \code{team}, \code{closed_by} & \hoje \\
+Idade dos abertos & Mostra o que está parado & \code{opened_at} & \hoje \\
+Júlia sem resposta segura & Onde falta conteúdo no acervo & Auditoria \code{reply:abstain} & \hoje \\
+Retomadas concluídas e não localizadas & Se o protocolo serve de fato & Auditoria \code{resume_*} & \hoje \\
+Rascunhos de IA & Uso e falha técnica do resumo & Auditoria \code{ai_summary_*} & \hoje \\
+Balcão Virtual e telefone de retorno & Se dá para retornar a chamada caída & Auditoria \code{return_phone} & \hoje \\
+\midrule
+1ª resposta humana & Tempo de espera real da pessoa & Relatórios do Chatwoot & \chat \\
+Repetição do caso & Prova se o histórico funcionou & Amostra com atendentes & \novo \\
+Satisfação & A visão de quem foi atendido & Pesquisa ao encerrar & \novo \\
+\bottomrule
+\end{tabularx}
+\legenda
+\par\vskip4pt{\scriptsize\textbf{Para manter as telas limpas:} só as medidas de decisão ficam em Visão geral e Qualidade. As demais vão para a página Detalhes.}
+\end{frame}
+
+% ======================================================= cuidados
+\begin{frame}{Regras do painel: privacidade e leitura}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \foreach \x/\y/\ic/\vt/\vd/\vc in {
+    0.1/3.0/\faLayerGroup/Só números agregados/{Sem protocolo, contato, telefone, processo ou texto de conversa na tela.}/verde,
+    5.0/3.0/\faLock/Ouvidoria da Mulher à parte/{Só o total do serviço. Nada de assunto, urgência ou cruzamento com outros filtros.}/rosa,
+    9.9/3.0/\faEyeSlash/Grupos pequenos ocultos/{Abaixo de 5 casos o número não aparece: em grupo pequeno, dá para identificar a pessoa.}/petroleo,
+    0.1/.2/\faUsers/{Equipes, não pessoas}/{Não há ranking de atendentes. O painel orienta a gestão, não avalia indivíduos.}/verde,
+    5.0/.2/\faChartLine/Primeiro a linha de base/{Sem metas por enquanto: metas só depois de medir os primeiros 30 dias reais.}/petroleo,
+    9.9/.2/\faHistory/Fotografia mensal agregada/{O contato é apagado em 90 dias, então os agregados são gravados antes disso.}/ambar}{
+    \fill[nevoa,rounded corners=5pt] (\x,\y) rectangle ++(4.75,2.55);
+    \fill[\vc,rounded corners=3pt] (\x+.15,\y+1.82) rectangle ++(.56,.56);
+    \node[text=white,font=\small] at (\x+.43,\y+2.1) {\ic};
+    \node[anchor=west,text=tinta,font=\footnotesize\bfseries,text width=3.75cm,align=left] at (\x+.78,\y+2.1) {\vt};
+    \node[anchor=north west,text=tinta,font=\scriptsize,text width=4.35cm,align=left] at (\x+.1,\y+1.65) {\vd};
+  }
+\end{tikzpicture}
+\end{frame}
+
+% ======================================================= decisões
+\begin{frame}{Do desenho ao painel real}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \foreach \x/\vn/\vt/\vd/\vc in {
+    0/1/Registrar o serviço/{Criar o campo em cada novo protocolo, com testes. Sem ele, a medida começa com lacuna.}/verde,
+    3.75/2/Consulta agregada/{Rota administrativa com token, só com números e ocultando grupos pequenos.}/verde,
+    7.5/3/Tela do painel/{Página web no console, como no desenho. Sem alterar o Chatwoot.}/verde,
+    11.25/4/Linha de base/{Primeiros 30 dias reais, depois metas com a gestão do TJPA.}/petroleo}{
+    \fill[nevoa,rounded corners=5pt] (\x,2.6) rectangle ++(3.5,2.95);
+    \node[fill=\vc,text=white,circle,inner sep=0,minimum size=.6cm,font=\small\bfseries] at (\x+.42,5.1) {\vn};
+    \node[anchor=west,text=tinta,font=\scriptsize\bfseries,text width=2.4cm,align=left] at (\x+.8,5.1) {\vt};
+    \node[anchor=north west,text=tinta,font=\scriptsize,text width=3.15cm,align=left] at (\x+.08,4.55) {\vd};
+  }
+  \foreach \x in {3.52,7.27,11.02}{\draw[-{Stealth[length=4pt]},line width=1pt,color=petroleo] (\x,4.05) -- ++(.21,0);}
+  \node[anchor=north west,fill=areia,rounded corners=4pt,inner sep=7pt,text width=14.1cm,font=\scriptsize,align=left] at (0,2.3)
+  {\textbf{Decisões para a gestão}\\[3pt]
+   \textbf{1.} Janela de 7 dias para a resolução no 1º contato: é proposta nossa, sem norma ou estudo que a fixe.\\[1pt]
+   \textbf{2.} A lista de serviços do painel é a certa?\\[1pt]
+   \textbf{3.} Quem acessa o painel, e o limite de 5 casos atende à DPO?\\[1pt]
+   \textbf{4.} Haverá pesquisa de satisfação ao encerrar e revisão por amostra com os atendentes?};
+\end{tikzpicture}
+\end{frame}
+
+\end{document}
