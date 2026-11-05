@@ -21,6 +21,8 @@ Todos os comandos rodam em `backend/` com `.venv/bin/python`. Variáveis em `../
 | `HANDOFF_TEAM_SECRETARIA`, `HANDOFF_TEAM_GABINETE` | equipes dos pedidos do roteiro | `secretaria`, `gabinete` |
 | `HUMAN_WHATSAPP_MODE` | `chatwoot` (transferência nesta conversa) ou `link` (WhatsApp oficial da unidade, exige número cadastrado) | `chatwoot` |
 | `MAX_DILIGENCE_CHARS` | tamanho máximo da diligência (acima disso pede versão menor, sem cortar) | `3000` |
+| `OUVIDORIA_MULHER_ENABLED` | liga o serviço Ouvidoria da Mulher no menu (§6.4) | `false` |
+| `HANDOFF_TEAM_MULHER`, `MULHER_FILE`, `MAX_RELATO_CHARS` | equipe do Chatwoot, contatos da Ouvidoria e tamanho máximo do relato | `ouvidoria_mulher`, `backend/config/mulher.yaml`, `2000` |
 | `HANDOFF_MAX_ATTEMPTS`, `STALE_AFTER_DAYS`, `RETRIEVAL_*`, `RRF_K`, `MIN_TERM_COVERAGE` | ajustes | ver `app/config.py` |
 
 ## 2. Ingestão do acervo processual
@@ -119,6 +121,19 @@ Spec: `.specs/features/tjpa-roteiro-atendimento/spec.md`. A assistente se aprese
 - **Audiências e situação:** são perguntas curtas ao acervo (perguntas longas derrubam a cobertura lexical e a busca abstém). A resposta traz o que os documentos mostram, com o aviso de demonstração; local e link só aparecem se o modelo os extrair dos trechos, sem garantia.
 - **Falha:** a transferência não confirmada oferece 🔁 Tentar novamente, 🔀 Outro canal e 📞 Telefone (só se cadastrado). Outro canal cancela a tentativa (`handoff_requested -> automation_resumed`, auditado) e mostra só o outro canal.
 - **Cadastro de unidades (`backend/config/units.yaml`):** começa **vazio** (nenhum dado foi fornecido). Cadastre só dado oficial com `fonte` e `verificado_em`; telefone precisa de DDD e links precisam ser `https://*.tjpa.jus.br`, senão o campo é descartado na carga. O TeleJudiciário só aparece se `institucional.telejudiciario` estiver preenchido. Reinicie o contêiner após editar.
+
+## 6.4 Ouvidoria da Mulher
+
+Spec: `.specs/features/ouvidoria-mulher/spec.md`; planejamento e evidências: `docs/Mulher/Ouvidoria_Mulher_Planejamento.pdf`. **Desligada por padrão** (`OUVIDORIA_MULHER_ENABLED=false`): com a chave desligada o menu e o fluxo são os anteriores.
+
+- **Chatwoot:** só o **time** `ouvidoria_mulher` (já criado pelo responsável); não há caixa de entrada própria. `python -m app.interfaces.chatwoot_setup` (plano) mostra o que falta: 2 rótulos (`ouvidoria_mulher`, `urgencia_imediata`) e 5 atributos de conversa; `--apply` só com aprovação. Se a versão do Chatwoot não tiver a API de atributos, o plano declara e segue sem eles.
+- **Menu:** "Ouvidoria da Mulher" na linha 4 do menu principal. Texto livre que relata violência só **oferece** o serviço (190, 180) e nunca inicia a triagem sozinho.
+- **Orientações:** textos fixos derivados da Cartilha, com a página citada (`app/application/chat/mulher.py`); precisam de revisão da Ouvidoria. Não há busca livre na Cartilha (PDF só imagem: exigirá OCR e aprovação humana em `pending_review`).
+- **Triagem (8 passos, todos com saída):** perigo, para quem, assunto, ambiente, processo ou medida protetiva (número só como informado), contato seguro, relato opcional, resumo e consentimento. Não coleta CPF, endereço nem dados do agressor e não calcula risco. O estado fica em `conversations.triage` (JSON); relato e número do processo **nunca** vão para log ou auditoria e são apagados ao encerrar o protocolo.
+- **Encaminhamento:** nota privada (uma vez) e depois transferência para o time; o aviso ao usuário só sai após a confirmação e traz o **protocolo TKT com a orientação de guardá-lo para eventual atendimento presencial**. Fora de 8h às 14h (Belém) o aviso informa o horário, sem prazo. Perigo informado põe o rótulo `urgencia_imediata`.
+- **Contato não seguro (decisão D3):** a Júlia orienta (telefone, e-mail, 180) e, com consentimento, registra o pedido **sem retorno por este WhatsApp**; a nota ordena à equipe não responder por aqui.
+- **Contatos:** `backend/config/mulher.yaml` (telefone, e-mail e horário da Carta de Serviços do TJPA, ainda a confirmar com a Ouvidoria; dias da semana não verificados).
+- **Ativar na VM:** colocar `OUVIDORIA_MULHER_ENABLED=true` no `.env` de `/opt/tjpa` e recriar o contêiner; só depois de revisão dos textos e a pedido do responsável. Desativar é o inverso.
 
 ## 6.2 Endpoint para o painel do Chatwoot
 

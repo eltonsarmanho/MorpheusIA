@@ -17,6 +17,9 @@ class FakeChatwoot:
         self.tokens: dict[str, str] = {}
         self.flaky = 0
         self.bots: list[dict] = []
+        self.attrs: list[dict] = []
+        self.conv_attrs: dict = {}
+        self.attrs_supported = True
 
     def __call__(self, req: httpx.Request) -> httpx.Response:
         path, m = req.url.path, req.method
@@ -32,6 +35,16 @@ class FakeChatwoot:
         import json
 
         body = json.loads(req.content) if req.content else {}
+        if path.endswith("/custom_attribute_definitions"):
+            if not self.attrs_supported:
+                return httpx.Response(404)
+            if m == "GET":
+                return httpx.Response(200, json=self.attrs)
+            self.attrs.append({"attribute_key": body["attribute_key"]})
+            return httpx.Response(200, json=body)
+        if path.endswith("/conversations/9/custom_attributes"):
+            self.conv_attrs.update(body["custom_attributes"])
+            return httpx.Response(200, json={})
         if path.endswith("/teams") and m == "GET":
             return httpx.Response(200, json=self.teams)
         if path.endswith("/teams") and m == "POST":
@@ -118,13 +131,29 @@ def test_sem_token_nao_chama_a_rede(fake):
 def test_setup_cria_so_o_que_falta_e_e_idempotente(client, fake):  # CHW-08
     p = setup.plan(client, None, None)
     assert p["teams_to_create"] == ["Triagem e Orquestração", "Informações Institucionais", "Informações Jurídico-Institucionais", "Atendimento Humano Geral",
-                                    "secretaria", "gabinete"]  # equipes do roteiro TJPA
-    assert len(p["labels_to_create"]) == 6
+                                    "secretaria", "gabinete", "ouvidoria_mulher"]  # equipes do roteiro TJPA e da Ouvidoria da Mulher
+    assert len(p["labels_to_create"]) == 8 and len(p["attributes_to_create"]) == 5
     out = setup.apply(client, None, None)
-    assert len(out["created_teams"]) == 6 and len(out["created_labels"]) == 6
+    assert len(out["created_teams"]) == 7 and len(out["created_labels"]) == 8 and len(out["created_attributes"]) == 5
     again = setup.apply(client, None, None)
-    assert again["created_teams"] == [] and again["created_labels"] == []
-    assert len(fake.teams) == 7 and len(fake.labels) == 6
+    assert again["created_teams"] == [] and again["created_labels"] == [] and again["created_attributes"] == []
+    assert len(fake.teams) == 8 and len(fake.labels) == 8 and len(fake.attrs) == 5
+
+
+def test_setup_nao_recria_o_time_ouvidoria_mulher_que_ja_existe(client, fake):  # OVM-26
+    fake.teams.append({"id": 9, "name": "ouvidoria_mulher"})
+    assert "ouvidoria_mulher" not in setup.plan(client, None, None)["teams_to_create"]
+
+
+def test_setup_sem_api_de_atributos_declara_e_segue(client, fake):  # OVM-26
+    fake.attrs_supported = False
+    p = setup.plan(client, None, None)
+    assert p["attributes_to_create"] == [] and "indisponível" in p["attributes_status"]
+
+
+def test_atributos_da_conversa_so_levam_enumeracoes(client, fake):
+    client.set_custom_attributes(1, 9, {"servico": "ouvidoria_mulher", "assunto": "fisica"})
+    assert fake.conv_attrs == {"servico": "ouvidoria_mulher", "assunto": "fisica"}
 
 
 def test_setup_dry_run_nao_escreve(client, fake):

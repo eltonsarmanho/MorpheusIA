@@ -13,6 +13,7 @@ services:
       DATA_DIR: /data
       SOURCES_FILE: /app/config/sources.yaml
       UNITS_FILE: /app/config/units.yaml
+      MULHER_FILE: /app/config/mulher.yaml
     volumes:
       - ../data:/data
     ports:

@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 from enum import StrEnum
 
 from app.application import persona
+from app.application.chat import mulher
 from app.domain.models import Option, Profile
 from app.domain.policies import find_process_numbers
 
@@ -48,6 +49,16 @@ class Kind(StrEnum):
     VARA_YES = "vara_yes"
     VARA_NO = "vara_no"
     PICK = "pick"  # arg: posição (1..5) na lista oferecida
+    # Ouvidoria da Mulher (OVM)
+    MULHER = "mulher"  # entrada pelo menu: acolhimento
+    MULHER_DANGER = "mulher_danger"
+    MULHER_ORIENT_MENU = "mulher_orient_menu"
+    MULHER_TOPIC = "mulher_topic"  # arg: tema
+    MULHER_START = "mulher_start"  # Falar com equipe: inicia a triagem
+    MULHER_ANSWER = "mulher_answer"  # arg: campo:valor
+    MULHER_SKIP = "mulher_skip"
+    MULHER_SEND = "mulher_send"
+    MULHER_REDO = "mulher_redo"
 
 
 @dataclass(frozen=True)
@@ -76,6 +87,17 @@ OPT_ADV = Option("⚖️ Sou advogado(a)", "advogado")
 OPT_GERAL = Option("ℹ️ Informações gerais", "geral")
 OPT_SWITCH_PROFILE = Option("🔄 Trocar perfil", "trocar_perfil")
 PROFILE_MENU = [OPT_PARTE, OPT_ADV, OPT_GERAL, OPT_HUMAN_LIST, OPT_CLOSE_LIST]
+MULHER_KINDS = frozenset({Kind.MULHER, Kind.MULHER_DANGER, Kind.MULHER_ORIENT_MENU, Kind.MULHER_TOPIC, Kind.MULHER_START, Kind.MULHER_ANSWER,
+                          Kind.MULHER_SKIP, Kind.MULHER_SEND, Kind.MULHER_REDO})
+
+
+def profile_menu(mulher_enabled: bool = False) -> list[Option]:
+    """Menu principal; com a Ouvidoria da Mulher ligada, ela entra na linha 4 (OVM-01). Desligada, é o menu anterior."""
+    if not mulher_enabled:
+        return list(PROFILE_MENU)
+    return [OPT_PARTE, OPT_ADV, OPT_GERAL, mulher.OPT_ENTRY, OPT_HUMAN_LIST, OPT_CLOSE_LIST]
+
+
 MAIN_MENU = PROFILE_MENU  # o menu principal passa a ser a escolha de perfil do roteiro
 LEGACY_MAIN_MENU = [OPT_PROCESS, OPT_INST, OPT_LEGAL, OPT_HUMAN_LIST, OPT_CLOSE_LIST]  # títulos antigos continuam reconhecidos
 
@@ -220,6 +242,19 @@ def _register() -> None:
     add(OPT_RETRY, Action(Kind.RETRY_CHANNEL))
     add(OPT_OTHER_CHANNEL, Action(Kind.OTHER_CHANNEL))
     add(OPT_UNIT_PHONE, Action(Kind.UNIT_PHONE))
+    # Ouvidoria da Mulher
+    add(mulher.OPT_ENTRY, Action(Kind.MULHER))
+    add(mulher.OPT_DANGER, Action(Kind.MULHER_DANGER))
+    add(mulher.OPT_ORIENT, Action(Kind.MULHER_ORIENT_MENU))
+    add(mulher.OPT_TEAM, Action(Kind.MULHER_START))
+    add(mulher.OPT_SKIP, Action(Kind.MULHER_SKIP))
+    add(mulher.OPT_SKIP_STEP, Action(Kind.MULHER_SKIP))
+    add(mulher.OPT_SEND, Action(Kind.MULHER_SEND))
+    add(mulher.OPT_REDO, Action(Kind.MULHER_REDO))
+    for (field, value), opt in mulher.ANSWERS.items():
+        add(opt, Action(Kind.MULHER_ANSWER, f"{field}:{value}"))
+    for topic, (opt, _) in mulher.TOPICS.items():
+        add(opt, Action(Kind.MULHER_TOPIC, topic))
 
 
 _register()

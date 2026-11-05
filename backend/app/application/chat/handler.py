@@ -17,11 +17,13 @@ from typing import Any
 
 from app.application.answering.orchestrator import TEAM_GENERAL, Orchestrator, QuestionError
 from app.application.chat import flow
+from app.application.chat import mulher as ovm
 from app.application.chat.process_search import DemoCorpusProcessSearch, name_tokens
 from app.domain.handoff import HandoffState, InvalidTransition, bot_may_reply
 from app.domain.models import Option, Profile, ResponseKind
 from app.domain.policies import cnj_check_digits_ok, cpf_is_valid, extract_cpf, find_process_numbers, mask_cpf
 from app.domain.ports import ChatwootGateway, ProcessCandidate, ProcessSearchPort
+from app.domain.triage_mulher import NAO_INFORMADO, OuvidoriaMulher, Triage, mentions_violence
 from app.domain.units import UnitDirectory, fold, format_phone, whatsapp_link
 from app.infrastructure.sqlite.operational_store import ConversationState, OperationalStore
 
@@ -50,6 +52,19 @@ def _looks_like_number(text: str) -> bool:
     return len(re.sub(r"\D", "", text)) >= 7 and len(re.findall(r"[A-Za-zÀ-ÿ]{3,}", text)) <= 1
 
 
+@dataclass(frozen=True)
+class MulherSettings:
+    """Ouvidoria da Mulher (OVM). Desligada por padrão: sem `enabled`, o fluxo e o menu são os anteriores."""
+
+    enabled: bool = False
+    team: str = ovm.TEAM_DEFAULT
+    contacts: OuvidoriaMulher = OuvidoriaMulher()
+    max_relato_chars: int = 2000
+
+
+_TRIAGE_ONLY = frozenset({flow.Kind.MULHER_ANSWER, flow.Kind.MULHER_SKIP, flow.Kind.MULHER_SEND, flow.Kind.MULHER_REDO})
+
+
 @dataclass
 class HandleResult:
     outcome: str  # processed | duplicate | ignored | silent | handoff | error
@@ -70,13 +85,15 @@ class ChatwootEventHandler:
     def __init__(self, orchestrator: Orchestrator, ops: OperationalStore, gateway: ChatwootGateway, *, max_handoff_attempts: int = 3,
                  max_question_chars: int = 1000, default_account_id: int = 1, rich_flow: bool = False, units: UnitDirectory | None = None,
                  search: ProcessSearchPort | None = None, teams: tuple[str, str] = ("secretaria", "gabinete"),
-                 whatsapp_mode: str = "chatwoot", max_diligence_chars: int = 3000) -> None:
+                 whatsapp_mode: str = "chatwoot", max_diligence_chars: int = 3000, mulher: MulherSettings | None = None) -> None:
         self.orch, self.ops, self.gw = orchestrator, ops, gateway
         self.units = units or UnitDirectory()
         self.search = search or DemoCorpusProcessSearch(orchestrator.store)
         self.team_secretaria, self.team_gabinete = teams
         self.whatsapp_mode = whatsapp_mode  # chatwoot: transferência integrada nesta conversa | link: WhatsApp oficial da unidade
         self.max_diligence = max_diligence_chars
+        self.mulher = mulher or MulherSettings()
+        self.now = lambda: datetime.now(timezone.utc)  # relógio injetável (horário da Ouvidoria nos testes)
         self.default_account = default_account_id
         self.rich = rich_flow  # menus com botões/listas, protocolo (ticket) e encerramento guiado
         self.max_attempts, self.max_chars = max_handoff_attempts, max_question_chars
@@ -242,6 +259,29 @@ class ChatwootEventHandler:
         if awaiting == "diligence" and not flow.is_option_click(content):
             # campo livre: tudo o que não é toque em uma opção é o texto da diligência, guardado como chegou (RTA-15)
             return self._receive_diligence(account, conv_id, key, st, payload.get("content") or "")
+        tri = Triage.from_json(st.triage) if self.mulher.enabled else None
+        if (awaiting in ("mulher_numero", "mulher_relato") and tri is not None and not flow.is_option_click(content)
+                and not (k is flow.Kind.CLOSE_HINT or flow.clean(content) == "menu")):  # só "sair" e "menu" saem nas etapas de texto (OVM-17)
+            return self._mulher_text(account, conv_id, key, st, tri, awaiting, payload.get("content") or "")
+        if k in flow.MULHER_KINDS:
+            if not self.mulher.enabled or (k in _TRIAGE_ONLY and tri is None):
+                action, k = flow.Action(flow.Kind.FREE), flow.Kind.FREE  # sem a chave ligada ou fora da triagem, é texto comum
+            else:
+                return self._mulher_action(account, conv_id, key, st, tri, action, awaiting)
+        if tri is not None:
+            if k is flow.Kind.FREE:
+                return self._mulher_ask(account, conv_id, st, tri, stale=True)  # texto em etapa de botões: repete a pergunta
+            if k is flow.Kind.HUMAN:
+                tri.step = "resumo"  # Falar com atendente: resumo com o que já foi coletado (OVM-14)
+                return self._mulher_ask(account, conv_id, st, tri)
+            if k is not flow.Kind.CLOSE:
+                st.triage = None  # saiu da triagem (menu, outro serviço ou "sair"): nada é guardado (OVM-17)
+                self.ops.save(st)
+                self.ops.audit(key, "mulher_saida", "usuario", "")
+                if k in (flow.Kind.MENU, flow.Kind.CLOSE_HINT):
+                    self._send(account, conv_id, ovm.LEFT_TEXT)
+                    if k is flow.Kind.CLOSE_HINT:
+                        return self._menu(payload, account, conv_id, st)
         if awaiting == "channel" and flow.clean(content) == flow.clean(flow.OPT_CH_BALCAO.title):
             action, k = flow.Action(flow.Kind.CHANNEL, "balcao"), flow.Kind.CHANNEL  # na escolha de canal, "Balcão Virtual" é o canal
         if k is flow.Kind.CLOSE:
@@ -363,7 +403,147 @@ class ChatwootEventHandler:
                 question = flow.PROCESS_QUESTIONS[action.arg].format(n=st.process_number)
             return self._answer(account, conv_id, key, st, question)
         # texto livre: a pergunta de fato
+        if (self.mulher.enabled and k is flow.Kind.FREE and not awaiting and not find_process_numbers(content)
+                and mentions_violence(flow.clean(content))):
+            self.ops.audit(key, "mulher_oferta", "bot", "")  # só oferece o serviço; nunca inicia a triagem sozinho (OVM-03)
+            self._send(account, conv_id, ovm.OFFER_TEXT, [ovm.OPT_ENTRY, flow.OPT_MENU])
+            return HandleResult("processed", "oferta_ouvidoria_mulher")
         return self._answer(account, conv_id, key, st, content)
+
+    # ----------------------------------------------------- Ouvidoria da Mulher (OVM)
+    def _mulher_ask(self, account: int, conv_id: int, st: ConversationState, tri: Triage, stale: bool = False) -> HandleResult:
+        """Faz a pergunta da etapa atual; a etapa fica no estado, então botões de etapas anteriores não avançam nada (OVM-11)."""
+        step = tri.step
+        st.triage, st.awaiting = tri.to_json(), None
+        if step == "resumo":
+            template = ovm.SUMMARY_NORETURN_TEXT if tri.no_return else ovm.SUMMARY_TEXT
+            text = template.format(summary=tri.summary_for_user(), hours=self.mulher.contacts.hours_text,
+                                   contacts=self.mulher.contacts.contact_lines())
+            options = ovm.summary_options(flow.OPT_MENU)
+        else:
+            key = "numero" if (step == "processo" and tri.processo == "numero") else step
+            text, options = ovm.QUESTIONS[key], ovm.STEP_OPTIONS[key]
+            if step == "relato":
+                st.awaiting = "mulher_relato"
+            elif key == "numero":
+                st.awaiting = "mulher_numero"
+        self.ops.save(st)
+        if stale:
+            text = f"{ovm.STALE_TEXT}\n\n{text}"
+        self._send(account, conv_id, text, options)
+        return HandleResult("processed", f"mulher_{step}")
+
+    def _mulher_advance(self, account: int, conv_id: int, st: ConversationState, tri: Triage) -> HandleResult:
+        tri.next_step()
+        return self._mulher_ask(account, conv_id, st, tri)
+
+    def _mulher_action(self, account: int, conv_id: int, key: str, st: ConversationState, tri: Triage | None, action: flow.Action,
+                       awaiting: str | None) -> HandleResult:
+        k = action.kind
+        if k is flow.Kind.MULHER:
+            self.ops.audit(key, "mulher_entrada", "usuario", "")
+            self._send(account, conv_id, ovm.WELCOME_TEXT, ovm.ENTRY_OPTIONS)
+            return HandleResult("processed", "mulher_acolhimento")
+        if k is flow.Kind.MULHER_DANGER:
+            tri = tri or Triage()
+            tri.perigo = "sim"
+            if tri.step == "perigo":
+                tri.step = "para_quem"  # já respondida; em etapa adiante a triagem não volta atrás
+            st.triage = tri.to_json()
+            self.ops.save(st)
+            self.ops.audit(key, "mulher_perigo", "usuario", "")
+            self._send(account, conv_id, ovm.EMERGENCY_TEXT)
+            self._send(account, conv_id, ovm.EMERGENCY_NEXT_TEXT, ovm.AFTER_EMERGENCY)
+            return HandleResult("processed", "mulher_emergencia")
+        if k is flow.Kind.MULHER_ORIENT_MENU:
+            self._send(account, conv_id, ovm.ORIENT_MENU_TEXT, ovm.orient_options(flow.OPT_MENU))
+            return HandleResult("processed", "mulher_orientacoes")
+        if k is flow.Kind.MULHER_TOPIC:
+            text = ovm.phones_text(self.mulher.contacts) if action.arg == "telefones" else ovm.topic_text(action.arg)
+            self._send(account, conv_id, text)
+            self._send(account, conv_id, ovm.ORIENT_AFTER_TEXT, ovm.orient_options(flow.OPT_MENU))
+            return HandleResult("processed", f"mulher_tema_{action.arg}")
+        if k is flow.Kind.MULHER_START:
+            self.ops.audit(key, "mulher_triagem_inicio", "usuario", "")
+            return self._mulher_ask(account, conv_id, st, tri or Triage())
+        if k is flow.Kind.MULHER_REDO:
+            return self._mulher_ask(account, conv_id, st, Triage())
+        assert tri is not None
+        if k is flow.Kind.MULHER_SEND:
+            if tri.step != "resumo":
+                return self._mulher_ask(account, conv_id, st, tri, stale=True)
+            return self._mulher_handoff(account, conv_id, key, st, tri)
+        if k is flow.Kind.MULHER_SKIP:
+            if awaiting == "mulher_numero":
+                tri.processo = "sem_numero"
+            elif tri.step == "relato":
+                tri.relato = None
+            elif tri.step in ("perigo", "para_quem", "ambiente", "processo", "contato", "assunto"):
+                tri.set(tri.step, NAO_INFORMADO)
+            else:
+                return self._mulher_ask(account, conv_id, st, tri, stale=True)
+            return self._mulher_advance(account, conv_id, st, tri)
+        field, value = action.arg.split(":", 1)  # MULHER_ANSWER
+        if field != tri.step or not tri.set(field, value):
+            return self._mulher_ask(account, conv_id, st, tri, stale=True)
+        if field == "perigo" and value == "sim":
+            self.ops.audit(key, "mulher_perigo", "usuario", "")
+            self._send(account, conv_id, ovm.EMERGENCY_TEXT)  # 190 e 180 antes de qualquer outra pergunta (OVM-10)
+        if field == "processo" and value == "numero":
+            return self._mulher_ask(account, conv_id, st, tri)  # pede o número (etapa de texto)
+        if field == "contato" and value in ("nao", "telefone"):
+            self.ops.audit(key, "mulher_contato_inseguro", "usuario", "")  # orienta e segue; o registro será sem retorno por aqui (OVM-16)
+            self._send(account, conv_id, ovm.UNSAFE_TEXT.format(contacts=self.mulher.contacts.contact_lines()))
+        return self._mulher_advance(account, conv_id, st, tri)
+
+    def _mulher_text(self, account: int, conv_id: int, key: str, st: ConversationState, tri: Triage, awaiting: str, raw: str) -> HandleResult:
+        """Texto livre das etapas número do processo e relato; o relato é guardado como chegou e nunca vai para log (OVM-13, OVM-23)."""
+        if awaiting == "mulher_numero":
+            numbers = find_process_numbers(raw)
+            if not numbers or not cnj_check_digits_ok(numbers[0]):
+                st.awaiting = "mulher_numero"
+                self.ops.save(st)
+                self._send(account, conv_id, ovm.NUMBER_BAD_TEXT, ovm.STEP_OPTIONS["numero"])
+                return HandleResult("processed", "mulher_numero_invalido")
+            tri.numero_processo = numbers[0]  # informado pela pessoa; não é "localizado"
+            return self._mulher_advance(account, conv_id, st, tri)
+        if not raw.strip():
+            st.awaiting = "mulher_relato"
+            self.ops.save(st)
+            self._send(account, conv_id, ovm.RELATO_EMPTY_TEXT, ovm.STEP_OPTIONS["relato"])
+            return HandleResult("processed", "mulher_relato_vazio")
+        if len(raw) > self.mulher.max_relato_chars:
+            st.awaiting = "mulher_relato"
+            self.ops.save(st)
+            self._send(account, conv_id, ovm.RELATO_LONG_TEXT.format(n=self.mulher.max_relato_chars), ovm.STEP_OPTIONS["relato"])
+            return HandleResult("processed", "mulher_relato_longo")
+        tri.relato = raw
+        return self._mulher_advance(account, conv_id, st, tri)
+
+    def _mulher_handoff(self, account: int, conv_id: int, key: str, st: ConversationState, tri: Triage) -> HandleResult:
+        tri.consentimento, tri.protocol_advice = True, True
+        st.triage, st.awaiting = tri.to_json(), None
+        st.request_reason, st.request_channel, st.request_note_id = "ouvidoria_mulher", "whatsapp", None
+        self.ops.save(st)
+        self.ops.audit(key, "mulher_encaminhar", "usuario", "urgente" if tri.urgent else "")
+        return self._do_handoff(account, conv_id, key, st, self.mulher.team, "ouvidoria da mulher", self._mulher_labels(tri))
+
+    @staticmethod
+    def _mulher_labels(tri: Triage) -> list[str]:
+        return ["humano", ovm.LABEL_SERVICE] + ([ovm.LABEL_URGENT] if tri.urgent else [])
+
+    def _mulher_open_now(self) -> bool:
+        return self.mulher.contacts.is_open(self.now().astimezone(flow.BELEM).time())
+
+    def _set_attributes(self, account: int, conv_id: int, key: str, tri: Triage) -> None:
+        """Atributos da conversa no Chatwoot (só enumerações); informativo, não pode derrubar o atendimento."""
+        setter = getattr(self.gw, "set_custom_attributes", None)
+        if setter is None:
+            return
+        try:
+            setter(account, conv_id, tri.attributes())
+        except Exception:  # noqa: BLE001
+            self.ops.audit(key, "mulher_atributos_falhou", "bot", "")
 
     # ----------------------------------------------------- roteiro TJPA: menus e identificação
     def _expect(self, account: int, conv_id: int, st: ConversationState, awaiting: str, text: str, options: list[Option] | None = None,
@@ -377,7 +557,7 @@ class ChatwootEventHandler:
         """Sem perfil escolhido: apresentação da Júlia e menu de perfis. Com perfil: o menu do perfil (RTA-01, RTA-04, RTA-07)."""
         if not st.profile_locked:
             name = ((payload.get("sender") or {}).get("name") or "").split(" ")[0].strip()
-            self._send(account, conv_id, flow.profile_menu_text(name.title() if name.isalpha() else ""), flow.PROFILE_MENU)
+            self._send(account, conv_id, flow.profile_menu_text(name.title() if name.isalpha() else ""), flow.profile_menu(self.mulher.enabled))
             return HandleResult("processed", "menu")
         if st.profile is Profile.GERAL:
             self._send(account, conv_id, flow.GERAL_MENU_TEXT, flow.GERAL_MENU)
@@ -666,6 +846,10 @@ class ChatwootEventHandler:
         from datetime import datetime as _dt
 
         ticket = self.ops.get_open_ticket(key)
+        if st.request_reason == "ouvidoria_mulher":
+            tri = Triage.from_json(st.triage) or Triage()
+            return ovm.context_note(tri, ticket.ticket_id if ticket else None, flow.fmt_time(self.now().isoformat()), self._mulher_open_now(),
+                                    self.mulher.contacts)
         unit_origin = "do processo localizado" if st.process_number else "informada pelo usuário"
         lines = [
             "ATENDIMENTO VIRTUAL — SOLICITAÇÃO DE ATENDIMENTO HUMANO",
@@ -788,6 +972,8 @@ class ChatwootEventHandler:
             log.warning("transferência falhou: %s", type(exc).__name__)
             confirmed = False
         if confirmed:
+            if st.request_reason == "ouvidoria_mulher":
+                labels = labels + self._mulher_labels(Triage.from_json(st.triage) or Triage())
             self._safe_label(account, conv_id, list(dict.fromkeys(labels + ["humano"])))
             self.ops.transition(key, HandoffState.HUMAN_ACTIVE, actor="chatwoot", detail="transferência confirmada pela API")
             st = self.ops.get(key)
@@ -796,7 +982,15 @@ class ChatwootEventHandler:
             try:
                 ticket = self.ops.get_open_ticket(key) if self.rich else None
                 request = st.request_reason in ("diligencia", "providencia")
-                self._send(account, conv_id, flow.handoff_notice(team, ticket.ticket_id if ticket else None, request))  # só após a confirmação (CHW-10)
+                if st.request_reason == "ouvidoria_mulher":
+                    tri = Triage.from_json(st.triage) or Triage()
+                    self._set_attributes(account, conv_id, key, tri)
+                    tid = ticket.ticket_id if ticket else None
+                    notice = (ovm.handoff_notice_no_return(tid, self.mulher.contacts) if tri.no_return
+                              else ovm.handoff_notice(tid, self.mulher.contacts, self._mulher_open_now()))
+                else:
+                    notice = flow.handoff_notice(team, ticket.ticket_id if ticket else None, request)
+                self._send(account, conv_id, notice)  # só após a confirmação (CHW-10)
             except Exception:  # noqa: BLE001 - a transferência já ocorreu; o aviso falhou
                 log.warning("transferência confirmada, mas o aviso ao usuário falhou")
                 self.ops.audit(key, "handoff_notice_failed", "bot", team)
@@ -809,7 +1003,9 @@ class ChatwootEventHandler:
         if giving_up:
             text = HANDOFF_FAILED_TEXT if flagged else HANDOFF_FAILED_UNFLAGGED_TEXT
             self.ops.audit(key, "handoff_exhausted", "bot", f"equipe={team}")
-        if self.rich and st.request_channel:
+        if self.rich and st.request_reason == "ouvidoria_mulher":
+            text, options = ovm.FAILED_TEXT.format(contacts=self.mulher.contacts.contact_lines()), [flow.OPT_RETRY, flow.OPT_MENU]
+        elif self.rich and st.request_channel:
             # pedido do roteiro: o texto fica guardado e a pessoa escolhe o próximo passo (RTA-20)
             text, options = flow.HANDOFF_CHANNEL_FAILED_TEXT, self._failure_options(st, retry=True)
         try:

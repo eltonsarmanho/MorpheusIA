@@ -53,6 +53,11 @@ class Settings(BaseSettings):
     handoff_team_gabinete: str = "gabinete"  # diligência dirigida ao juiz ou urgente
     human_whatsapp_mode: str = "chatwoot"  # chatwoot = transferência nesta conversa | link = WhatsApp oficial da unidade (cadastro)
     max_diligence_chars: int = 3000
+    # Ouvidoria da Mulher (OVM): desligada por padrão; ligar é decisão do responsável
+    ouvidoria_mulher_enabled: bool = False
+    handoff_team_mulher: str = "ouvidoria_mulher"  # equipe criada no Chatwoot (não há caixa de entrada própria)
+    mulher_file: Path = REPO_ROOT / "backend" / "config" / "mulher.yaml"
+    max_relato_chars: int = 2000
     public_base_url: str = "https://srv1633081.hstgr.cloud/atendimento"  # exibido na tela de integração
 
     # Segurança da API

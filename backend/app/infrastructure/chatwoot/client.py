@@ -111,6 +111,11 @@ class ChatwootClient:
         self._request("POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/toggle_status", json={"status": status})
         return True
 
+    def set_custom_attributes(self, account_id: int, conversation_id: int, attributes: dict[str, str]) -> None:
+        """Atributos personalizados da conversa (só valores de enumeração; nunca texto do usuário)."""
+        self._request("POST", f"/api/v1/accounts/{account_id}/conversations/{conversation_id}/custom_attributes", admin=True,
+                      json={"custom_attributes": attributes})
+
     # ------------------------------------------------------- administração
     def list_teams(self) -> list[dict]:
         return self._request("GET", self._acc("/teams"), admin=True)
@@ -146,3 +151,12 @@ class ChatwootClient:
 
     def set_inbox_agent_bot(self, inbox_id: int, agent_bot_id: int) -> None:
         self._request("POST", self._acc(f"/inboxes/{inbox_id}/set_agent_bot"), admin=True, json={"agent_bot": agent_bot_id})
+
+    def list_conversation_attribute_definitions(self) -> list[dict]:
+        return self._request("GET", self._acc("/custom_attribute_definitions?attribute_model=conversation_attribute"), admin=True)
+
+    def create_conversation_attribute_definition(self, key: str, display_name: str, description: str = "") -> dict:
+        # attribute_model 0 = conversa; attribute_display_type 0 = texto
+        return self._request("POST", self._acc("/custom_attribute_definitions"), admin=True,
+                             json={"attribute_display_name": display_name, "attribute_key": key, "attribute_description": description,
+                                   "attribute_display_type": 0, "attribute_model": 0})

@@ -1,0 +1,632 @@
+% ==========================================================================
+% Ouvidoria da Mulher no WhatsApp (piloto TJPA / EscutAI)
+% Planejamento de atendimento, Chatwoot e implementação. NADA FOI IMPLEMENTADO.
+% Compilar: pdflatex Ouvidoria_Mulher_Planejamento.tex (duas vezes)
+% ==========================================================================
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[scaled=0.95]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{fontawesome5}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,fit,backgrounds}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=petroleo,linkcolor=petroleo}
+\graphicspath{{../TJPA/img/}}
+
+% Identidade visual: mesma paleta do pitch EscutAI + rosa da Cartilha da Ouvidoria da Mulher
+\definecolor{escuro}{HTML}{053F35}
+\definecolor{petroleo}{HTML}{0B5345}
+\definecolor{verde}{HTML}{00A884}
+\definecolor{menta}{HTML}{16E0A9}
+\definecolor{ambar}{HTML}{FDB833}
+\definecolor{areia}{HTML}{FDE3A7}
+\definecolor{nevoa}{HTML}{E8F4F0}
+\definecolor{tinta}{HTML}{0E2F33}
+\definecolor{cinza}{HTML}{5E6B6B}
+\definecolor{seta}{HTML}{A8D5C6}
+\definecolor{rosa}{HTML}{B03060}
+\definecolor{rosaclaro}{HTML}{F8E1EA}
+\definecolor{alerta}{HTML}{C0392B}
+
+\setbeamercolor{normal text}{fg=tinta,bg=white}
+\setbeamercolor{structure}{fg=petroleo}
+\setbeamercolor{frametitle}{fg=tinta}
+\setbeamercolor{itemize item}{fg=rosa}
+\setbeamercolor{itemize subitem}{fg=ambar}
+\setbeamercolor{alerted text}{fg=rosa}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\footnotesize\raise0.1ex\hbox{\textcolor{rosa}{\faCaretRight}}}
+\setbeamertemplate{itemize subitem}{\scriptsize\textcolor{ambar}{\faCircle}}
+\setbeamersize{text margin left=0.75cm,text margin right=0.75cm}
+
+\setbeamertemplate{frametitle}{%
+  \vskip0.30cm
+  \begin{minipage}[c]{0.74\paperwidth}\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.15\paperwidth}\raggedleft
+    \includegraphics[height=0.55cm]{logo_escutai_verde.png}\hspace{0.1cm}{\bfseries\small\textcolor{tinta}{Escut}\textcolor{verde}{AI}}%
+  \end{minipage}\par
+  \vskip-0.10cm
+}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox to\paperwidth{%
+    \hspace{0.75cm}{\tiny\textcolor{cinza}{Ouvidoria da Mulher no WhatsApp \textperiodcentered\ planejamento (nada implementado)}}\hfill
+    {\tiny\textcolor{cinza}{\insertframenumber}}\hspace{0.75cm}}\vskip0.25cm}
+
+\newcommand{\fundoescuro}{%
+  \setbeamercolor{background canvas}{bg=escuro}%
+  \setbeamercolor{normal text}{fg=white}%
+  \setbeamertemplate{footline}{}%
+  \usebeamercolor[fg]{normal text}}
+
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\fonte}[1]{\par\vskip3pt{\tiny\textcolor{cinza}{Fonte: #1}}}
+
+\tikzset{
+  caixa/.style={rounded corners=5pt,align=center,inner sep=4pt,font=\scriptsize},
+  nova/.style={caixa,fill=rosa,text=white,font=\scriptsize\bfseries},
+  atual/.style={caixa,fill=nevoa,draw=verde,text=tinta},
+  externa/.style={caixa,fill=areia,text=tinta},
+  seta/.style={-{Stealth[length=5pt]},line width=1pt,color=petroleo},
+  setanova/.style={-{Stealth[length=5pt]},line width=1.2pt,color=rosa},
+}
+\renewcommand{\arraystretch}{1.18}
+
+\title{Ouvidoria da Mulher no WhatsApp}
+\subtitle{Planejamento de atendimento, Chatwoot e implementação}
+\author{Equipe EscutAI}
+\date{Piloto TJPA}
+
+\begin{document}
+
+% ==========================================================================
+% CAPA
+% ==========================================================================
+{\fundoescuro
+\begin{frame}[plain]
+  \vspace{1.4cm}
+  {\color{menta}\bfseries\small PILOTO TJPA \textperiodcentered\ ESCUTAI \textperiodcentered\ JÚLIA}\\[0.3cm]
+  {\fontsize{28}{32}\selectfont\bfseries Ouvidoria da Mulher\\no WhatsApp}\\[0.35cm]
+  {\large Planejamento do atendimento, o que fazer no Chatwoot\\e plano de implementação}\\[0.9cm]
+  \begin{tikzpicture}
+    \node[fill=ambar,text=tinta,rounded corners=4pt,inner sep=6pt,font=\small\bfseries,align=left]
+      {\faExclamationTriangle\ Documento de planejamento. Nenhum código, Chatwoot ou VM foi alterado.\\
+       A implementação só começa com a sua autorização.};
+  \end{tikzpicture}
+\end{frame}}
+
+% ==========================================================================
+% 1. RESUMO
+% ==========================================================================
+\begin{frame}{Resumo para decisão}
+\begin{itemize}\setlength\itemsep{3pt}\small
+  \item \alert{O quê.} Novo serviço \textbf{Ouvidoria da Mulher} no \textbf{menu principal existente} da Júlia. Ele orienta com base na Cartilha da Ouvidoria da Mulher e faz uma \textbf{triagem estruturada} para a equipe humana.
+  \item \alert{A triagem não resolve nem mede risco.} Coleta 8 dados mínimos, todos com a opção \emph{prefiro não responder}, e entrega ao atendente numa \textbf{nota privada} do Chatwoot, mais atributos e rótulos.
+  \item \alert{Chatwoot.} Criar um \textbf{novo time}, \code{ouvidoria da mulher}, na caixa de entrada WhatsApp atual. \textbf{Novo canal} só se vocês exigirem isolamento de acesso ou número próprio (pág.~\ref{pg:time}).
+  \item \alert{Segurança primeiro.} 190 e 180 sempre visíveis, a pergunta de perigo vem antes das demais, nenhuma promessa de prazo nem de sigilo absoluto, sem CPF, endereço ou dados do agressor.
+  \item \alert{Entrega.} Atrás de uma chave de configuração \textbf{desligada por padrão}. O deploy leva só código; ligar é decisão sua.
+  \item \alert{O que preciso de você.} 9 decisões na pág.~\ref{pg:decisoes}. Os contatos de emergência precisam de confirmação em fonte oficial antes de publicar.
+\end{itemize}
+\end{frame}
+
+% ==========================================================================
+% A. BASE DE EVIDÊNCIAS
+% ==========================================================================
+\begin{frame}{Cartilha: o que vira conteúdo do canal}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{2.9cm}p{1.2cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Seção & Págs. & O que a Cartilha traz & Uso no canal \\
+\midrule
+O que é e o que faz & 4, 19 & Espaço seguro de escuta, acolhimento e orientação. Recebe denúncias, atua em morosidade processual, escuta, orienta e encaminha. & Texto de acolhimento e \emph{o que a Ouvidoria faz}. \\
+Formas de violência & 6--9 & Física, sexual, psicológica, patrimonial, moral, on-line, perseguição (\emph{stalking}, art.~147-A do CP), tráfico, feminicídio. & Opções de \emph{assunto} da triagem e definições curtas. \\
+Assédio e importunação & 11--13 & Moral; sexual (art.~216-A do CP); importunação sexual (art.~215-A do CP). & Opção \emph{assédio/importunação} e explicação da diferença. \\
+Leis importantes & 15--17 & Lei Maria da Penha (11.340/06, art.~5º), Lei 14.550/2023, Lei do Feminicídio (13.104/2015). & Orientações e opções de \emph{ambiente}. \\
+Como denunciar & 21 & Seis passos; Ligue 180 (24 h, gratuito, confidencial); denúncias tratadas com \emph{sigilo profissional}. & Orientações, \alert{com ressalva}: os passos 2 e 5 (RH, sindicato, Delegacia Regional do Trabalho) valem só para assédio no trabalho. \\
+\bottomrule
+\end{tabularx}
+\vskip4pt
+{\scriptsize\textcolor{cinza}{A Cartilha \textbf{não} traz o 190 nem os contatos da Ouvidoria do TJPA: eles vêm da Carta de Serviços e de fontes externas (próximas páginas). O PDF parece ser só imagem; a ingestão exigirá OCR.}}
+\end{frame}
+
+\begin{frame}{Ouvidoria da Mulher do TJPA: o que é oficial}
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\begin{tikzpicture}
+  \node[fill=rosaclaro,rounded corners=6pt,inner sep=8pt,text width=0.92\textwidth,font=\small,align=left]{%
+    \textbf{Competência}\\[2pt]
+    Receber e encaminhar às autoridades competentes demandas sobre \textbf{procedimentos judiciais} de violência contra a mulher. Recebe também informações, sugestões, reclamações, denúncias, críticas e elogios sobre a \textbf{tramitação} desses procedimentos.\\[6pt]
+    \textbf{Contatos}\\[2pt]
+    \faPhone\ (91) 3289-7182\\
+    \faEnvelope\ ouvidoria.mulher@tjpa.jus.br\\
+    \faClock\ \textbf{8h às 14h}};
+\end{tikzpicture}
+\fonte{Carta de Serviços do TJPA, ficha \emph{Ouvidoria da Mulher} (PDF oficial lido). A data da edição não aparece: confirmar os dados antes de publicar.}
+\end{column}
+\begin{column}{0.46\textwidth}
+\textbf{O que isso muda no desenho}
+\begin{itemize}\setlength\itemsep{4pt}\small
+  \item \alert{Não é canal de emergência.} Atende 8h--14h: o bot não pode sugerir resposta imediata e mostra 190 e 180 sempre.
+  \item \alert{O escopo é processual.} A triagem precisa captar \emph{existe processo ou medida protetiva?} e o número, quando houver.
+  \item \alert{Fora do escopo} (ex.: crime em andamento, sem processo): orientar Ligue 180, delegacia (DEAM) e 190, como a Cartilha (p.~21).
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Evidências externas e efeito no desenho}
+\fontsize{6.2}{7.4}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.0cm}@{}}
+\toprule
+Fonte & O que afirma & Decisão de desenho & Verificação \\
+\midrule
+OMS, manual clínico (\emph{LIVES}) & Primeira linha: ouvir, perguntar sobre necessidades sem pressionar, validar, reforçar a segurança, apoiar e conectar a serviços; respeitar as escolhas. & Acolhimento antes de perguntas; cada pergunta com \emph{prefiro não responder}; perigo e segurança primeiro; nada de interrogatório. & Resumo da página da OMS lido; PDF completo não aberto. \\
+FONAR (Res. Conj. CNJ/CNMP 5/2020; Lei 14.149/2021) & Formulário de risco com 17 dimensões; Parte~I aplicada por Polícia Civil, MP ou Judiciário, e pela própria vítima \emph{só na ausência} de profissional; Parte~II por psicólogo, assistente social ou médico. & O bot \textbf{não aplica o FONAR nem calcula risco}. Coleta só 2 sinais de segurança e encaminha. & Guia do TJPR lido (PDF). Texto atual: ver Portaria Conj.~6/2025. \\
+\emph{Danger Assessment} (Campbell et al., 2009) & Instrumento para estimar letalidade; uso por profissionais treinados; guia, não escore exato. Há estudo discordante (Storey, 2014). & Não criar escore próprio no WhatsApp. & Resumo de busca. \\
+Lei 14.550/2023 & Medida protetiva a partir da denúncia à polícia ou de alegações por escrito à Justiça; sem prazo fixo, vale enquanto durar o risco. & Pergunta \emph{existe medida protetiva?}; a Júlia não promete nem prevê decisão. & Cartilha p.~16 e fontes secundárias. \\
+Ligue 180 e 190 & 180: 24 h, gratuito, anônimo, com WhatsApp; emergência: 190. & Cartão fixo com 190 e 180 em todo o fluxo. & \alert{Número do WhatsApp do 180 vem de fonte secundária: confirmar em gov.br.} \\
+NNEDV (segurança digital) & 97\% dos programas relatam abuso por tecnologia, como monitoramento e ameaças. & \emph{Contato seguro?}, saída rápida, aviso de apagar a conversa, sem texto sensível em notificações. & Levantamento da NNEDV (resumo). \\
+\bottomrule
+\end{tabularx}
+\vskip3pt
+{\tiny\textcolor{cinza}{Não utilizadas por falta de verificação nesta pesquisa: Leis 14.188/2021 e 14.321/2022. Resolução CNJ 254/2018 (política judiciária) e 492/2023 (perspectiva de gênero) foram achadas só de forma indireta.}}
+\end{frame}
+
+\begin{frame}{Princípios que guiam o desenho}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{itemize}\setlength\itemsep{5pt}\small
+  \item \alert{Segurança antes de dados.} A primeira pergunta é sobre perigo agora; 190 e 180 aparecem desde o primeiro acolhimento.
+  \item \alert{Triagem não é barreira.} Em qualquer passo, \emph{Falar com atendente} encaminha com o que já foi coletado.
+  \item \alert{Ninguém é forçada a responder.} Toda pergunta tem \emph{prefiro não responder}.
+  \item \alert{Contar uma vez só.} O que foi dito chega ao atendente na nota; a pessoa não repete a história.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{itemize}\setlength\itemsep{5pt}\small
+  \item \alert{Mínimo necessário.} Sem CPF, endereço, nome ou dados do agressor, nem detalhes da violência; o relato livre é opcional.
+  \item \alert{Sem promessas.} Nada de prazo, resultado, prioridade ou sigilo absoluto (regra da persona); a Cartilha fala em \emph{sigilo profissional}.
+  \item \alert{Honestidade.} Encaminhar só é dito depois da confirmação técnica do Chatwoot (regra já existente, CHW-10). Processo informado é \emph{informado}, não \emph{localizado}.
+  \item \alert{Sem invenção.} Conteúdo vem da Cartilha, da Carta de Serviços ou de fonte oficial citada; nada de fluxo sem base.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ==========================================================================
+% B. ACOPLAMENTO À SOLUÇÃO ATUAL
+% ==========================================================================
+\begin{frame}{Como se acopla à solução atual}
+\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize}]
+  \node[externa] (wa) at (0.9,0) {Cidadã\\WhatsApp};
+  \node[atual] (cw) at (3.9,0) {Chatwoot\\caixa WhatsApp};
+  \node[atual] (bot) at (7.0,0) {Agent Bot\\webhook};
+  \node[atual,text width=3.9cm] (api) at (11.6,0) {Backend FastAPI\\\code{handler.py} $\to$ \code{flow.py}\\estado em SQLite};
+  \node[atual,text width=2.6cm] (rag) at (9.6,-1.9) {RAG institucional\\(domínio aprovado)};
+  \node[nova,text width=3.2cm] (mod) at (13.0,-1.9) {Novo módulo\\Ouvidoria da Mulher:\\menu, triagem, nota};
+  \node[atual,text width=5.2cm] (team) at (7.0,-3.5) {Times: \code{secretaria}, \code{gabinete}\\\textcolor{rosa}{\textbf{+ ouvidoria da mulher}}};
+  \draw[seta] (wa) -- (cw); \draw[seta] (cw) -- (bot); \draw[seta] (bot) -- (api);
+  \draw[seta] (api.south) -- ++(0,-0.5) -| (rag.north);
+  \draw[setanova] (api.south east) -- ++(0.4,-0.5) -| (mod.north);
+  \draw[setanova] (mod.south) |- (team.east);
+  \node[font=\tiny,text=rosa,anchor=west] at (10.0,-3.15) {nota privada, rótulos, atributos, \code{assign_team}};
+\end{tikzpicture}
+\vskip6pt
+\begin{itemize}\small\setlength\itemsep{2pt}
+  \item[] \textbf{Reaproveita:} máquina de estados do atendimento, protocolo \code{TKT}, idempotência por evento, transferência confirmada por equipe e status, encerramento por inatividade (23 h), cadastro com fonte e data.
+  \item[] \textbf{Não cria:} segundo orquestrador, novo canal, nem altera \code{secretaria} e \code{gabinete}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Onde entra no menu existente}
+\begin{columns}[T]
+\begin{column}{0.45\textwidth}
+\textbf{Hoje} (lista do WhatsApp, 5 linhas)
+\vskip3pt
+\begin{tikzpicture}
+  \node[draw=cinza,rounded corners=6pt,fill=nevoa,inner sep=6pt,text width=4.6cm,font=\scriptsize,align=left]{%
+  \faUser\ Sou parte/testemunha\\ \faBalanceScale\ Sou advogado(a)\\ \faInfoCircle\ Informações gerais\\ \faHandPaper\ Falar com atendente\\ \faCheck\ Encerrar atendimento};
+\end{tikzpicture}
+\end{column}
+\begin{column}{0.53\textwidth}
+\textbf{Proposto} (6 linhas; limite do WhatsApp: 10)
+\vskip3pt
+\begin{tikzpicture}
+  \node[draw=rosa,rounded corners=6pt,fill=white,inner sep=6pt,text width=4.9cm,font=\scriptsize,align=left]{%
+  \faUser\ Sou parte/testemunha\\ \faBalanceScale\ Sou advogado(a)\\ \faInfoCircle\ Informações gerais\\
+  \colorbox{rosaclaro}{\textcolor{rosa}{\faHeart\ \textbf{Ouvidoria da Mulher}}}\\ \faHandPaper\ Falar com atendente\\ \faCheck\ Encerrar atendimento};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\vskip6pt
+\begin{itemize}\small\setlength\itemsep{3pt}
+  \item Título da linha com até 24 caracteres: \code{Ouvidoria da Mulher} mais o ícone cabe. O clique volta como texto e é reconhecido como as demais opções.
+  \item \textbf{Chave de configuração} desligada por padrão: sem ela, o menu fica idêntico ao de hoje (teste de regressão).
+  \item \textbf{Atalho por texto livre:} frases como \emph{meu marido me bate} oferecem a Ouvidoria e mostram 190 e 180; \alert{só oferecem, nunca forçam} (evita falso positivo em perguntas sobre processos).
+  \item Visão de futuro: o \emph{Mosaico de Serviços} do TJPA tem 28 serviços; este módulo é o primeiro e serve de molde para os próximos.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Mapa do atendimento}
+\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize}]
+  \node[nova,text width=1.8cm] (a) at (1.1,0) {Acolhimento\\+ 190 e 180};
+  \node[nova,text width=1.3cm] (b) at (3.9,0) {Perigo\\agora?};
+  \node[nova,text width=2.7cm] (d) at (7.4,0) {Triagem: para quem, assunto, ambiente, processo, contato};
+  \node[nova,text width=1.7cm] (e) at (10.6,0) {Relato livre\\(opcional)};
+  \node[nova,text width=1.7cm] (f) at (13.3,0) {Resumo e\\consentimento};
+  \node[atual,text width=3.0cm] (c) at (5.8,1.9) {Cartão de emergência: 190 e 180; urgência marcada};
+  \node[atual,text width=2.3cm] (o) at (1.1,-1.9) {Orientações\\(Cartilha, com página)};
+  \node[atual,text width=2.6cm] (x) at (7.4,-1.9) {Contato inseguro: telefone e e-mail, sem encaminhar};
+  \node[atual,text width=2.3cm] (g) at (13.3,-1.9) {Transferência para o time \code{ouvidoria da mulher}};
+  \draw[seta] (a)--(b); \draw[setanova] (b.north)|-node[above,pos=0.75,font=\tiny]{sim}(c.west);
+  \draw[seta] (b)--node[above,font=\tiny]{não}(d); \draw[seta] (c.east)-|(d.north);
+  \draw[seta] (d)--(e); \draw[seta] (e)--(f); \draw[setanova] (f)--node[right,font=\tiny]{encaminhar}(g);
+  \draw[seta] (a)--(o); \draw[seta] (d)--(x);
+\end{tikzpicture}
+\vskip6pt
+{\scriptsize\textbf{Atalhos em todo o fluxo:} \faHandPaper\ \emph{Falar com atendente} encaminha com o que já existe \textperiodcentered\ \faArrowLeft\ \emph{Retornar ao menu} sai sem enviar \textperiodcentered\ digitar \emph{sair} também sai (saída rápida).}
+\end{frame}
+
+\begin{frame}{Orientações: Cartilha com página citada}
+\begin{columns}[T]
+\begin{column}{0.50\textwidth}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{3.1cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Linha da lista & Fonte \\
+\midrule
+O que é a Ouvidoria & Cartilha p.~4, 19; Carta de Serviços \\
+Formas de violência & p.~6--9 \\
+Assédio: qual a diferença & p.~10--13 \\
+Lei Maria da Penha & p.~15--16 \\
+Lei do Feminicídio & p.~17 \\
+Como denunciar & p.~21, com ressalva \\
+Telefones úteis & 180 e 190; Ouvidoria (Carta) \\
+Outra dúvida & busca restrita à Cartilha \\
+\bottomrule
+\end{tabularx}
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{itemize}\small\setlength\itemsep{4pt}
+  \item \alert{Texto fixo e aprovado} pela Ouvidoria para os 7 primeiros itens: resposta idêntica e previsível, sem improviso do modelo.
+  \item \alert{\emph{Outra dúvida}:} busca só nos trechos da Cartilha aprovados; se não achar, diz que não achou e oferece a Ouvidoria.
+  \item Nunca dá orientação jurídica individual ("você tem direito a..."), nem prevê decisão.
+  \item A ingestão da Cartilha entra como \code{pending_review}; \textbf{um humano aprova} (regra do projeto).
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ==========================================================================
+% C. TRIAGEM
+% ==========================================================================
+\begin{frame}{Triagem: 8 passos, todos com saída}
+\fontsize{6.2}{7.3}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}c>{\raggedright\arraybackslash}p{3.3cm}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+\# & Pergunta (resumo) & Opções & Por que e campo \\
+\midrule
+1 & Você está em perigo agora ou teme pela sua vida? & Sim; Não; Prefiro não responder & Segurança primeiro (OMS). \code{perigo_imediato} \\
+2 & O atendimento é para você ou para outra pessoa? & Para mim; Outra pessoa & A Ouvidoria e o 180 recebem relatos de terceiros. \code{para_quem} \\
+3 & Qual o assunto principal? & Física; Sexual; Psicológica; Patrimonial; Moral; On-line; Perseguição; Assédio ou importunação; Demora em processo; Outro ou não sei & Taxonomia da Cartilha (p.~6--13) e da Lei 11.340. \code{assunto} \\
+4 & Onde ou com quem aconteceu? & Parceiro(a) ou ex; Familiar; Trabalho; Espaço público; Internet; Instituição; Outro; Prefiro não dizer & Define o âmbito (doméstico, familiar, íntimo: art.~5º) e o encaminhamento. \code{ambiente} \\
+5 & Já existe processo ou medida protetiva? Se sim, o número (opcional) & Sim, tenho o número; Sim, sem número; Não; Não sei & Escopo processual da Ouvidoria. \code{processo} (informado, não verificado) \\
+6 & Posso continuar por este WhatsApp? É seguro? & Sim; Não é seguro; Prefiro telefone & Segurança digital (NNEDV). \code{contato_seguro} \\
+7 & Se quiser, conte em poucas palavras. Pode pular. & Texto livre; Pular & Contar uma vez só. \code{relato} (integral, nunca em log) \\
+8 & Posso enviar este resumo para a Ouvidoria da Mulher? & Encaminhar; Refazer; Sair sem enviar & Consentimento explícito. \code{consentimento} \\
+\bottomrule
+\end{tabularx}
+\vskip3pt
+{\tiny\textcolor{cinza}{Cada pergunta cabe em uma mensagem curta com botões (até 3) ou lista (até 10, título de até 24 caracteres). Fora dos botões, o texto livre só é aceito nos passos 5 e 7; tocar numa opção sempre escapa do campo livre.}}
+\end{frame}
+
+\begin{frame}{Caminhos de segurança e exceções}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{block}{\small Perigo agora = sim}
+\scriptsize Antes de qualquer outra pergunta: \textbf{190} (Polícia Militar) e \textbf{180}. O pedido fica marcado como \code{urgencia_imediata}. A Júlia não promete resposta rápida, pois a Ouvidoria atende 8h--14h; pergunta se a pessoa quer registrar o pedido mesmo assim.
+\end{block}
+\begin{block}{\small Contato não seguro}
+\scriptsize Não encaminha ao chat. Mostra telefone e e-mail da Ouvidoria, o 180 e a dica de apagar a conversa. A pessoa pode voltar quando estiver segura. \alert{Decisão sua:} registrar mesmo assim, sem retorno por aqui? (pág.~\ref{pg:decisoes})
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{\small Fora do horário (8h--14h, Belém)}
+\scriptsize Encaminha e avisa que a equipe retoma no próximo horário de atendimento, sem prometer prazo. \alert{Dias da semana: confirmar com a Ouvidoria.}
+\end{block}
+\begin{block}{\small Falha na transferência}
+\scriptsize Reutiliza o fluxo existente: o relato fica guardado, a pessoa escolhe tentar de novo ou ver telefone e e-mail. Nunca diz \emph{encaminhado} sem confirmação.
+\end{block}
+\begin{block}{\small Quem não é mulher ou pergunta fora do tema}
+\scriptsize Não pergunta gênero. Se a pessoa disser que o assunto não é violência contra a mulher, oferece o menu e a Ouvidoria Judiciária.
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Dados estruturados: o que a triagem entrega}
+\begin{columns}[T]
+\begin{column}{0.47\textwidth}
+{\scriptsize\textbf{Esquema v1} (coluna nova \code{triage} no SQLite, validada por enumerações)}
+\begin{tikzpicture}
+  \node[fill=nevoa,rounded corners=4pt,inner sep=5pt,text width=0.92\textwidth,font=\fontsize{6}{7.2}\selectfont\ttfamily,align=left]{%
+\{ "versao": 1,\\
+\ "servico": "ouvidoria\_mulher",\\
+\ "perigo\_imediato": "sim|nao|nao\_informado",\\
+\ "para\_quem": "propria|terceiro",\\
+\ "assunto": "fisica|sexual|psicologica|\\
+\ \ patrimonial|moral|online|perseguicao|\\
+\ \ assedio\_importunacao|morosidade|outro",\\
+\ "ambiente": "parceiro\_ex|familiar|trabalho|\\
+\ \ espaco\_publico|internet|instituicao|outro",\\
+\ "processo": \{"existe": "sim|nao|nao\_sei",\\
+\ \ "numero": null, "verificado": false\},\\
+\ "contato\_seguro": "sim|nao|telefone",\\
+\ "relato": null,\\
+\ "consentimento": true \}};
+\end{tikzpicture}
+\end{column}
+\begin{column}{0.50\textwidth}
+{\scriptsize\textbf{Nota privada no Chatwoot} (mesma ideia da nota de diligência atual)}
+\begin{tikzpicture}
+  \node[draw=rosa,fill=rosaclaro,rounded corners=4pt,inner sep=5pt,text width=0.92\textwidth,font=\fontsize{6.5}{8}\selectfont,align=left]{%
+\textbf{ATENDIMENTO VIRTUAL: OUVIDORIA DA MULHER}\\
+Urgência: \textbf{perigo imediato informado}\\
+Para quem: própria \textperiodcentered\ Assunto: violência psicológica\\
+Ambiente: parceiro(a) ou ex\\
+Processo/medida: sim, nº informado (não verificado)\\
+Contato seguro por este WhatsApp: sim\\
+Data e horário: (Belém) \textperiodcentered\ Protocolo: TKT-\ldots\\[2pt]
+Relato (texto integral): \ldots};
+\end{tikzpicture}
+\vskip4pt
+{\scriptsize \textbf{Rótulos:} \code{ouvidoria_mulher}, \code{urgencia_imediata}, \code{tem_processo}. \textbf{Atributos da conversa} (só enumerações, sem relato): servico, assunto, ambiente, urgencia, para\_quem. O relato e o nº do processo ficam \alert{só na nota e no banco}, nunca em log ou auditoria.}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{O que a triagem não faz}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\textbf{Não coleta}
+\begin{itemize}\small\setlength\itemsep{3pt}
+  \item CPF, RG, endereço, nome ou dados do agressor.
+  \item Detalhes da violência, além do relato livre opcional.
+  \item Gênero ou perfil da pessoa.
+  \item Fotos, áudios ou documentos (fora do piloto).
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Não faz}
+\begin{itemize}\small\setlength\itemsep{3pt}
+  \item Aplicar o FONAR, pontuar risco ou classificar \emph{gravidade}.
+  \item Dizer que um crime \emph{ocorreu} ou aconselhar processar.
+  \item Prometer prazo, resultado, prioridade ou sigilo absoluto.
+  \item Confirmar que o processo existe: o acervo do piloto é de demonstração (TJAP).
+  \item Insistir: perguntas puladas ficam \emph{não informado}.
+\end{itemize}
+\end{column}
+\end{columns}
+\vskip6pt
+\begin{tikzpicture}
+  \node[fill=areia,rounded corners=5pt,inner sep=6pt,text width=0.93\textwidth,font=\small]{\textbf{Por quê.} O FONAR é do profissional: a própria vítima só o preenche na ausência de profissional (Res.~Conj.~5/2020). Um escore automático teria falsa precisão. A triagem apenas \textbf{sinaliza e organiza}, e quem avalia é a equipe.};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Exemplo de conversa (sintético)}
+\scriptsize
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{tikzpicture}
+  \node[fill=nevoa,rounded corners=6pt,inner sep=5pt,text width=0.94\textwidth,align=left]{\textbf{Júlia:} Aqui você pode falar com calma. Se estiver em perigo agora, ligue \textbf{190}. O \textbf{180} atende 24 h. Quer orientações ou falar com a Ouvidoria da Mulher?};
+\end{tikzpicture}
+\vskip3pt
+\begin{tikzpicture}
+  \node[fill=rosaclaro,rounded corners=6pt,inner sep=5pt,text width=0.70\textwidth,align=left,xshift=1.2cm]{\textbf{Cidadã:} Falar com a Ouvidoria};
+\end{tikzpicture}
+\vskip3pt
+\begin{tikzpicture}
+  \node[fill=nevoa,rounded corners=6pt,inner sep=5pt,text width=0.94\textwidth,align=left]{\textbf{Júlia:} Você está em perigo agora ou teme pela sua vida? \textcolor{cinza}{[Sim] [Não] [Prefiro não responder]}};
+\end{tikzpicture}
+\vskip3pt
+\begin{tikzpicture}
+  \node[fill=rosaclaro,rounded corners=6pt,inner sep=5pt,text width=0.30\textwidth,align=left,xshift=3.4cm]{\textbf{Cidadã:} Não};
+\end{tikzpicture}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{tikzpicture}
+  \node[fill=nevoa,rounded corners=6pt,inner sep=5pt,text width=0.94\textwidth,align=left]{\textbf{Júlia:} Obrigada por responder. Qual é o assunto principal? \textcolor{cinza}{[lista de 10]}\\ \emph{(passos 3 a 6 com toques; passo 7 opcional)}};
+\end{tikzpicture}
+\vskip3pt
+\begin{tikzpicture}
+  \node[fill=nevoa,rounded corners=6pt,inner sep=5pt,text width=0.94\textwidth,align=left]{\textbf{Júlia:} Posso enviar este resumo (assunto, ambiente, processo, contato) para a Ouvidoria da Mulher? Eles atendem das 8h às 14h (Belém). \textcolor{cinza}{[Encaminhar] [Refazer] [Sair]}};
+\end{tikzpicture}
+\vskip3pt
+\begin{tikzpicture}
+  \node[fill=nevoa,rounded corners=6pt,inner sep=5pt,text width=0.94\textwidth,align=left]{\textbf{Júlia} \emph{(só após a confirmação do Chatwoot)}: Sua conversa foi encaminhada para a Ouvidoria da Mulher. Quando a equipe retomar o atendimento, continuará por aqui. Protocolo: TKT-\ldots};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\vskip2pt
+{\tiny\textcolor{cinza}{Redação ilustrativa: os textos finais precisam da revisão da Ouvidoria.}}
+\end{frame}
+
+% ==========================================================================
+% D. CHATWOOT
+% ==========================================================================
+\begin{frame}{Novo time ou novo canal?}\label{pg:time}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{3.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Critério & \textcolor{rosa}{Novo time na caixa atual} (recomendado) & Nova caixa de entrada (canal) \\
+\midrule
+O que é no Chatwoot & Quem responde: agentes agrupados, com atribuição da conversa & Por onde chega: um número ou canal de WhatsApp \\
+Roteamento & \code{assign_team} já usado pelo código; basta o nome do time & Exige novo número do WhatsApp Business e novo vínculo do Agent Bot \\
+Visibilidade restrita só à Ouvidoria & \alert{Não garante}: em geral, agentes veem as conversas das caixas de que fazem parte (confirmar na versão instalada) & Sim: só os agentes da caixa \\
+Esforço e risco & Baixo, reversível, sem mexer no que funciona & Maior: número, templates, vínculo do bot (exige seu pedido explícito) \\
+Adequação ao piloto e à demonstração & Suficiente & Desnecessária para a demonstração \\
+\bottomrule
+\end{tabularx}
+\vskip5pt
+\begin{tikzpicture}
+  \node[fill=areia,rounded corners=5pt,inner sep=6pt,text width=0.93\textwidth,font=\small]{\textbf{Recomendação.} Começar com o \textbf{time} \code{ouvidoria da mulher} (o Chatwoot grava nomes de time em minúsculas). Migrar para uma \textbf{caixa própria} só se a Ouvidoria ou a DPO exigirem \textbf{isolamento de acesso} ou \textbf{número dedicado}. É uma decisão de privacidade, não técnica.};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{O que fazer no Chatwoot}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}c>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+\# & Ação & Detalhe \\
+\midrule
+1 & Criar o time \code{ouvidoria da mulher} & Configurações $\to$ Equipes. Ou pelo script existente, em modo plano. \\
+2 & Adicionar só as pessoas da Ouvidoria & Quem tem acesso a conversas sensíveis é decisão de privacidade; apenas agentes necessários. \\
+3 & Criar 3 rótulos & \code{ouvidoria_mulher}, \code{urgencia_imediata}, \code{tem_processo} (Configurações $\to$ Rótulos). \\
+4 & Criar atributos personalizados de conversa & servico, assunto, ambiente, urgencia, para\_quem (só enumerações; sem relato). \\
+5 & Respostas prontas para a equipe & Acolhimento, confirmação de contato seguro, pedido de nº do processo, dados de 180 e 190. \alert{Quem redige é a Ouvidoria.} \\
+6 & Conferir horário e avisos da caixa & Não alterar o horário da caixa inteira: a regra de 8h--14h fica no módulo, só para este serviço. \\
+7 & Revisar o acesso a esta caixa & Se a versão instalada tiver funções personalizadas, avaliar; senão, considerar a caixa própria (pág.~anterior). \\
+8 & \alert{Não fazer} & Não ligar nem desligar o Agent Bot, não criar caixa e não mexer em \code{secretaria} e \code{gabinete} sem pedido seu. \\
+\bottomrule
+\end{tabularx}
+\vskip3pt
+{\tiny\textcolor{cinza}{O script de preparação (\code{chatwoot_setup}) hoje cria times e rótulos e roda em \emph{plano} por padrão; falta suporte a atributos personalizados (item de implementação).}}
+\end{frame}
+
+% ==========================================================================
+% E. IMPLEMENTAÇÃO
+% ==========================================================================
+\begin{frame}{Componentes a alterar}
+\fontsize{7.2}{8.6}\selectfont
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{5.4cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Arquivo & Mudança \\
+\midrule
+\code{backend/app/domain/triage_mulher.py} \textbf{(novo)} & Enumerações, dataclass da triagem, validação do esquema e geração do resumo; domínio puro, sem I/O. \\
+\code{application/chat/flow.py} & Tipos de ação \code{MULHER_*}, opções (títulos dentro dos limites), textos, linha nova no menu principal sob a chave de configuração, reconhecimento por título. \\
+\code{application/chat/handler.py} & Métodos \code{_mulher_*}: passos, \code{awaiting="mulher:PASSO"}, perigo, contato inseguro, resumo, nota de contexto, escolha do time. \\
+\code{infrastructure/sqlite/operational_store.py} & Coluna \code{triage TEXT} (migração automática \code{ALTER TABLE}), campo no estado, limpeza ao encerrar. \\
+\code{app/config.py} e \code{.env.example} & \code{ouvidoria_mulher_enabled=false}, \code{handoff_team_mulher}, limite do relato, horário e contatos. \\
+\code{backend/config/mulher.yaml} \textbf{(novo)} & Contatos com \emph{fonte e data de verificação} (mesmo padrão do \code{units.yaml}); nada fabricado. \\
+\code{infrastructure/chatwoot/client.py} & Métodos para atributos personalizados da conversa e suas definições. \\
+\code{interfaces/chatwoot_setup.py} & Time, 3 rótulos e atributos, em plano por padrão. \\
+\code{application/answering/*} e \code{sources.yaml} & Cartilha como fonte institucional \code{pending_review}; busca da \emph{Outra dúvida} restrita a ela; sem aconselhamento. \\
+\code{tests/unit}, \code{tests/integration} & Triagem, caminhos de segurança, menu, privacidade, regressão com a chave desligada. \\
+\code{docs/OPERACAO.md} & Procedimento de ativação, desativação e revisão. \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{Plano de implementação}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{1.7cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.6cm}@{}}
+\toprule
+Fase & Tarefas & Depende de \\
+\midrule
+0. Decisões & D1--D9 (pág.~\ref{pg:decisoes}); autorização para começar & você \\
+1. Conteúdo & Obter o PDF da Cartilha e ingerir com OCR como \code{pending_review}; redigir textos fixos; Ouvidoria revisa; confirmar 180, 190 e horário em fonte oficial & Fase 0 \\
+2. Chatwoot & Plano (\emph{dry-run}) do script; aplicar time, rótulos e atributos \textbf{com sua aprovação}; membros e respostas prontas & Fase 0 \\
+3. Código & Especificação e tarefas (\code{.specs/features/ouvidoria-mulher}); domínio $\to$ armazenamento $\to$ fluxo $\to$ handler $\to$ Chatwoot $\to$ configuração; tarefas atômicas, cada uma com teste & Fases 1 e 2 (textos) \\
+4. Homologação & Testes offline; teste em caixa ou número de teste; ensaio com a Ouvidoria; revisão de privacidade (DPO) & Fase 3 \\
+5. Entrega & Deploy só de código, chave \textbf{desligada}; ligar na VM somente com seu pedido; Agent Bot só com pedido explícito & Fase 4 \\
+\bottomrule
+\end{tabularx}
+\vskip3pt
+{\tiny\textcolor{cinza}{Sem estimativa de prazo: depende das respostas da Ouvidoria (Fase 1) e da sua aprovação (Fases 0 e 2). Tamanho relativo: Fase 3 é a maior; as demais são pequenas ou dependem de terceiros.}}
+\end{frame}
+
+\begin{frame}{Testes e critérios de aceite (exemplos)}
+\begin{columns}[T]
+\begin{column}{0.56\textwidth}
+\scriptsize\textbf{Critérios (formato EARS)}
+\begin{itemize}\setlength\itemsep{2pt}
+  \item \textbf{Quando} a pessoa escolher a Ouvidoria, \textbf{o sistema deve} mostrar 190 e 180 na primeira mensagem.
+  \item \textbf{Quando} responder \emph{sim} a perigo, \textbf{deve} enviar o cartão de emergência antes de qualquer outra pergunta e marcar urgência.
+  \item \textbf{Quando} tocar \emph{Prefiro não responder}, \textbf{deve} gravar \code{nao_informado} e seguir.
+  \item \textbf{Quando} confirmar o envio, \textbf{deve} gravar a nota \textbf{antes} de atribuir o time, e só avisar \emph{encaminhado} após a confirmação do Chatwoot.
+  \item \textbf{Se} o contato não for seguro, \textbf{não deve} encaminhar sem novo consentimento.
+  \item \textbf{O sistema não deve} registrar relato nem número de processo em log ou auditoria.
+  \item \textbf{Com a chave desligada}, o menu deve ser idêntico ao atual.
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\scriptsize\textbf{Cenários sintéticos de desenvolvimento}
+\begin{itemize}\setlength\itemsep{2pt}
+  \item Violência doméstica, sem perigo, com processo
+  \item Perigo agora
+  \item Relato de terceira pessoa
+  \item Assédio no trabalho
+  \item Violência on-line
+  \item Demora em processo
+  \item Contato inseguro
+  \item Pula todas as perguntas
+  \item Interrompe com pergunta de outro tema
+  \item Fora do horário; falha de transferência
+\end{itemize}
+{\tiny\textcolor{cinza}{São testes de desenvolvimento. A validação real é o ensaio com a Ouvidoria; os resultados serão informados separadamente, sem misturar os dois.}}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Riscos e mitigação}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Risco & Mitigação \\
+\midrule
+Pessoa real em perigo usa o número da demonstração & Piloto sinalizado; 190 e 180 em toda tela; pergunta de perigo primeiro; a Ouvidoria define quem monitora e quando. \\
+Agressor vê o celular ou as notificações & Pergunta de contato seguro; saída rápida; aviso de apagar a conversa; mensagens sem detalhes sensíveis. \\
+Triagem vira obstáculo & \emph{Falar com atendente} a qualquer momento; todas as perguntas têm saída. \\
+Falso positivo no atalho por texto livre & Só oferece o serviço; não força. \\
+Dado sensível exposto a muitos agentes & Time restrito; avaliar caixa própria; relato fora de log; política de retenção definida com a DPO. \\
+Conteúdo errado ou desatualizado & Textos aprovados pela Ouvidoria; contatos com fonte e data; Cartilha em \code{pending_review} até um humano aprovar. \\
+Horário 8h--14h cria expectativa falsa & Mensagem clara de horário; sem prazo prometido. \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{Decisões de que preciso}\label{pg:decisoes}
+\small
+\begin{enumerate}\setlength\itemsep{3pt}
+  \item \textbf{D1} Aprova o \textbf{time} \code{ouvidoria da mulher} (em vez de nova caixa)? Quem são os membros?
+  \item \textbf{D2} O número de WhatsApp atual é aceitável para o assunto, ou a Ouvidoria/DPO exige \textbf{caixa e número próprios}?
+  \item \textbf{D3} \textbf{Contato não seguro:} apenas orientar, ou permitir registrar o pedido sem retorno pelo WhatsApp?
+  \item \textbf{D4} \textbf{Horário:} confirmar 8h--14h e os dias da semana; mensagem fora do horário.
+  \item \textbf{D5} Aceita \textbf{relatos de terceiros} (testemunha, familiar)? Proposta: sim.
+  \item \textbf{D6} \textbf{Quem aprova} os textos das orientações e a ingestão da Cartilha? Pode enviar o PDF para o repositório?
+  \item \textbf{D7} \textbf{Retenção} do relato no banco do piloto (tempo e eliminação), com a DPO.
+  \item \textbf{D8} \textbf{Confirmar contatos}: WhatsApp do 180, 190 e dados da Ouvidoria, em fonte oficial atual.
+  \item \textbf{D9} Posso criar a especificação e começar a implementar atrás da chave desligada? E o menu: posição 4, como proposto?
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Referências}
+\tiny
+\begin{itemize}\setlength\itemsep{2pt}
+  \item Cartilha da Ouvidoria da Mulher (TJPA), PDF fornecido: págs.~4--21.
+  \item TJPA, \emph{Carta de Serviços}, ficha Ouvidoria da Mulher: \url{https://www.tjpa.jus.br/CMSPortal/VisualizarArquivo?idArquivo=1292557}
+  \item TJPA, página da Ouvidoria da Mulher (indicada na Carta): \url{https://www.tjpa.jus.br/PortalExterno/institucional/Ouvidoria-da-Mulher/982289-apresentacao.xhtml}
+  \item CNJ/CNMP, Resolução Conjunta 5/2020 (FONAR) e Lei 14.149/2021; guia: \url{https://dtic.tjpr.jus.br/documents/12054912/56756885/Formulário+Nacional+de+Avaliação+de+Risco.pdf/49c39f8c-ee93-054f-5dbe-c854178a0f48}
+  \item OMS, \emph{Health care for women subjected to intimate partner violence or sexual violence: a clinical handbook}: \url{https://www.who.int/publications/i/item/9789241517102} (currículo associado)
+  \item Campbell, Webster e Glass (2009), \emph{The Danger Assessment}, \emph{J. Interpersonal Violence}; Storey (2014).
+  \item NNEDV, \emph{Technology Abuse: Experiences of Survivors and Victim Service Agencies}: \url{https://nnedv.org/latest_update/technology-abuse-experiences-of-survivors-and-victim-service-agencies/}
+  \item Lei 14.550/2023 (Cartilha p.~16): \url{https://www.lex.com.br/lei-no-14-550-de-19-de-abril-de-2023}
+  \item CNJ, Resolução 254/2018 (política judiciária de enfrentamento): \url{https://atos.cnj.jus.br/atos/detalhar/2669}
+  \item Ligue 180 e 190 (fonte secundária; \alert{confirmar em gov.br}): \url{https://fpabramo.org.br/presidente-lula-sanciona-tres-leis-para-proteger-a-vida-das-brasileiras/}
+  \item Código do projeto: \code{backend/app/application/chat/{flow,handler}.py}, \code{domain/handoff.py}, \code{interfaces/chatwoot_setup.py}.
+\end{itemize}
+\end{frame}
+
+\end{document}

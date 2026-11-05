@@ -36,11 +36,13 @@ _ADDED_COLUMNS = {
     # roteiro TJPA (perfil escolhido, unidade, diligência e canal humano)
     "profile_locked": "INTEGER NOT NULL DEFAULT 0", "unit_label": "TEXT", "unit_id": "TEXT", "diligence": "TEXT",
     "request_reason": "TEXT", "request_channel": "TEXT", "request_note_id": "INTEGER", "choices": "TEXT",
+    # Ouvidoria da Mulher: triagem estruturada em JSON (relato e número do processo nunca vão para log ou auditoria)
+    "triage": "TEXT",
 }
 
 _STATE_FIELDS = ("handoff_state", "profile", "process_number", "failed_retrievals", "offer_pending", "handoff_attempts", "last_domain",
                  "awaiting", "handoff_team", "handoff_reason", "last_reply_hash", "profile_locked", "unit_label", "unit_id", "diligence",
-                 "request_reason", "request_channel", "request_note_id", "choices")
+                 "request_reason", "request_channel", "request_note_id", "choices", "triage")
 
 
 def _now() -> str:
@@ -79,9 +81,10 @@ class ConversationState:
     request_channel: str | None = None  # canal escolhido: whatsapp | balcao
     request_note_id: int | None = None  # nota de contexto já registrada no Chatwoot (evita duplicar na nova tentativa)
     choices: str | None = None  # JSON com os números de processo oferecidos para seleção explícita
+    triage: str | None = None  # JSON da triagem da Ouvidoria da Mulher (domain/triage_mulher.py)
 
     def clear_request(self) -> None:
-        self.diligence = self.request_reason = self.request_channel = self.request_note_id = self.choices = None
+        self.diligence = self.request_reason = self.request_channel = self.request_note_id = self.choices = self.triage = None
 
 
 class OperationalStore:
@@ -112,7 +115,7 @@ class OperationalStore:
             handoff_attempts=r["handoff_attempts"], last_domain=r["last_domain"], awaiting=r["awaiting"], handoff_team=r["handoff_team"], handoff_reason=r["handoff_reason"],
             last_reply_hash=r["last_reply_hash"], profile_locked=bool(r["profile_locked"]), unit_label=r["unit_label"], unit_id=r["unit_id"],
             diligence=r["diligence"], request_reason=r["request_reason"], request_channel=r["request_channel"],
-            request_note_id=r["request_note_id"], choices=r["choices"],
+            request_note_id=r["request_note_id"], choices=r["choices"], triage=r["triage"],
         )
 
     def save(self, st: ConversationState) -> None:

@@ -50,11 +50,19 @@
 - **Date**: 2026-10-27
 - **Status**: active
 
+### AD-007
+- **Decision**: A Ouvidoria da Mulher é um módulo do fluxo guiado existente (`mulher.py`, `triage_mulher.py`, métodos `_mulher_*` do handler), atrás de `OUVIDORIA_MULHER_ENABLED=false`, encaminhando só para o time `ouvidoria_mulher` do Chatwoot. Não há caixa de entrada nova. Contato não seguro: orientar e registrar o pedido sem retorno por este WhatsApp. O aviso de encaminhamento orienta guardar o protocolo TKT para eventual atendimento presencial.
+- **Reason**: Aprovação do plano e decisões D1, D3, D5, D6, D8 e D9 do responsável (2026-11-04); time criado por ele.
+- **Trade-off**: O time não restringe quem vê a conversa; textos de orientação sem busca livre; dias de atendimento da Ouvidoria não verificados.
+- **Scope**: `backend/app/application/chat`, `backend/app/domain/triage_mulher.py`, `backend/config/mulher.yaml`
+- **Date**: 2026-11-04
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: tjpa-roteiro-atendimento / `.specs/features/tjpa-roteiro-atendimento/`
-- **Phase / Task**: Execute T1 a T9 implementados e testados localmente (sem commits; o responsável não pediu). Verifier independente: ver `validation.md`.
-- **Next step**: homologação com número de teste (ver `docs/OPERACAO.md` §6.3); preencher `backend/config/units.yaml` com dados oficiais; confirmar a regra secretaria/gabinete.
-- **Blockers**: dados oficiais de unidades, TeleJudiciário e links diretos do Balcão; API processual para CPF.
+- **Feature**: ouvidoria-mulher / `.specs/features/ouvidoria-mulher/` (anterior: tjpa-roteiro-atendimento)
+- **Phase / Task**: Execute T1 a T5 implementados e testados offline (451 testes); Verifier PASS na iteração 3 (`validation.md`). Implantado na VM em 2026-11-04 só como código, com `OUVIDORIA_MULHER_ENABLED=true` no `/opt/tjpa/.env`; sem commits.
+- **Next step**: ensaio com a Ouvidoria (número de teste); `chatwoot_setup --apply` (rótulos e atributos) só com aprovação; revisão dos textos pela Ouvidoria; confirmar dias de atendimento e contatos.
+- **Blockers**: Agent Bot ainda não ligado à inbox real (decisão do responsável); política de retenção do relato (DPO); busca livre na Cartilha depende de OCR e aprovação humana.
 - **Branch**: main
 - **Feature anterior**: tjpa-atendimento-rag (avaliação e implantação em andamento; ver `docs/AVALIACAO.md`)
