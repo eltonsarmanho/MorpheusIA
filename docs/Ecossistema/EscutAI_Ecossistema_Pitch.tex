@@ -473,7 +473,46 @@ Retorno & A pessoa volta com o mesmo TKT & O caso continua de onde parou & Resol
 \end{tikzpicture}
 \end{frame}
 
-% ======================================================= 11. fecho
+% ======================================================= 11. ROADMAP PÓS-PITCH
+\begin{frame}{Se vencermos: 5 etapas, cada uma com prova}
+\centering
+\vskip3pt
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \tikzset{rotlin/.style={anchor=west,text=cinza,font=\fontsize{6.6}{7.6}\selectfont\bfseries,inner sep=0,text width=1.1cm,align=left},
+           entrega/.style={text=tinta,font=\footnotesize\bfseries,text width=2.5cm,align=center,inner sep=0},
+           prova/.style={text=tinta,font=\scriptsize,text width=2.46cm,align=center,inner sep=0},
+           decisao/.style={text=tinta,font=\scriptsize\bfseries,text width=2.3cm,align=center,inner sep=0}}
+  % rótulos das linhas
+  \node[rotlin] at (0,3.75) {ENTREGA};
+  \node[rotlin] at (0,1.85) {PROVA};
+  \node[rotlin] at (0,.42) {DECISÃO};
+  \foreach \vi/\vn/\vt/\vp/\vc/\vic/\ve/\vv/\vd in {
+    0/1/Mobilizar/Início/ouro/\faFileSignature/{Termo e regra de acesso}/{Termo assinado e regra aprovada pela DPO}/{Regra aprovada?},
+    1/2/Construir/Meses 1 a 2/petroleo/\faSearch/{TKT integrado ao Balcão Virtual}/{Demonstração no canal oficial e linha de base}/{Integrou? Metas fixadas?},
+    2/3/Testar/Meses 3 a 5/petroleo/\faUniversity/{Teste no Balcão\\e dashboard\\gerencial}/{Amostra com atendentes e métricas no dashboard}/{Atendentes validam?},
+    3/4/Avaliar/Meses 6 a 7/verde/\faChartBar/{Antes e depois, contra as metas}/{Relatório entregue ao TJPA}/{Expandir ou ajustar?},
+    4/5/Expandir/Mês 8 em diante/verde/\faSitemap/{Todas as unidades,\\com operação\\e suporte}/{Mesmos indicadores por unidade}/{Indicadores se mantêm?}}{
+    \pgfmathsetmacro{\vx}{1.15+\vi*2.72}
+    % seta da etapa
+    \fill[\vc] (\vx,5.0) -- ++(2.5,0) -- ++(.2,.42) -- ++(-.2,.42) -- ++(-2.5,0) -- ++(.2,-.42) -- cycle;
+    \node[anchor=center,text=white,font=\footnotesize\bfseries,inner sep=0] at (\vx+1.35,5.57) {\vn. \vt};
+    \node[anchor=center,text=white,font=\fontsize{7}{8}\selectfont,inner sep=0] at (\vx+1.35,5.24) {\vp};
+    % entrega
+    \fill[nevoa,rounded corners=5pt] (\vx,2.72) rectangle ++(2.6,2.13);
+    \node[text=\vc,font=\Large] at (\vx+1.3,4.4) {\vic};
+    \node[entrega] at (\vx+1.3,3.4) {\ve};
+    % prova
+    \draw[seta,line width=.7pt,rounded corners=5pt] (\vx,1.12) rectangle ++(2.6,1.46);
+    \node[prova] at (\vx+1.3,1.85) {\vv};
+    % decisão
+    \fill[areia,rounded corners=5pt] (\vx,0) rectangle ++(2.6,.98);
+    \node[decisao] at (\vx+1.3,.49) {\vd};
+  }
+\end{tikzpicture}
+\par\vskip4pt\raggedright{\tiny\textcolor{cinza}{A etapa seguinte só começa com a decisão anterior, tomada pelo TJPA. Metas fixadas antes do teste. Prazos: proposta de partida, a fechar com o TJPA.}}
+\end{frame}
+
+% ======================================================= 12. fecho
 {\fundoescuro
 \begin{frame}[plain]
   \juliacapa

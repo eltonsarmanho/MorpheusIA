@@ -16,7 +16,15 @@ backend/*.sqlite3
 
 # Node (frontend tooling, if any)
 node_modules/
-
+# Tex
+*.out
+*.nav
+*.log
+*.fls
+*.aux
+*.snm
+*.toc
+*.fdb_latexmk
 # OS/editor
 .DS_Store
 
