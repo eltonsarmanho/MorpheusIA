@@ -7,6 +7,7 @@ import unicodedata
 from dataclasses import dataclass
 
 from app.domain.models import Intent, Profile
+from app.domain.greeting import is_greeting
 from app.domain.policies import find_process_numbers
 
 
@@ -23,7 +24,6 @@ _HUMAN = re.compile(
     r"(quero|preciso|gostaria de|prefiro)\s+(de\s+)?(um |uma )?(atendente|atendimento humano)|"
     r"nao quero (falar com )?(robo|bot))\b"
 )
-_GREETING = re.compile(r"^\s*(oi+|ola+|bom dia|boa tarde|boa noite|e ai|tudo bem\??|menu|inicio|iniciar|ajuda)[\s!.,?]*$")
 
 _PROCESSUAL = re.compile(
     r"\b(processos?|acervo|autos|autor(a)?|reu|re|requerente|requerido|vara|decisao|decisoes|despacho|sentenca|certidao|peticao|"
@@ -64,7 +64,7 @@ def classify_intent(message: str) -> IntentResult:
     t = _fold(message)
     if _HUMAN.search(t):
         return IntentResult(Intent.ATENDIMENTO_HUMANO, 0.95, ("pedido_de_atendimento_humano",))
-    if _GREETING.match(t):
+    if is_greeting(message):
         return IntentResult(Intent.SAUDACAO, 0.95, ("saudacao",))
     numbers = find_process_numbers(message)
     scores = {

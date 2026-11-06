@@ -16,6 +16,7 @@ from enum import StrEnum
 from app.application import persona
 from app.application.chat import mulher, retomada
 from app.domain.models import Option, Profile
+from app.domain.greeting import is_greeting
 from app.domain.policies import find_process_numbers
 
 BELEM = timezone(timedelta(hours=-3))  # Belém não tem horário de verão
@@ -277,7 +278,6 @@ def _register() -> None:
 
 
 _register()
-_GREETING = re.compile(r"^(oi+|ola+|bom dia|boa tarde|boa noite|menu|inicio|iniciar|ajuda|opcoes|e ai|tudo bem)$")
 _CLOSE_WORDS = frozenset({"encerrar", "encerrar atendimento", "finalizar", "finalizar atendimento", "sair", "tchau", "fechar"})
 
 
@@ -297,7 +297,7 @@ def parse(text: str, known_processes: list[str]) -> Action:
         return act
     if c in _CLOSE_WORDS:
         return Action(Kind.CLOSE_HINT)  # texto digitado pode ser sem intenção; encerrar só pelo menu
-    if _GREETING.match(c):
+    if is_greeting(text):
         return Action(Kind.MENU)
     numbers = find_process_numbers(text)
     if len(numbers) == 1 and len(re.sub(r"[\d.\- ]", "", text).strip()) == 0 and numbers[0] in known_processes:
