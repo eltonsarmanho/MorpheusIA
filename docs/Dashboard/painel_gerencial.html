@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel gerencial</title>
+<style>
+:root{
+  --escuro:#053F35;--petroleo:#0B5345;--verde:#00A884;--menta:#16E0A9;
+  --tinta:#0E2F33;--cinza:#51605F;--cinza2:#6B7877;--linha:#DDE7E3;--fundo:#F4F7F6;--sup:#FFFFFF;--nevoa:#E8F4F0;--seta:#A8D5C6;
+  --areia:#FDE3A7;--alerta:#C0392B;--rosa:#B03060;
+  --s1:#00A884;--s2:#2F6FA7;--s3:#D98A00;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fundo)}
+body{font:14px/1.45 Inter,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--tinta);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+a{color:inherit}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{background:var(--escuro);color:#fff;padding:20px 12px;display:flex;flex-direction:column;gap:24px;position:sticky;top:0;height:100vh}
+.marca{display:flex;align-items:center;gap:10px;padding:0 8px}
+.marca img{height:30px}
+.marca b{font-size:18px;letter-spacing:-.01em}.marca b span{color:var(--menta)}
+.marca small{display:block;font-size:11.5px;color:var(--seta);font-weight:400}
+.menu{display:flex;flex-direction:column;gap:4px}
+.menu a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;text-decoration:none;color:#DCEFE9;border-left:3px solid transparent}
+.menu a:hover{background:rgba(255,255,255,.07)}
+.menu a[aria-current=page]{background:var(--petroleo);color:#fff;font-weight:600;border-left-color:var(--menta)}
+.menu a:focus-visible,button:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--menta);outline-offset:2px}
+.regra{margin-top:auto;font-size:12px;line-height:1.45;color:#CFE6DF;padding:12px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;gap:8px}
+.regra svg{margin-top:1px;color:var(--menta)}
+main{padding:24px 28px 28px;min-width:0}
+.topo{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.topo h1{margin:0;font-size:24px;line-height:1.2;letter-spacing:-.015em}
+.topo p{margin:2px 0 0;color:var(--cinza)}
+.topo .dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.selo{background:var(--areia);font-size:11.5px;font-weight:700;letter-spacing:.03em;padding:6px 10px;border-radius:5px;display:inline-flex;gap:6px;align-items:center}
+.selo svg{width:14px;height:14px}
+.campo{display:inline-flex;align-items:center;gap:8px;background:var(--sup);border:1px solid var(--linha);border-radius:6px;padding:0 10px;height:36px;color:var(--cinza)}
+.campo select{border:0;background:none;font:inherit;color:var(--tinta);height:34px;padding-right:2px}
+.pag{display:none}.pag.ativa{display:block}
+.grade{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
+.g2{grid-template-columns:7fr 5fr;margin-bottom:16px}
+.g2i{grid-template-columns:1fr 1fr;margin-bottom:16px}
+.card{background:var(--sup);border:1px solid var(--linha);border-radius:8px;padding:16px 18px;min-width:0}
+.kpi .rot{color:var(--cinza);font-size:13px}
+.kpi .val{font-size:34px;line-height:1.15;font-weight:700;letter-spacing:-.02em;margin:6px 0 4px}
+.kpi .ctx{color:var(--cinza2);font-size:12.5px}
+.cab{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.cab h2{margin:0;font-size:15px;line-height:1.3}
+.cab p{margin:2px 0 0;font-size:12.5px;color:var(--cinza2)}
+.cab .acao{margin-left:auto;flex:none}
+.bt{font:inherit;font-size:12.5px;background:none;border:1px solid var(--linha);border-radius:5px;color:var(--petroleo);padding:4px 9px;cursor:pointer}
+.bt:hover{background:var(--nevoa)}
+/* barras */
+.barras{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:186px minmax(0,1fr);align-items:center;gap:10px;border-radius:4px;padding:2px 0}
+.bar:hover .tr i{filter:brightness(.9)}
+.bar .nome{font-size:13px;display:flex;align-items:center;gap:6px}
+.bar .nome svg{width:13px;height:13px;color:var(--rosa)}
+.bar .tr{display:flex;align-items:center;gap:8px;min-width:0;border-left:1px solid #C5D3CE}
+.bar .tr i{display:block;height:16px;background:var(--cor,var(--s1));border-radius:0 4px 4px 0}
+.bar .tr b{font-size:13px;white-space:nowrap;font-weight:600}
+.bar .tr b small{font-weight:400;color:var(--cinza2);font-size:12px;margin-left:4px}
+.nota{font-size:12px;color:var(--cinza2);margin:12px 0 0;display:flex;gap:6px}
+.nota svg{width:14px;height:14px;margin-top:2px}
+/* colunas */
+.leg{display:flex;gap:14px;font-size:12.5px;color:var(--cinza);flex-wrap:wrap}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{width:10px;height:10px;border-radius:2px;display:block}
+.colunas{position:relative;display:grid;grid-template-columns:30px 1fr;margin-top:6px}
+.yax{position:relative;height:180px}
+.yax span{position:absolute;right:8px;transform:translateY(50%);font-size:11.5px;color:var(--cinza2)}
+.plot{position:relative;height:180px;display:flex;justify-content:space-around;align-items:flex-end}
+.plot u{position:absolute;left:0;right:0;height:1px;background:#EDF2F0;text-decoration:none}
+.plot u.base{background:#C5D3CE}
+.gr{position:relative;display:flex;gap:8px;align-items:flex-end;height:100%;z-index:1}
+.gr .c{width:24px;border-radius:4px 4px 0 0;position:relative;cursor:default}
+.gr .c:hover{filter:brightness(.9)}
+.gr .c em{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:12px;font-weight:600;font-style:normal;line-height:1.3;color:var(--tinta);background:var(--sup);padding:0 2px;margin-bottom:1px}
+.xax{grid-column:2;display:flex;justify-content:space-around;margin-top:6px;font-size:12px;color:var(--cinza2)}
+/* atenção */
+.at{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.at a{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linha);border-radius:6px;text-decoration:none}
+.at a:hover{background:var(--fundo)}
+.at .ic{color:var(--alerta)}
+.at b{font-size:24px;line-height:1;letter-spacing:-.01em}
+.at span{font-size:13px;line-height:1.3}
+.at .ch{margin-left:auto;color:var(--cinza2)}
+/* segmentado */
+.seg{display:flex;gap:2px;height:44px;margin-bottom:14px}
+.seg div{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--rotulo)}
+.seg div:first-child{border-radius:4px 0 0 4px}.seg div:last-child{border-radius:0 4px 4px 0}
+.lin{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0;border-top:1px solid #EDF2F0}
+.lin:first-of-type{border-top:0}
+.lin i{width:10px;height:10px;border-radius:2px}
+.lin b{margin-left:auto;font-weight:600}
+/* sem medição */
+.sem{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sem div{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:var(--fundo);border-radius:6px}
+.sem svg{color:var(--cinza2);margin-top:2px}
+.sem b{display:block;font-size:13.5px}.sem small{font-size:12.5px;color:var(--cinza2)}
+/* tabelas */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:12px;text-align:left;color:var(--cinza);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--linha)}
+td{padding:9px 10px;border-bottom:1px solid #EDF2F0;vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;white-space:nowrap}
+td.n{font-weight:600}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap;color:var(--cinza)}
+.tag svg{width:13px;height:13px}
+.tag.h svg{color:var(--verde)}.tag.a svg{color:var(--s3)}.tag.c svg{color:var(--s2)}.tag.n svg{color:var(--rosa)}
+.oculto{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.oculto svg{width:13px;height:13px;color:var(--cinza2)}
+.tabela{display:none}
+.mostra .tabela{display:block}.mostra .grafico{display:none}
+/* funil */
+.funil{display:flex;flex-direction:column;gap:10px}
+.fl{display:grid;grid-template-columns:270px minmax(0,1fr) 300px;gap:12px;align-items:center}
+.fl .nome{font-size:13px}
+.fl .tr{display:flex;align-items:center;gap:8px;border-left:1px solid #C5D3CE}
+.fl .tr i{display:block;height:18px;border-radius:0 4px 4px 0}
+.fl .tr b{font-weight:700}
+.fl .por{font-size:12.5px;color:var(--cinza2)}
+.regra-fcr{background:var(--nevoa);border-radius:6px;padding:8px 12px;font-size:13px;margin-bottom:14px}
+#tip{position:fixed;display:none;z-index:9;background:var(--tinta);color:#fff;font-size:12.5px;padding:6px 10px;border-radius:5px;pointer-events:none;max-width:240px}
+footer{margin-top:4px;font-size:12px;color:var(--cinza2)}
+@media (max-width:1180px){.g2,.g2i{grid-template-columns:minmax(0,1fr)}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.fl{grid-template-columns:180px minmax(0,1fr)}.fl .por{grid-column:1/-1}}
+@media (max-width:780px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{padding:12px 16px;gap:10px;position:static;height:auto}.regra{display:none}
+  .menu{flex-direction:row}.menu a{flex:1;justify-content:center;padding:8px 6px;font-size:13px;border-left:0;border-bottom:3px solid transparent}.menu a[aria-current=page]{border-bottom-color:var(--menta)}
+  main{padding:16px}.topo .dir{margin-left:0}
+  .at,.sem{grid-template-columns:minmax(0,1fr)}
+  .bar{grid-template-columns:minmax(0,1fr);gap:3px}
+  .fl{grid-template-columns:minmax(0,1fr);gap:3px}
+  .kpi .val{font-size:28px}
+  .tabwrap{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="pie" viewBox="0 0 24 24"><path d="M21 15.5A9.5 9.5 0 1 1 8.5 3"/><path d="M12 2.5a9.5 9.5 0 0 1 9.5 9.5H12z"/></symbol>
+<symbol id="ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m8 12.5 3 3 5-6"/></symbol>
+<symbol id="lst" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+<symbol id="cad" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+<symbol id="inf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="ale" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></symbol>
+<symbol id="chv" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="cli" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 11h6M9 15h6"/></symbol>
+<symbol id="est" viewBox="0 0 24 24"><path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1 6.3L12 17.5 6.500 20.400l1-6.300L3 9.700l6.200-.9z"/></symbol>
+<symbol id="ocu" viewBox="0 0 24 24"><path d="M3 3l18 18M10.500 6.200A9 9 0 0 1 21.500 12a14 14 0 0 1-3 3.800M6.500 7.500A14 14 0 0 0 2.500 12a9.500 9.500 0 0 0 12.500 5"/></symbol>
+<symbol id="cha" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="ajs" viewBox="0 0 24 24"><path d="M14.500 6.500a4 4 0 0 0-5 5L3 18l3 3 6.500-6.500a4 4 0 0 0 5-5l-2.700 2.700-2.500-.5-.5-2.500z"/></symbol>
+<symbol id="mai" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.500"/><path d="M12 8v8M8 12h8"/></symbol>
+</defs></svg>
+
+<div class="app">
+  <aside class="side">
+    <div class="marca"><img src="img/logo_escutai_branco.png" alt=""><div><b>Escut<span>AI</span></b><small>Painel gerencial</small></div></div>
+    <nav class="menu" aria-label="Páginas do painel">
+      <a href="#visao" data-pag="visao"><svg class="i"><use href="#pie"/></svg>Visão geral</a>
+      <a href="#qualidade" data-pag="qualidade"><svg class="i"><use href="#ok"/></svg>Qualidade</a>
+      <a href="#detalhes" data-pag="detalhes"><svg class="i"><use href="#lst"/></svg>Detalhes</a>
+    </nav>
+    <div class="regra"><svg class="i"><use href="#cad"/></svg><span>Só números agregados. Sem protocolo, contato ou texto de conversa, e sem ranking de pessoas.</span></div>
+  </aside>
+  <main>
+    <header class="topo">
+      <div><h1 id="titulo">Visão geral</h1><p id="sub"></p></div>
+      <div class="dir">
+        <span class="selo"><svg class="i"><use href="#ale"/></svg>PROTÓTIPO: NÚMEROS ILUSTRATIVOS</span>
+        <label class="campo"><svg class="i"><use href="#cal"/></svg><span style="position:absolute;width:1px;height:1px;overflow:hidden">Período</span>
+          <select><option>Últimos 30 dias</option></select></label>
+      </div>
+    </header>
+
+    <section class="pag" id="pag-visao">
+      <div class="grade g4" data-kpis='[["Protocolos abertos","32","8% dos 400 do período"],["Protocolos fechados","368","92% dos 400 do período"],["Resolução no 1º contato","75%","180 de 240 elegíveis"],["Transferidos à equipe","35%","140 de 400 protocolos"]]'></div>
+      <div class="grade g2">
+        <div class="card" data-tab>
+          <div class="cab"><div><h2>Atendimento por serviço</h2><p>Protocolos no período, cada um em um único serviço</p></div><button class="bt acao">Ver tabela</button></div>
+          <div class="grafico barras" id="b-servico"></div><div class="tabela tabwrap" id="t-servico"></div>
+        </div>
+        <div class="card" data-tab>
+          <div class="cab"><div><h2>Volume por semana</h2><p class="leg" style="margin-top:6px"><span><i style="background:var(--s1)"></i>Abertos</span><span><i style="background:var(--s3)"></i>Fechados</span></p></div><button class="bt acao">Ver tabela</button></div>
+          <div class="grafico colunas" id="c-semana" role="img" aria-label="Abertos e fechados crescem a cada semana; na semana 4 foram 112 abertos e 104 fechados."></div><div class="tabela tabwrap" id="t-semana"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cab"><div><h2>Precisa de atenção</h2></div></div>
+        <div class="at">
+          <a href="#detalhes"><svg class="i ic"><use href="#ale"/></svg><b>14</b><span>Transferidos fechados por inatividade</span><svg class="i ch"><use href="#chv"/></svg></a>
+          <a href="#detalhes"><svg class="i ic"><use href="#ale"/></svg><b>12</b><span>Retomadas não localizadas</span><svg class="i ch"><use href="#chv"/></svg></a>
+          <a href="#detalhes"><svg class="i ic"><use href="#ale"/></svg><b>6</b><span>Transferências não confirmadas</span><svg class="i ch"><use href="#chv"/></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="pag" id="pag-qualidade">
+      <div class="grade g4" data-kpis='[["Resolvidos só pela Júlia","41%","150 de 368 fechados"],["Transferências confirmadas","96%","140 de 146 tentativas"],["1ª resposta humana","42 min","mediana, após transferir"],["Retomadas concluídas","70%","28 de 40 tentativas"]]'></div>
+      <div class="grade g2">
+        <div class="card" data-tab>
+          <div class="cab"><div><h2>Resolução no 1º contato, por serviço</h2><p>Elegíveis sem novo protocolo do mesmo contato em 7 dias</p></div><button class="bt acao">Ver tabela</button></div>
+          <div class="grafico barras" id="b-fcr"></div><div class="tabela tabwrap" id="t-fcr"></div>
+          <p class="nota"><svg class="i"><use href="#inf"/></svg>Ouvidoria da Mulher fica fora: voltar a procurar não é falha do serviço.</p>
+        </div>
+        <div class="card" data-tab>
+          <div class="cab"><div><h2>Como os protocolos fecharam</h2><p>368 protocolos fechados</p></div><button class="bt acao">Ver tabela</button></div>
+          <div class="grafico" id="s-fech"></div><div class="tabela tabwrap" id="t-fech"></div>
+          <p class="nota"><svg class="i"><use href="#inf"/></svg>Inatividade não conta como resolvido.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cab"><div><h2>Ainda sem medição</h2></div></div>
+        <div class="sem">
+          <div><svg class="i"><use href="#cli"/></svg><span><b>A pessoa precisou repetir o caso?</b><small>Revisão por amostra com os atendentes</small></span></div>
+          <div><svg class="i"><use href="#est"/></svg><span><b>Satisfação de quem foi atendido</b><small>Pesquisa ao encerrar, a decidir</small></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pag" id="pag-detalhes">
+      <div class="card" style="margin-bottom:16px">
+        <div class="cab"><div><h2>Como chegamos aos 75% de resolução no 1º contato</h2></div></div>
+        <div class="regra-fcr"><b>Regra proposta:</b> o protocolo conta como resolvido se a pessoa não abrir outro em até 7 dias. É indicador de tendência; a amostra com atendentes calibra.</div>
+        <div class="funil" id="funil"></div>
+      </div>
+      <div class="grade g2i">
+        <div class="card" data-tab>
+          <div class="cab"><div><h2>Idade dos protocolos abertos</h2><p>32 abertos, por tempo desde a abertura</p></div><button class="bt acao">Ver tabela</button></div>
+          <div class="grafico barras" id="b-idade"></div><div class="tabela tabwrap" id="t-idade"></div>
+        </div>
+        <div class="card" data-tab>
+          <div class="cab"><div><h2>Transferências por equipe</h2><p>140 protocolos com equipe confirmada</p></div><button class="bt acao">Ver tabela</button></div>
+          <div class="grafico barras" id="b-equipe"></div><div class="tabela tabwrap" id="t-equipe"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="cab"><div><h2>Outras medidas</h2><p>Grupos com menos de 5 casos não são mostrados</p></div></div>
+        <div class="tabwrap"><table>
+          <thead><tr><th>Medida</th><th class="n">Valor</th><th>Base</th><th>Por que importa</th><th>Origem do dado</th></tr></thead>
+          <tbody id="medidas"></tbody>
+        </table></div>
+      </div>
+      <footer>Todos os números desta tela são ilustrativos.</footer>
+    </section>
+  </main>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const PAG={visao:["Visão geral","Quanto entra, quanto está parado e o que precisa de atenção"],
+  qualidade:["Qualidade","O atendimento resolve de fato?"],
+  detalhes:["Detalhes","As demais medidas e como cada número é calculado"]};
+const ic=n=>`<svg class="i"><use href="#${n}"/></svg>`;
+
+const SERV=[["Consulta de processo",160,"40%"],["Informações gerais",88,"22%"],["Diligência ou providência",64,"16%"],["Falar com atendente",40,"10%"],["Retomada por protocolo",28,"7%"],["Ouvidoria da Mulher",20,"5%",true]];
+const FCR=[["Informações gerais",87],["Consulta de processo",78],["Retomada por protocolo",67],["Falar com atendente",64],["Diligência ou providência",60]];
+const SEM=[["Sem. 1",86,78],["Sem. 2",94,88],["Sem. 3",108,98],["Sem. 4",112,104]];
+const FECH=[["A pedido da pessoa",170,46,"--s1","var(--tinta)"],["Pelo atendente",118,32,"--s2","#fff"],["Por inatividade",80,22,"--s3","var(--tinta)"]];
+const IDADE=[["Até 1 dia",14],["2 a 3 dias",8],["4 a 7 dias",5],["Mais de 7 dias",5]];
+const EQUIPE=[["Secretaria",60],["Atendimento Humano Geral",38],["Gabinete",22],["Ouvidoria da Mulher",20,true]];
+const FUNIL=[["Fechados",368,"","var(--seta)"],["Fechados pela pessoa ou pelo atendente",288,"Saem 80: inatividade não é resolução","var(--seta)"],["Elegíveis",240,"Saem 48: sem dono, caso restrito ou janela de 7 dias em curso","var(--seta)"],["Sem novo protocolo em 7 dias",180,"180 ÷ 240 = 75%","var(--s1)"]];
+const TAG={h:["ok","Já registrado"],a:["ajs","Exige ajuste no backend"],c:["cha","Relatório do Chatwoot"],n:["mai","Coleta nova"]};
+const OC=`<span class="oculto">${ic('ocu')}menos de 5</span>`;
+const MED=[
+ ["Atendimento por serviço","400","protocolos do período","Em qual serviço está o problema","a"],
+ ["Transferidos fechados por inatividade","14","de 140 transferidos","Sinal de pessoa sem resposta","h"],
+ ["Transferências não confirmadas","6","de 146 tentativas","Pedido perdido é o pior erro","h"],
+ ["Retomadas não localizadas","12","de 40 tentativas","Se o protocolo serve de fato","h"],
+ ["Júlia sem resposta segura","46","de 560 respostas","Onde falta conteúdo no acervo","h"],
+ ["Rascunhos de IA gerados","60","no período","Uso do resumo ao atendente","h"],
+ ["Rascunhos de IA com falha técnica",OC,"no período","Falha técnica do resumo","h"],
+ ["Balcão Virtual: telefone de retorno informado","48","de 72 acessos ao Balcão","Se dá para retornar a chamada caída","h"],
+ ["1ª resposta humana","42 min","mediana, após transferir","Tempo de espera real da pessoa","c"],
+ ["Repetição do caso","Sem medição","amostra com atendentes","Prova se o histórico funcionou","n"],
+ ["Satisfação","Sem medição","pesquisa ao encerrar","A visão de quem foi atendido","n"],
+];
+
+document.querySelectorAll('[data-kpis]').forEach(g=>{
+  g.innerHTML=JSON.parse(g.dataset.kpis).map(([r,v,c])=>`<div class="card kpi"><div class="rot">${r}</div><div class="val">${v}</div><div class="ctx">${c}</div></div>`).join('');
+});
+function barras(id,itens,max,cor){
+  document.getElementById(id).innerHTML=itens.map(x=>{
+    const t=x.rotulo||x[1];
+    return `<div class="bar" tabindex="0" data-tip="${x[0]}: ${x.tip||t}"><div class="nome">${x.rest?ic('cad'):''}${x[0]}</div><div class="tr"><i style="width:${x.w||(x[1]/max*82)}%;--cor:${x.rest?'var(--rosa)':cor}"></i><b>${t}${x.ex?`<small>${x.ex}</small>`:''}</b></div></div>`;}).join('');
+}
+function tabela(id,cab,linhas){
+  document.getElementById(id).innerHTML=`<table><thead><tr>${cab.map((c,i)=>`<th${i?' class="n"':''}>${c}</th>`).join('')}</tr></thead><tbody>${linhas.map(l=>`<tr>${l.map((c,i)=>`<td${i?' class="n"':''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+barras('b-servico',SERV.map(s=>Object.assign([s[0],s[1]],{ex:s[2],rest:s[3],tip:`${s[1]} protocolos (${s[2]})`})),160,'var(--s1)');
+tabela('t-servico',['Serviço','Protocolos','Parcela'],SERV.map(s=>[s[0],s[1],s[2]]));
+barras('b-fcr',FCR.map(s=>Object.assign([s[0],s[1]],{rotulo:s[1]+'%',w:s[1]*.82,tip:s[1]+'% resolvidos'})),100,'var(--s1)');
+tabela('t-fcr',['Serviço','Resolução'],FCR.map(s=>[s[0],s[1]+'%']));
+barras('b-idade',IDADE.map(s=>Object.assign([s[0],s[1]],{tip:s[1]+' protocolos'})),14,'var(--s1)');
+tabela('t-idade',['Tempo','Protocolos'],IDADE);
+barras('b-equipe',EQUIPE.map(s=>Object.assign([s[0],s[1]],{rest:s[2],tip:s[1]+' protocolos'})),60,'var(--s1)');
+tabela('t-equipe',['Equipe','Protocolos'],EQUIPE.map(s=>s.slice(0,2)));
+
+const MAXY=120,TICKS=[0,40,80,120];
+document.getElementById('c-semana').innerHTML=
+ `<div class="yax">${TICKS.map(t=>`<span style="bottom:${t/MAXY*100}%">${t}</span>`).join('')}</div>
+  <div class="plot">${TICKS.map(t=>`<u class="${t?'':'base'}" style="bottom:${t/MAXY*100}%"></u>`).join('')}
+  ${SEM.map((s,i)=>`<div class="gr">
+     <div class="c" tabindex="0" style="height:${s[1]/MAXY*100}%;background:var(--s1)" data-tip="${s[0]}: ${s[1]} abertos">${i==3?`<em>${s[1]}</em>`:''}</div>
+     <div class="c" tabindex="0" style="height:${s[2]/MAXY*100}%;background:var(--s3)" data-tip="${s[0]}: ${s[2]} fechados">${i==3?`<em>${s[2]}</em>`:''}</div></div>`).join('')}
+  </div><div class="xax">${SEM.map(s=>`<span>${s[0]}</span>`).join('')}</div>`;
+tabela('t-semana',['Semana','Abertos','Fechados'],SEM);
+
+document.getElementById('s-fech').innerHTML=
+ `<div class="seg" role="img" aria-label="46% a pedido da pessoa, 32% pelo atendente, 22% por inatividade">${FECH.map(f=>`<div tabindex="0" style="width:${f[2]}%;background:var(${f[3]});--rotulo:${f[4]}" data-tip="${f[0]}: ${f[1]} (${f[2]}%)">${f[2]}%</div>`).join('')}</div>`+
+ FECH.map(f=>`<div class="lin"><i style="background:var(${f[3]})"></i>${f[0]}<b>${f[1]}</b></div>`).join('');
+tabela('t-fech',['Como fechou','Protocolos','Parcela'],FECH.map(f=>[f[0],f[1],f[2]+'%']));
+
+document.getElementById('funil').innerHTML=FUNIL.map(f=>`<div class="fl" tabindex="0" data-tip="${f[0]}: ${f[1]}"><div class="nome">${f[0]}</div><div class="tr"><i style="width:${f[1]/368*85}%;background:${f[3]}"></i><b>${f[1]}</b></div><div class="por">${f[2]}</div></div>`).join('');
+
+document.getElementById('medidas').innerHTML=MED.map(m=>`<tr><td>${m[0]}</td><td class="n">${m[1]}</td><td>${m[2]}</td><td>${m[3]}</td><td><span class="tag ${m[4]}">${ic(TAG[m[4]][0])}${TAG[m[4]][1]}</span></td></tr>`).join('');
+
+document.querySelectorAll('[data-tab] .bt').forEach(b=>b.onclick=()=>{
+  const c=b.closest('[data-tab]');const on=c.classList.toggle('mostra');b.textContent=on?'Ver gráfico':'Ver tabela';
+});
+
+const tip=document.getElementById('tip');
+const moveTip=(x,y)=>{const w=tip.offsetWidth,h=tip.offsetHeight;tip.style.left=Math.min(innerWidth-w-8,x+12)+'px';tip.style.top=Math.max(8,y-h-10)+'px';};
+const showTip=(el,x,y)=>{tip.textContent=el.dataset.tip;tip.style.display='block';moveTip(x,y);};
+document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]');if(el)showTip(el,e.clientX,e.clientY);else tip.style.display='none';});
+document.addEventListener('mousemove',e=>{if(tip.style.display==='block')moveTip(e.clientX,e.clientY);});
+document.addEventListener('focusin',e=>{const el=e.target.closest('[data-tip]');if(el){const r=el.getBoundingClientRect();showTip(el,r.left,r.top);}});
+document.addEventListener('focusout',()=>{tip.style.display='none';});
+
+function rota(){
+  const p=PAG[location.hash.slice(1)]?location.hash.slice(1):'visao';
+  document.querySelectorAll('.pag').forEach(s=>s.classList.toggle('ativa',s.id==='pag-'+p));
+  document.querySelectorAll('.menu a').forEach(a=>{if(a.dataset.pag===p)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  document.getElementById('titulo').textContent=PAG[p][0];document.getElementById('sub').textContent=PAG[p][1];
+  document.title=PAG[p][0]+' · Painel gerencial';window.scrollTo(0,0);
+}
+addEventListener('hashchange',rota);rota();
+</script>
+</body>
+</html>
